@@ -2,6 +2,7 @@ import matrx
 import os
 from matrx import WorldBuilder
 from matrx.agents import AgentBrain
+from matrx.agents.agent_utils.state_tracker import StateTracker
 
 def create_builder():
     # Create the builder
@@ -9,32 +10,32 @@ def create_builder():
     visualization_bg_img="", tick_duration=0.1)
 
     # Add the rooms
-    builder.add_room(top_left_location=[3,4], width=5, height=5, name="room blue", door_locations=[(7,6)])
-    builder.add_room(top_left_location=[12,4], width=5, height=5, name="room red", door_locations=[(12,6)])
-    builder.add_room(top_left_location=[3,11], width=5, height=5, name="room yellow", door_locations=[(7,13)])
-    builder.add_room(top_left_location=[12,11], width=5, height=5, name="room green", door_locations=[(12,13)])
+    builder.add_room(top_left_location=[3,4], width=5, height=5, name="room_blue", door_locations=[(7,6)])
+    builder.add_room(top_left_location=[12,4], width=5, height=5, name="room_red", door_locations=[(12,6)])
+    builder.add_room(top_left_location=[3,11], width=5, height=5, name="room_yellow", door_locations=[(7,13)])
+    builder.add_room(top_left_location=[12,11], width=5, height=5, name="room_green", door_locations=[(12,13)])
 
     # Add drop-off zone
     builder.add_multiple_objects(locations=[(16,0),(17,0),(18,0),(19,0),(20,0)], names="drop zone", visualize_colours="#707070", is_movable=False)
 
     # Add the blocks
-    builder.add_object(location=[4,7], name="block blue 1", visualize_colour="#0000FF", is_traversable=False, is_movable=True)
-    builder.add_object(location=[5,6], name="block blue 2", visualize_colour="#0000FF", is_traversable=False, is_movable=True)
-    builder.add_object(location=[13,5], name="block red 1", visualize_colour="FF0000", is_traversable=False, is_movable=True)
-    builder.add_object(location=[15,7], name="block red 2", visualize_colour="FF0000", is_traversable=False, is_movable=True)
-    builder.add_object(location=[4,12], name="block yellow 1", visualize_colour="FFFF00", is_traversable=False, is_movable=True)
-    builder.add_object(location=[5,13], name="block yellow 2", visualize_colour="FFFF00", is_traversable=False, is_movable=True)
-    builder.add_object(location=[15,12], name="block green 1", visualize_colour="00FF00", is_traversable=False, is_movable=True)
-    builder.add_object(location=[15,13], name="block green 2", visualize_colour="00FF00", is_traversable=False, is_movable=True)
+    builder.add_object(location=[4,7], name="block_blue", visualize_colour="#0000FF", is_traversable=False, is_movable=True)
+    builder.add_object(location=[5,6], name="block_blue", visualize_colour="#0000FF", is_traversable=False, is_movable=True)
+    builder.add_object(location=[13,5], name="block_red", visualize_colour="FF0000", is_traversable=False, is_movable=True)
+    builder.add_object(location=[15,7], name="block_red", visualize_colour="FF0000", is_traversable=False, is_movable=True)
+    builder.add_object(location=[4,12], name="block_yellow", visualize_colour="FFFF00", is_traversable=False, is_movable=True)
+    builder.add_object(location=[5,13], name="block_yellow", visualize_colour="FFFF00", is_traversable=False, is_movable=True)
+    builder.add_object(location=[15,12], name="block_green", visualize_colour="00FF00", is_traversable=False, is_movable=True)
+    builder.add_object(location=[15,13], name="block_green", visualize_colour="00FF00", is_traversable=False, is_movable=True)
 
     #Add door blocks
-    builder.add_multiple_objects(locations=[(8,6),(11,6),(8,13),(11,13)], names=["door block blue", "door block red", "door block yellow", "door block green"],
+    builder.add_multiple_objects(locations=[(8,6),(11,6),(8,13),(11,13)], names=["doormat_blue", "doormat_red", "doormat_yellow", "doormat_green"],
     visualize_colours=["#0000FF", "FF0000", "FFFF00", "#00FF00"], visualize_opacities=0.5)
 
     # Add autonomous agent
     brain = AgentBrain()
-    builder.add_agent(location=[2,2], agent_brain=brain, name="Agent1", is_traversable=False, img_name="/images/machine.png")
-    builder.add_agent(location=[10,17], agent_brain=brain, name="Agent2", is_traversable=False, img_name="/images/machine.png")
+    builder.add_agent(location=[2,2], agent_brain=brain, name="Bot_1", is_traversable=False, img_name="/images/machine.png")
+    builder.add_agent(location=[10,17], agent_brain=brain, name="Bot_2", is_traversable=False, img_name="/images/machine.png")
 
     return builder
 
