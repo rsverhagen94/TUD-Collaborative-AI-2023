@@ -1,5 +1,5 @@
 from BW4TBrain import BW4TBrain
-from ColorBlindBW4TBrain import ColorBlindBW4TBrain
+#from ColorBlindBW4TBrain import ColorBlindBW4TBrain
 from BlockPositions import BlockPositions, sameAppearance
 import enum
 from matrx.agents.agent_utils.state import State
@@ -31,7 +31,7 @@ class Phase(enum.Enum):
     FOLLOW_PATH_TO_DROPPOINT=13,
     DROP_BLOCK=14
     
-class BlockWorldAgent(ColorBlindBW4TBrain):
+class BlockWorldAgent(BW4TBrain):
     """
     This extends planningagent2 with communication.
     """
@@ -49,6 +49,7 @@ class BlockWorldAgent(ColorBlindBW4TBrain):
     #override
     def filter_bw4t_observations(self, state):
         self._processMessages()
+        print(state.values())
         return state
 
     #override

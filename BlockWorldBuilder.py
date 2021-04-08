@@ -12,7 +12,7 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from planningagent3 import BlockWorldAgent
+from explainable_agent import BlockWorldAgent
 
 tick_duration = 0.2
 random_seed = 1
@@ -38,9 +38,9 @@ block_colors = ['#0008ff', '#ff1500', '#0dff00']
 room_colors = ['#0008ff', '#ff1500', '#0dff00']
 wall_color = "#8a8a8a"
 drop_off_color = "#878787"
-block_size = 0.8
+block_size = 0.5
 nr_drop_zones = 1
-nr_blocks_needed = 1
+nr_blocks_needed = 3
 hallway_space = 2
 nr_teams = 1
 agents_per_team = 2
@@ -57,32 +57,83 @@ agent_slowdown=[3,2,1,1,1]
 # 1=normal, 3 means 3x slowdown. allowed: natural numbers.
 # This value is used in all actions of the agents.
 
+def calculate_world_size():
+    nr_room_rows = np.ceil(nr_rooms / rooms_per_row)
+
+    # calculate the total width
+    world_width = max(rooms_per_row * room_size[0] + 2 * hallway_space,
+                      (nr_drop_zones + 1) * hallway_space + nr_drop_zones) + 2
+
+    # calculate the total height
+    world_height = nr_room_rows * room_size[1] + (nr_room_rows + 1) * hallway_space + nr_blocks_needed + 2
+    return int(world_width), int(world_height)
+
+
+def get_room_loc(room_nr):
+    row = np.floor(room_nr / rooms_per_row)
+    column = room_nr % rooms_per_row
+
+    # x is: +1 for the edge, +edge hallway, +room width * column nr, +1 off by one
+    room_x = int(1 + hallway_space + (room_size[0] * column) + 1)
+
+    # y is: +1 for the edge, +hallway space * (nr row + 1 for the top hallway), +row * room height, +1 off by one
+    room_y = int(1 + hallway_space * (row + 1) + row * room_size[1] + 1)
+
+    # door location is always center bottom
+    door_x = room_x + int(np.ceil(room_size[0] / 2))
+    door_y = room_y + room_size[1] - 1
+
+    return (room_x, room_y), (door_x, door_y)
+
+
+def add_blocks(builder, room_locations):
+    for room_name, locations in room_locations.items():
+        for loc in locations:
+            # Get the block's name
+            name = f"Block in {room_name}"
+
+            # Get the probability for adding a block so we get the on average the requested number of blocks per room
+            prob = min(1.0, average_blocks_per_room / len(locations))
+
+            # Create a MATRX random property of shape and color so each block varies per created world.
+            # These random property objects are used to obtain a certain value each time a new world is
+            # created from this builder.
+            colour_property = RandomProperty(values=block_colors)
+            shape_property = RandomProperty(values=block_shapes)
+
+            # Add the block; a regular SquareBlock as denoted by the given 'callable_class' which the
+            # builder will use to create the object. In addition to setting MATRX properties, we also
+            # provide a `is_block` boolean as custom property so we can identify this as a collectible
+            # block.
+            builder.add_object_prospect(loc, name, callable_class=CollectableBlock, probability=prob,
+                                        visualize_shape=shape_property, visualize_colour=colour_property)
+
 
 def add_drop_off_zones(builder, world_size):
-    x=1
-    #x = int(np.ceil(world_size[0] / 2)) - (int(np.floor(nr_drop_zones / 2)) * (hallway_space + 1))
-    #y = world_size[1] - 1 - 1  # once for off by one, another for world bound
+    x = int(np.ceil(world_size[0] / 2)) - (int(np.floor(nr_drop_zones / 2)) * (hallway_space + 1))
+    y = world_size[1] - 1 - 1  # once for off by one, another for world bound
     for nr_zone in range(nr_drop_zones):
         # Add the zone's tiles. Area tiles are special types of objects in MATRX that simply function as
         # a kind of floor. They are always traversable and cannot be picked up.
-        builder.add_area((1,22), width=1, height=2, name=f"Drop off {nr_zone}", visualize_colour=drop_off_color, drop_zone_nr=nr_zone,
-        is_drop_zone=True, is_goal_block=False, is_collectable=False)
+        builder.add_area((x, y - nr_blocks_needed + 1), width=1, height=nr_blocks_needed, name=f"Drop off {nr_zone}",
+                         visualize_colour=drop_off_color, drop_zone_nr=nr_zone, is_drop_zone=True, is_goal_block=False,
+                         is_collectable=False)
 
         # Go through all needed blocks
-        #for nr_block in range(nr_blocks_needed):
-        #    # Create a MATRX random property of shape and color so each world contains different blocks to collect
-        #    colour_property = RandomProperty(values=block_colors)
-        #    shape_property = RandomProperty(values=block_shapes)
+        for nr_block in range(nr_blocks_needed):
+            # Create a MATRX random property of shape and color so each world contains different blocks to collect
+            colour_property = RandomProperty(values=block_colors)
+            shape_property = RandomProperty(values=block_shapes)
 
             # Add a 'ghost image' of the block that should be collected. This can be seen by both humans and agents to
             # know what should be collected in what order.
-#            loc = (nr_block+x , 23)
-#            builder.add_object(loc, name="Collect Block", callable_class=GhostBlock,
-#                               visualize_colour=colour_property, visualize_shape=shape_property,
-#                               drop_zone_nr=nr_zone)
+            loc = (x, y - nr_block)
+            builder.add_object(loc, name="Collect Block", callable_class=GhostBlock,
+                               visualize_colour=colour_property, visualize_shape=shape_property,
+                               drop_zone_nr=nr_zone)
 
         # Change the x to the next zone
-        
+        x = x + hallway_space + 1
 
 
 def add_agents(builder):
@@ -99,16 +150,38 @@ def add_agents(builder):
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
             brain = BlockWorldAgent(slowdown=agent_slowdown[agent_nr])
-            loc = (9,23)
+            loc = (loc[0] + 1, loc[1])
             builder.add_agent(loc, brain, team=team_name, name=f"Agent {agent_nr} in {team_name}",
-                              sense_capability=sense_capability, img_name="/images/robotics5.svg")
+                              sense_capability=sense_capability, img_name="/images/robotics.svg")
 
         # Add human agents
         for human_agent_nr in range(human_agents_per_team):
             brain = HumanAgentBrain(max_carry_objects=1, grab_range=0, drop_range=0, fov_occlusion=fov_occlusion)
-            loc = (10,23)
+            loc = (loc[0] + 1, loc[1])
             builder.add_human_agent(loc, brain, team=team_name, name=f"Human {human_agent_nr} in {team_name}",
-                                    key_action_map=key_action_map, sense_capability=sense_capability, img_name="/images/first-responder6.svg")
+                                    key_action_map=key_action_map, sense_capability=sense_capability, img_name="/images/first-responder.svg")
+
+
+def add_rooms(builder):
+    room_locations = {}
+    for room_nr in range(nr_rooms):
+        room_top_left, door_loc = get_room_loc(room_nr)
+
+        # We assign a simple random color to each room. Not for any particular reason except to brighting up the place.
+        np.random.shuffle(room_colors)
+        room_color = room_colors[0]
+
+        # Add the room
+        room_name = f"room_{room_nr}"
+        builder.add_room(top_left_location=room_top_left, width=room_size[0], height=room_size[1], name=room_name,
+                         door_locations=[door_loc], wall_visualize_colour=wall_color,
+                         with_area_tiles=True, area_visualize_colour=room_color, area_visualize_opacity=0.1)
+
+        # Find all inner room locations where we allow objects (making sure that the location behind to door is free)
+        room_locations[room_name] = builder.get_room_locations(room_top_left, room_size[0], room_size[1])
+
+    return room_locations
+
 
 def create_builder():
 
@@ -116,74 +189,26 @@ def create_builder():
     np.random.seed(random_seed)
 
     # Get world size
+    world_size = calculate_world_size()
 
     # Create the goal
     goal = CollectionGoal()
+
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, random_seed=random_seed, run_matrx_api=True,
-                           run_matrx_visualizer=True, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background45.svg")
+                           run_matrx_visualizer=True, verbose=verbose, simulation_goal=goal)
 
     # Add the world bounds (not needed, as agents cannot 'walk off' the grid, but for visual effects)
-    builder.add_room(top_left_location=(0, 0), width=24, height=25, name="world_bounds")
-    bush_locations=[(1,12),(1,13),(1,14),(1,15),(1,16),(5,16),(5,15),(5,14),(7,14),(7,15),(7,16),(11,14),(11,15),(11,16),
-    (3,12),(22,11),(21,11),(20,11),(19,11),(18,11),(17,11),(1,6),(2,6),(3,6),(16,10),(16,11),(5,6),(6,6),(7,6),(8,6),(9,6),(10,6),(11,6),(12,6),(13,6),
-    (14,6),(14,7),(14,8),(14,9),(14,10),(14,11),(14,12),(14,13),(14,14),(14,15),(14,16),(14,17),(14,19),(14,20),(14,21),(14,22),(14,23),
-    (3,22),(2,22),(5,22),(6,22),(7,22),(8,22)]
-    path_locations=[(1,1),(2,5),(3,5),(4,5),(5,5),(6,5),(7,5),(8,5),(9,5),(10,5),(11,5),(12,5),(13,5),(14,5),(15,5),(16,5),(8,1),(12,1),(3,13),(2,13),(2,12),
-    (4,6),(4,7),(4,8),(4,9),(4,10),(4,11),(4,12),(4,13),(5,13),(6,13),(7,13),(8,13),(9,13),(1,2),(1,3),(1,4),(1,5),(4,1),(3,14),(3,15),(3,16),(9,14),(9,15),(9,16),
-    (10,13),(11,13),(12,13),(13,13),(13,14),(13,15),(13,16),(13,17),(13,18),(14,18),(15,18),(13,19),(13,20),(13,21),(12,21),(11,21),(10,21),(9,21),(8,21),(7,21),(6,21),(5,21),
-    (4,21),(4,22),(9,23),(10,23),(9,22),(10,22)]
-    fence_locations=[(6,2),(6,3),(6,4),(10,2),(10,3),(10,4),(14,2),(14,3),(14,4),(2,2),(2,3),(2,4),(2,1),(6,1),(10,1),(14,1),(6,20),(6,19),(6,18),(6,17),(6,16),(6,15),(6,14),
-    (12,14),(12,15),(12,16),(12,17),(12,18),(12,19),(12,20)]
-    plant_locations=[(15,13),(15,14),(15,15),(15,16),(15,17),(15,19),(15,20),(15,21),(15,22),(15,23),(2,16),(2,15),(2,14),(4,14),(4,15),(4,16),(8,14),(8,15),(8,16),
-    (10,14),(10,15),(10,16)]
-    for bush_loc in bush_locations:
-        builder.add_object(bush_loc,'bush',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/tree.svg")
-    for path_loc in path_locations:
-        builder.add_object(path_loc,'path',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving2.svg")
-    for fence_loc in fence_locations:
-        builder.add_object(fence_loc,'fence',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/fence.svg")
-    for plant_loc in plant_locations:
-        builder.add_object(plant_loc,'plant',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/pool20.svg")
-
-    builder.add_object((3,1),'bbq',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/bbq2.svg") 
-    builder.add_object((5,1),'tree',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/tree.svg") 
-    builder.add_object((7,1),'umbrella',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/umbrella2.svg")
-    builder.add_object((9,1),'tree',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/tree.svg")
-    builder.add_object((13,1),'tree',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/tree.svg")
-    builder.add_object((11,1),'tree',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/tree.svg")
-    builder.add_object((12,22),'ball',EnvObject,is_traversable=False,is_movable=True,visualize_shape='img',img_name="/images/soccer-ball.svg")
-    builder.add_object((4,3),'Block in house 1', callable_class=CollectableBlock, visualize_shape='img',img_name="/images/grandmother_critical.svg")
-    builder.add_object((8,3),'Block in house 2', callable_class=CollectableBlock, visualize_shape='img',img_name="/images/grandmother_severe.svg")
-    #builder.add_object((1,16),'car',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/car (1).svg")
-    builder.add_object((1,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/grandmother_critical.svg",drop_zone_nr=0)
-    builder.add_object((1,22),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/grandmother_severe.svg",drop_zone_nr=0)
+    builder.add_room(top_left_location=(0, 0), width=world_size[0], height=world_size[1], name="world_bounds")
 
     # Create the rooms
-   # room_locations = add_rooms(builder)
-    builder.add_room(top_left_location=(17,1), width=6, height=10, name='school', door_locations=[(17,5)], wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.1)
-    builder.add_room(top_left_location=(3,2), width=3, height=3, name='house 1', door_locations=[(4,4)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.1)
-    builder.add_room(top_left_location=(7,2), width=3, height=3, name='house 2', door_locations=[(8,4)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.1)
-    builder.add_room(top_left_location=(11,2), width=3, height=3, name='house 3', door_locations=[(12,4)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.1)
-    builder.add_room(top_left_location=(1,7), width=3, height=5, name='shelter', door_locations=[(2,11)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.1)
-    builder.add_room(top_left_location=(5,7), width=9, height=6, name='supermarket', door_locations=[(9,12)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.1)
-    builder.add_room(top_left_location=(1,17), width=5, height=4, name='house 4', door_locations=[(3,17)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.1)
-    builder.add_room(top_left_location=(7,17), width=5, height=4, name='house 5', door_locations=[(9,17)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.1)
-    builder.add_room((16,13),7,11,'pitch',door_locations=[(16,18)],doors_open=True,wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.1)
+    room_locations = add_rooms(builder)
 
     # Add the collectible objects, we do so probabilistically so each world will contain different blocks
-    #add_blocks(builder, room_locations)
+    add_blocks(builder, room_locations)
+
     # Create the drop-off zones, this includes generating the random colour/shape combinations to collect.
-    add_drop_off_zones(builder, [24,25])
+    add_drop_off_zones(builder, world_size)
 
     # Add the agents and human agents to the top row of the world
     add_agents(builder)
@@ -191,18 +216,19 @@ def create_builder():
     # Return the builder
     return builder
 
+
 class CollectableBlock(EnvObject):
-    def __init__(self, location, name, visualize_shape, img_name):
+    def __init__(self, location, name, visualize_colour, visualize_shape):
         super().__init__(location, name, is_traversable=True, is_movable=True,
-                         visualize_shape=visualize_shape,img_name=img_name,
+                         visualize_colour=visualize_colour, visualize_shape=visualize_shape,
                          visualize_size=block_size, class_callable=CollectableBlock,
                          is_drop_zone=False, is_goal_block=False, is_collectable=True)
 
 
 class GhostBlock(EnvObject):
-    def __init__(self, location, drop_zone_nr, name, visualize_shape, img_name):
+    def __init__(self, location, drop_zone_nr, name, visualize_colour, visualize_shape):
         super().__init__(location, name, is_traversable=True, is_movable=False,
-                         visualize_shape=visualize_shape, img_name=img_name,
+                         visualize_colour=visualize_colour, visualize_shape=visualize_shape,
                          visualize_size=block_size, class_callable=GhostBlock,
                          visualize_depth=85, drop_zone_nr=drop_zone_nr, visualize_opacity=0.5,
                          is_drop_zone=False, is_goal_block=True, is_collectable=False)

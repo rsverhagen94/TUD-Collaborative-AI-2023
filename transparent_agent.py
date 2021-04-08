@@ -32,6 +32,7 @@ class BlockWorldAgent(BW4TBrain):
     def filter_bw4t_observations(self, state):
         # Update state.
         self.state_tracker.update(state)
+        print(state.keys())
         return state
 
     def search_first_room_action(self, state, location):
