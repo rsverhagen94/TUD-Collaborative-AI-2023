@@ -49,7 +49,6 @@ class BlockWorldAgent(BW4TBrain):
     #override
     def filter_bw4t_observations(self, state):
         self._processMessages()
-        print(state.values())
         return state
 
     #override
@@ -90,7 +89,7 @@ class BlockWorldAgent(BW4TBrain):
                 for info in self._getDropZones(state):
                     goodblocks = [blockinfo 
                         for blockinfo in self._blockpositions.getBlocksAt(info['location'])
-                        if sameAppearance(blockinfo['visualization'], info['visualization'])]
+                        if sameAppearance(blockinfo['img_name'], info['img_name'])]
                     if len(goodblocks)==0:
                         self._goalZone=info
                         break
@@ -99,7 +98,7 @@ class BlockWorldAgent(BW4TBrain):
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
                     # all known blocks with required appearance that are not in dropzone
-                    options=self._blockpositions.getAppearance(self._goalZone['visualization'])
+                    options=self._blockpositions.getAppearance(self._goalZone['img_name'])
                     droplocs=[info['location'] for info in self._getDropZones(state)]
                     options=[info for info in options if not info['location'] in droplocs]
                     
@@ -108,7 +107,7 @@ class BlockWorldAgent(BW4TBrain):
                     else:
                         self._block = random.choice(options)
                         self._phase=Phase.PLAN_PATH_TO_BLOCK
-                        
+        
             if Phase.PICK_SOME_CLOSED_DOOR==self._phase:
                 closedDoors=[door for door in state.values()
                     if 'class_inheritance' in door 
@@ -203,7 +202,7 @@ class BlockWorldAgent(BW4TBrain):
                 # self._block must be set to info of target block 
                 # self._goalZone must be set to goalzone needing that block
                 print("delivering block")
-                msg = Message(content='Delivering block '+str(self._block['visualization']), from_id='me' )
+                msg = Message(content='Delivering '+str(self._block['img_name'])[8:-4], from_id='me' )
                 self.send_message(msg)
                 self._phase=Phase.PLAN_PATH_TO_DROPPOINT
                 return GrabObject.__name__,{'object_id':self._block['obj_id']}
@@ -251,7 +250,7 @@ class BlockWorldAgent(BW4TBrain):
         @return true iff we are carrying a block of given appearance
         """
         for carrying in state[self.agent_id]['is_carrying']:
-            if sameAppearance(carrying['visualization'], appearance):
+            if sameAppearance(carrying['img_name'], appearance):
                 return True
         return False
         
@@ -285,9 +284,10 @@ class BlockWorldAgent(BW4TBrain):
         locs=[(id,)+state[id]['location'] for id in state.keys() 
             if 'is_collectable' in state[id] 
             and state[id]['is_collectable'] 
-            and state[id]['visualization']['size']==appearance['size']
-            and state[id]['visualization']['shape']==appearance['shape']
-            and state[id]['visualization']['colour']==appearance['colour']
+            and state[id]['img_name']==appearance['img_name']
+            #and state[id]['visualization']['size']==appearance['size']
+            #and state[id]['visualization']['shape']==appearance['shape']
+            #and state[id]['visualization']['colour']==appearance['colour']
             and not state[id]['location'] in droplocations
             and len(state[id]['carried_by'])==0
             ]

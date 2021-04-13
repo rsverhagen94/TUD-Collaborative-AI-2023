@@ -1,14 +1,15 @@
 from matrx.agents.agent_utils.state import State
 
-def sameAppearance(appearance1:dict, appearance2:dict):
+def sameAppearance(appearance1:str, appearance2:str):
     """
     @return true if the given 2 appearances are the same.
     This means both dicts have the same value for "shape", "size" and "colour"
     FIXME this would be better an appearance object
     """
-    return appearance1['shape']==appearance2['shape']  \
-        and appearance1['size']==appearance2['size']   \
-        and appearance1['colour']==appearance2['colour'] 
+    return appearance1==appearance2
+    #appearance1['shape']==appearance2['shape']  \
+    #    and appearance1['size']==appearance2['size']   \
+    #    and appearance1['colour']==appearance2['colour'] 
        
 class BlockPositions:
     """
@@ -41,8 +42,8 @@ class BlockPositions:
         @param details the loc where the block was seen.
         must contain 'obj_id' 'location' and 'visualization' elements
         '''
-        if not ('obj_id' in blockinfo and 'location' in blockinfo and 'visualization' in blockinfo):
-            raise ValueError("blockinfo must contain location, visualization and obj_id but got "+str(blockinfo))
+        if not ('obj_id' in blockinfo and 'location' in blockinfo and 'img_name' in blockinfo):
+            raise ValueError("blockinfo must contain location, name and obj_id but got "+str(blockinfo))
         blocks=self._blocks.copy()
         blocks[blockinfo['obj_id']]=blockinfo
         return BlockPositions(blocks)
@@ -56,13 +57,13 @@ class BlockPositions:
                 if loc==info['location']]
 
     
-    def getAppearance(self, appearance:dict)->list:
+    def getAppearance(self, appearance:str)->list:
         '''
         @param appearance the appearance you need
         @return the list of details of the all blocks that have given appearance
         '''
         return [info for info in self._blocks.values()
-                if sameAppearance(appearance,info['visualization'])]
+                if sameAppearance(appearance,info['img_name'])]
     
     def getDifference(self, other)->dict:
         """
