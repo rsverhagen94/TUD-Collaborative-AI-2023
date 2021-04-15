@@ -33,7 +33,7 @@ class BW4TBrain(AgentBrain, ABC):
             raise ValueError("Parameter use not allowed ", wrong)
         params['grab_range']=1
         # door_range=1 does not work, doors don't open
-        #params['door_range']=1
+       # params['door_range']=1
         params['max_objects']=3
         params['action_duration'] = self.__slowdown
         return act,params

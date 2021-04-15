@@ -32,7 +32,7 @@ class BlockWorldAgent(BW4TBrain):
     def filter_bw4t_observations(self, state):
         # Update state.
         self.state_tracker.update(state)
-        print(state.keys())
+        #print(state.keys())
         return state
 
     def search_first_room_action(self, state, location):
@@ -62,12 +62,20 @@ class BlockWorldAgent(BW4TBrain):
         return
 
     def enter_room_action(self, state, location):
-        # Enter a room.
-        loc = list(state[self.agent_id]['location'])
-        entrance = list(loc)
-        entrance[1]-=3
-        self.navigator.add_waypoint(tuple(entrance))
-        move_action = self.navigator.get_move_action(self.state_tracker)
+        roomTiles = [info['location'] for info in state.values()
+                    if 'class_inheritance' in info 
+                    and 'AreaTile' in info['class_inheritance']
+                    #notice, in matrx a room can go to only 1 door
+                    # because of the 'room_name' property of doors
+                    and 'room_name' in info
+                    and info['room_name'] == self._door['room_name']
+                ]
+                # FIXME we want to sort these tiles for efficient search...
+                # CHECK rooms don't need to be square I assume?
+        self.navigator.reset_full()
+        self.navigator.add_waypoints(roomTiles)
+        self.state_tracker.update(state)
+        move_action = self._navigator.get_move_action(self._state_tracker)
         self.actions[0].append(move_action)
         self.actions[1].append({})
         return
@@ -75,12 +83,11 @@ class BlockWorldAgent(BW4TBrain):
     def inspect_room_action(self, state):
         # Inspect a room when inside it by adding the block-visualization pairs to self.seen_blocks and block-location pairs to see.block_locs.
         # IMPORTANT: I've changed the variable 'block_sense_range' in builder.py from 2 to 3, in order to make the agent be able to perceive every block when inside a room.
-        objects = list(state.keys())
+        objects = list(state.values())
+        print(objects)
         for obj in objects:
-            if 'Block_in_room' in obj and obj not in self.seen_blocks.keys():
-                self.seen_blocks[obj] = state[obj]['visualization']
-                self.seen_blocks[obj].pop('depth', None)
-                self.seen_blocks[obj].pop('opacity', None)
+            if 'img_name' in obj and obj not in self.seen_blocks.keys():
+                self.seen_blocks[obj] = state[obj]['img_name']
                 self.block_locs[obj] = state[obj]['location']
         return
 
@@ -156,8 +163,8 @@ class BlockWorldAgent(BW4TBrain):
             if 'is_drop_zone' in state[obj] and state[obj]['is_drop_zone'] == True and state[obj]['location'] not in self.visited_drop_zones:
                 drop_zones.append(state[obj]['location'])
             # Only add goal_block if it is not collected before
-            if 'is_goal_block' in state[obj] and state[obj]['is_goal_block'] == True and state[obj]['visualization'] not in goal_blocks and state[obj]['visualization'] not in self.collected_blocks:
-                goal_blocks.append(state[obj]['visualization'])
+            if 'is_goal_block' in state[obj] and state[obj]['is_goal_block'] == True and state[obj]['img_name'] not in goal_blocks and state[obj]['img_name'] not in self.collected_blocks:
+                goal_blocks.append(state[obj]['img_name'])
         # Reverse drop_zones since it's in wrong order wrt goal_blocks
         drop_zones.reverse() 
 
@@ -169,11 +176,11 @@ class BlockWorldAgent(BW4TBrain):
         doors = {}
         door_ids = {}
         for room in rooms:
-            loc = state.get_room_doors(room)[0]['location']
+            loc = state.get_room_objects(room)[0]['doormat']
             # Make sure the entrance of the door is in front of the door (y+1).
-            entrance = list(loc)
-            entrance[1]+=1
-            doors[tuple(entrance)] = room
+            #entrance = list(loc)
+            #entrance[1]+=1
+            doors[loc] = room
             door_ids[room] = state.get_room_doors(room)[0]['obj_id']
 
         # Create a list with the locations of the entrances belonging to non-visited rooms.
@@ -189,10 +196,10 @@ class BlockWorldAgent(BW4TBrain):
         if unseen:
             if goal_blocks:
                 # Select the next goal block as block to be collected.
-                next_block = goal_blocks[0].copy()
+                next_block = goal_blocks[0]
                 # Remove depth and opacity visualization features since they are different between ghost and real blocks.
-                next_block.pop('depth', None)
-                next_block.pop('opacity', None)
+                #next_block.pop('depth', None)
+                #next_block.pop('opacity', None)
             if drop_zones:
                 # Select drop_zone corresponding to next to be collected goal block.
                 drop_zone = drop_zones.copy()[0]
@@ -202,9 +209,10 @@ class BlockWorldAgent(BW4TBrain):
             # Set some relevant variables for ease of reading, e.g.: next room, if next door is open, the entrance location within the room, and the multiple locations within a room.
             next_room = doors[next_door]
             door_open = state[door_ids[next_room]]['is_open']
-            room_entrance = list(next_door)
-            room_entrance[1]-=1
-            room_entrance = tuple(room_entrance)
+            room_entrance = state.get_room_objects(next_room)[0]['doormat']
+            #room_entrance = list(next_door)
+            #room_entrance[1]-=1
+            #room_entrance = tuple(room_entrance)
             # Add locations within room to room area list.
             room_area = []
             for obj in state.get_room_objects(next_room):

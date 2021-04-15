@@ -2,7 +2,6 @@ import sys
 import itertools
 from collections import OrderedDict
 from itertools import product
-
 from matrx import WorldBuilder
 import numpy as np
 from matrx.actions import MoveNorth, OpenDoorAction, CloseDoorAction
@@ -12,7 +11,8 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from planningagent3 import BlockWorldAgent
+from ExplainableAgent import BlockWorldAgent
+from HumanBrain import HumanBrain
 
 tick_duration = 0.0
 random_seed = 1
@@ -77,14 +77,14 @@ def add_agents(builder):
             brain = BlockWorldAgent(slowdown=agent_slowdown[agent_nr])
             loc = (9,23)
             builder.add_agent(loc, brain, team=team_name, name=f"Agent {agent_nr} in {team_name}",
-                              sense_capability=sense_capability, img_name="/images/robotics5.svg")
+                              sense_capability=sense_capability, is_traversable=True, img_name="/images/robotics5.svg")
 
         # Add human agents
         for human_agent_nr in range(human_agents_per_team):
-            brain = HumanAgentBrain(max_carry_objects=1, grab_range=0, drop_range=0, fov_occlusion=fov_occlusion)
+            brain = HumanBrain(max_carry_objects=1, grab_range=0, drop_range=0, fov_occlusion=fov_occlusion)
             loc = (10,23)
             builder.add_human_agent(loc, brain, team=team_name, name=f"Human {human_agent_nr} in {team_name}",
-                                    key_action_map=key_action_map, sense_capability=sense_capability, img_name="/images/first-responder6.svg")
+                                    key_action_map=key_action_map, sense_capability=sense_capability, is_traversable=True, img_name="/images/first-responder6.svg")
 
 def create_builder():
     # Set numpy's random generator
@@ -188,24 +188,24 @@ def create_builder():
 
     # Create the rooms
    # room_locations = add_rooms(builder)
-    builder.add_room(top_left_location=(17,1), width=6, height=10, name='upper right office', door_locations=[(17,5)], wall_visualize_colour=wall_color, 
-    with_area_tiles=True ,area_visualize_colour='#c4c4c4',area_visualize_opacity=0.0)
-    builder.add_room(top_left_location=(3,2), width=3, height=3, name='upper left appartment', door_locations=[(4,4)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
-    builder.add_room(top_left_location=(7,2), width=3, height=3, name='upper center appartment', door_locations=[(8,4)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
-    builder.add_room(top_left_location=(11,2), width=3, height=3, name='upper right appartment', door_locations=[(12,4)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
-    builder.add_room(top_left_location=(1,7), width=3, height=5, name='middle left animal shelter', door_locations=[(2,11)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
-    builder.add_room(top_left_location=(5,7), width=9, height=6, name='middle centre villa', door_locations=[(9,12)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
-    builder.add_room(top_left_location=(1,17), width=5, height=4, name='lower left house', door_locations=[(3,17)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
-    builder.add_room(top_left_location=(7,17), width=5, height=4, name='lower right house', door_locations=[(9,17)], wall_visualize_colour=wall_color,
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
-    builder.add_room((16,13),7,11,'football pitch',door_locations=[(16,18)],doors_open=False,wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
+    builder.add_room(top_left_location=(17,1), width=6, height=10, name='upper right office', door_locations=[(17,5)],doors_open=True, wall_visualize_colour=wall_color, 
+    with_area_tiles=True, area_custom_properties={'doormat':(16,5)}, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0)
+    builder.add_room(top_left_location=(3,2), width=3, height=3, name='upper left appartment', door_locations=[(4,4)],doors_open=True, wall_visualize_colour=wall_color,
+    with_area_tiles=True, area_custom_properties={'doormat':(4,5)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
+    builder.add_room(top_left_location=(7,2), width=3, height=3, name='upper center appartment', door_locations=[(8,4)],doors_open=True, wall_visualize_colour=wall_color,
+    with_area_tiles=True, area_custom_properties={'doormat':(9,4)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
+    builder.add_room(top_left_location=(11,2), width=3, height=3, name='upper right appartment', door_locations=[(12,4)],doors_open=True, wall_visualize_colour=wall_color,
+    with_area_tiles=True, area_custom_properties={'doormat':(12,5)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
+    builder.add_room(top_left_location=(1,7), width=3, height=5, name='middle left animal shelter', door_locations=[(2,11)],doors_open=True, wall_visualize_colour=wall_color,
+    with_area_tiles=True, area_custom_properties={'doormat':(2,12)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
+    builder.add_room(top_left_location=(5,7), width=9, height=6, name='middle centre villa', door_locations=[(9,12)],doors_open=True, wall_visualize_colour=wall_color,
+    with_area_tiles=True, area_custom_properties={'doormat':(9,13)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
+    builder.add_room(top_left_location=(1,17), width=5, height=4, name='lower left house', door_locations=[(3,17)],doors_open=True, wall_visualize_colour=wall_color,
+    with_area_tiles=True, area_custom_properties={'doormat':(3,16)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
+    builder.add_room(top_left_location=(7,17), width=5, height=4, name='lower right house', door_locations=[(9,17)],doors_open=True, wall_visualize_colour=wall_color,
+    with_area_tiles=True, area_custom_properties={'doormat':(9,16)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
+    builder.add_room((16,13),7,11,'football pitch',door_locations=[(16,18)],doors_open=True,wall_visualize_colour=wall_color, 
+    with_area_tiles=True, area_custom_properties={'doormat':(15,18)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
 
     # Add the collectible objects, we do so probabilistically so each world will contain different blocks
     #add_blocks(builder, room_locations)
@@ -310,7 +310,6 @@ class CollectionGoal(WorldGoal):
                             vals.reverse()
                             for j in range(len(self.__drop_off_zone[i].keys())):
                                 self.__drop_off[i][j] = vals[j]
-                    print(self.__drop_off)
 
     def __check_completion(self, grid_world):
         # Get the current tick number
