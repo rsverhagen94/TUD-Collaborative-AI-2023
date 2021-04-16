@@ -16,20 +16,17 @@ class Phase(enum.Enum):
     PLAN_PATH_ALONG_DROPZONE=0, # to update our knowledge about placed blocks
     FOLLOW_PATH_ALONG_DROPZONE=1,
     FIND_NEXT_GOAL=2,# determine next goal zone
-    PICK_SOME_CLOSED_DOOR=3, # we only explore closed rooms
-    #we leave explored room doors open so we know we explored them
-    #Pradeep decided we MUST enter room and search the inside
-    PLAN_PATH_TO_CLOSED_DOOR=4,
-    FOLLOW_PATH_TO_CLOSED_DOOR=5,
-    OPEN_DOOR=6,
-    PLAN_ROOM_SEARCH_PATH=7,
-    FOLLOW_ROOM_SEARCH_PATH=8,
-    PLAN_PATH_TO_BLOCK=9,
-    FOLLOW_PATH_TO_BLOCK=10,
-    TAKE_BLOCK=11,
-    PLAN_PATH_TO_DROPPOINT=12,
-    FOLLOW_PATH_TO_DROPPOINT=13,
-    DROP_BLOCK=14
+    PICK_SOME_UNSEARCHED_ROOM_DOOR=3,
+    PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR=4,
+    FOLLOW_PATH_TO_UNSEARCHED_ROOM_DOOR=5,
+    PLAN_ROOM_SEARCH_PATH=6,
+    FOLLOW_ROOM_SEARCH_PATH=7,
+    PLAN_PATH_TO_VICTIM=8,
+    FOLLOW_PATH_TO_VICTIM=9,
+    TAKE_VICTIM=10,
+    PLAN_PATH_TO_DROPPOINT=11,
+    FOLLOW_PATH_TO_DROPPOINT=12,
+    DROP_VICTIM=13
     
 class BlockWorldAgent(BW4TBrain):
     """
@@ -39,6 +36,8 @@ class BlockWorldAgent(BW4TBrain):
         super().__init__(slowdown)
         self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
         self._blockpositions = BlockPositions()
+        self._searchedRoomDoors = []
+        self._foundVictims = {}
 
     #override
     def initialize(self):
@@ -60,13 +59,8 @@ class BlockWorldAgent(BW4TBrain):
 
         changes=self._blockpositions.getDifference(oldblocks)
         #to_id=self._teamMembers(state) does not work ok yet
-        #if len(changes)>0:
-        #    msg = Message(content='Found:'+str(changes), 
-        #        from_id='me' )
         #    self.send_message(msg)
         
-            
-
         while True: 
             if Phase.PLAN_PATH_ALONG_DROPZONE==self._phase:
                 self._navigator.reset_full()
@@ -76,6 +70,9 @@ class BlockWorldAgent(BW4TBrain):
 
             if Phase.FOLLOW_PATH_ALONG_DROPZONE==self._phase:
                 # This explores the area so we know the needed blocks afterwards
+                msg = Message(content='Exploring the drop zone', from_id='RescueBot')
+                if msg.content not in self.received_messages:
+                    self.send_message(msg)
                 self._state_tracker.update(state)
                 # execute the  path steps as planned in self._navigator
                 action=self._navigator.get_move_action(self._state_tracker)
@@ -97,54 +94,59 @@ class BlockWorldAgent(BW4TBrain):
                     # all blocks are in place. can't handle this situation.
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
+                    if str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys():
+                        msg = Message(content='Going to search for the ' + str(self._goalZone['img_name'])[8:-4], from_id='RescueBot')
+                        if msg.content not in self.received_messages:
+                            self.send_message(msg)
                     # all known blocks with required appearance that are not in dropzone
                     options=self._blockpositions.getAppearance(self._goalZone['img_name'])
                     droplocs=[info['location'] for info in self._getDropZones(state)]
                     options=[info for info in options if not info['location'] in droplocs]
-                    
                     if len(options)==0:
-                        self._phase=Phase.PICK_SOME_CLOSED_DOOR
+                        self._phase=Phase.PICK_SOME_UNSEARCHED_ROOM_DOOR
                     else:
                         self._block = random.choice(options)
-                        self._phase=Phase.PLAN_PATH_TO_BLOCK
-        
-            if Phase.PICK_SOME_CLOSED_DOOR==self._phase:
-                closedDoors=[door for door in state.values()
+                        self._phase=Phase.PLAN_PATH_TO_VICTIM
+            
+            if Phase.PICK_SOME_UNSEARCHED_ROOM_DOOR==self._phase:
+                unsearchedRoomDoors=[door for door in state.values()
                     if 'class_inheritance' in door 
                     and 'Door' in door['class_inheritance']
-                    and not door['is_open']]
-                if len(closedDoors)==0:
+                    and door not in self._searchedRoomDoors]
+                if len(unsearchedRoomDoors)==0:
                     # can't handle this situation. 
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
-                    self._door=random.choice(closedDoors)
-                    self._phase = Phase.PLAN_PATH_TO_CLOSED_DOOR
+                    self._door=random.choice(unsearchedRoomDoors)
+                    print(self._door)
+                    self._searchedRoomDoors.append(self._door)
+                    self._phase = Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
                     
-            if Phase.PLAN_PATH_TO_CLOSED_DOOR == self._phase:
+            if Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR == self._phase:
                 # self._door must be set to target door
                 self._navigator.reset_full()
-                doorLoc:tuple = self._door['location']
+                #doorLoc:tuple = self._door['location']
                 # HACK we assume door is at south side of room
-                doorLoc = doorLoc[0],doorLoc[1]+1
-                print("heading for door at ",doorLoc)
+                #doorLoc = doorLoc[0],doorLoc[1]+1
+                doorLoc = state.get_room_objects(self._door['room_name'])[0]['doormat']
+                #print(state.get_room_objects(self._door['room_name'])[0]['doormat'])
+                #print(state[self.agent_id]['location'])
+                msg = Message(content='Moving to the ' + str(self._door['room_name']), from_id='RescueBot')
+                if msg.content not in self.received_messages:
+                    self.send_message(msg)
                 self._navigator.add_waypoints([doorLoc])
-                self._phase=Phase.FOLLOW_PATH_TO_CLOSED_DOOR
+                self._phase=Phase.FOLLOW_PATH_TO_UNSEARCHED_ROOM_DOOR
             
-            if Phase.FOLLOW_PATH_TO_CLOSED_DOOR == self._phase:
-                # self._door must be set
+            if Phase.FOLLOW_PATH_TO_UNSEARCHED_ROOM_DOOR == self._phase:
                 self._state_tracker.update(state)
+                # self._door must be set
                 # execute the  path steps as planned in self._navigator
                 action=self._navigator.get_move_action(self._state_tracker)
                 if action!=None:
+                    #while state[self.agent_id]['location']!=state.get_room_objects(self._door['room_name'])[0]['doormat']:
                     return action,{}
                 # If we get here, we're there
-                self._phase=Phase.OPEN_DOOR
-
-            if Phase.OPEN_DOOR==self._phase:
-                # self._door must be set
-                print("opening door!")
                 self._phase=Phase.PLAN_ROOM_SEARCH_PATH
-                return OpenDoorAction.__name__,{ 'object_id':self._door['obj_id']}
 
             if Phase.PLAN_ROOM_SEARCH_PATH==self._phase:
                 # self._door must be set
@@ -155,7 +157,7 @@ class BlockWorldAgent(BW4TBrain):
                     # because of the 'room_name' property of doors
                     and 'room_name' in info
                     and info['room_name'] == self._door['room_name']
-                ]
+                ]     
                 # FIXME we want to sort these tiles for efficient search...
                 # CHECK rooms don't need to be square I assume?
                 self._navigator.reset_full()
@@ -166,44 +168,51 @@ class BlockWorldAgent(BW4TBrain):
                 self._state_tracker.update(state)
                 action=self._navigator.get_move_action(self._state_tracker)
                 if action!=None:
+                    if len(changes)>0:
+                        self._foundVictims[str(changes[0]['img_name'][8:-4])] = str(self._door['room_name'])
+                    if state[self.agent_id]['location'] == self._door['location']:
+                        msg = Message(content='Searching through the ' + str(self._door['room_name']), from_id='RescueBot')
+                        if msg.content not in self.received_messages:
+                            self.send_message(msg)
+                    if len(changes)>0 and 'healthy' not in str(changes[0]['img_name']):
+                        msg = Message(content='Found '+str(changes[0]['img_name'][8:-4]) + ' in ' + self._foundVictims[str(changes[0]['img_name'][8:-4])], from_id='RescueBot' )
+                        if msg.content not in self.received_messages:
+                            self.send_message(msg)
                     return action,{}
                 # If we get here, we're done
+                if str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys():
+                    msg = Message(content=str(self._goalZone['img_name'])[8:-4].capitalize() + ' not present in ' + str(self._door['room_name']), from_id='RescueBot')
+                    if msg.content not in self.received_messages:
+                        self.send_message(msg)
                 self._phase=Phase.FIND_NEXT_GOAL
 
-            if Phase.PLAN_PATH_TO_BLOCK==self._phase:
+            if Phase.PLAN_PATH_TO_VICTIM==self._phase:
                 # self._block must be set to info of target block 
                 # self._goalZone must be set to goalzone needing that block
                 # we assume door to room containing block is open
+                msg = Message(content='Picking up ' + str(self._goalZone['img_name'])[8:-4] + ' in ' + self._foundVictims[str(self._goalZone['img_name'])[8:-4]], from_id='RescueBot')
+                if msg.content not in self.received_messages:
+                    self.send_message(msg)
                 self._navigator.reset_full()
                 self._navigator.add_waypoints([self._block['location']])
-                self._phase=Phase.FOLLOW_PATH_TO_BLOCK
+                self._phase=Phase.FOLLOW_PATH_TO_VICTIM
             
-            if Phase.FOLLOW_PATH_TO_BLOCK == self._phase:
+            if Phase.FOLLOW_PATH_TO_VICTIM == self._phase:
                 # self._block must be set to info of target block 
                 # self._goalZone must be set to goalzone needing that block
                 self._state_tracker.update(state)
                 action=self._navigator.get_move_action(self._state_tracker)
                 if action!=None:
                     return action,{}
-                if self._navigator.is_done:
-                    self._phase=Phase.TAKE_BLOCK   
-                else:
-                    print("oops, door is closed?")
-                    # door closed?? Explore that room now.
-                    area = [area for area in state.values()
-                          if 'class_inheritance' in area 
-                          and 'AreaTile' in area['class_inheritance']
-                          and area['location']==self._block['location']][0]
-                    self._door=state.get_room_doors(area['room_name'])[0]
-                    self._phase = Phase.PLAN_PATH_TO_CLOSED_DOOR
-
+                #if self._navigator.is_done:
+                self._phase=Phase.TAKE_VICTIM
     
-            if Phase.TAKE_BLOCK == self._phase:
+            if Phase.TAKE_VICTIM == self._phase:
                 # self._block must be set to info of target block 
                 # self._goalZone must be set to goalzone needing that block
-                print("delivering block")
-                msg = Message(content='Delivering '+str(self._block['img_name'])[8:-4], from_id='me' )
-                self.send_message(msg)
+                msg = Message(content='Transporting '+str(self._block['img_name'])[8:-4] + ' to the drop zone', from_id='RescueBot' )
+                if msg.content not in self.received_messages:
+                    self.send_message(msg)
                 self._phase=Phase.PLAN_PATH_TO_DROPPOINT
                 return GrabObject.__name__,{'object_id':self._block['obj_id']}
             
@@ -221,10 +230,13 @@ class BlockWorldAgent(BW4TBrain):
                 if action!=None:
                     return action,{}
                 # If we get here, we're there
-                self._phase=Phase.DROP_BLOCK
+                self._phase=Phase.DROP_VICTIM
                 
-            if Phase.DROP_BLOCK == self._phase:
-                print("Dropped box ",self._block)
+            if Phase.DROP_VICTIM == self._phase:
+                #print("Dropped box ",self._block)
+                msg = Message(content='Delivered '+str(self._block['img_name'])[8:-4] + ' at the drop zone', from_id='RescueBot' )
+                if msg.content not in self.received_messages:
+                    self.send_message(msg)
                 self._phase=Phase.FIND_NEXT_GOAL
                 # don't use 'object_id':self._nextBlock[0],
                 # there seems a bug in MATRX DropObject #7
@@ -320,8 +332,8 @@ class BlockWorldAgent(BW4TBrain):
         process incoming messages. 
         Reported blocks are added to self._blocks
         '''
-        if len(self.received_messages)>0:
-            print(self.agent_name+" recvd msgs:",self.received_messages )
+        #if len(self.received_messages)>0:
+        #    print(self.agent_name+" recvd msgs:",self.received_messages )
         for msg in self.received_messages:
             if msg.startswith("Found:"):
                 try:
@@ -332,7 +344,7 @@ class BlockWorldAgent(BW4TBrain):
                 except:
                     print("Warning. parsing err "+str(sys.exc_info())+": "+content)
         #workaround for bug
-        self.received_messages=[]
+        #self.received_messages=[]
 
     def _teamMembers(self, state):
         '''

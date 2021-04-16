@@ -165,23 +165,23 @@ class BlockWorldAgent(BW4TBrain):
                 self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
             
             if Phase.FOLLOW_ROOM_SEARCH_PATH == self._phase:
-                if len(changes)>0:
-                    self._foundVictims[str(changes[0]['img_name'][8:-4])] = str(self._door['room_name'])
-                if len(changes)>0 and 'healthy' not in str(changes[0]['img_name']):
-                    msg = Message(content='Found '+str(changes[0]['img_name'][8:-4]) + ' in ' + self._foundVictims[str(changes[0]['img_name'][8:-4])] + ' by searching the whole room', from_id='RescueBot' )
-                    if msg.content not in self.received_messages:
-                        self.send_message(msg)
                 self._state_tracker.update(state)
                 action=self._navigator.get_move_action(self._state_tracker)
                 if action!=None:
+                    if len(changes)>0:
+                        self._foundVictims[str(changes[0]['img_name'][8:-4])] = str(self._door['room_name'])
                     if state[self.agent_id]['location'] == self._door['location']:
                         msg = Message(content='Searching through the ' + str(self._door['room_name']) + ' to look for the ' + str(self._goalZone['img_name'])[8:-4], from_id='RescueBot')
+                        if msg.content not in self.received_messages:
+                            self.send_message(msg)
+                    if len(changes)>0 and 'healthy' not in str(changes[0]['img_name']):
+                        msg = Message(content='Found '+str(changes[0]['img_name'][8:-4]) + ' in ' + self._foundVictims[str(changes[0]['img_name'][8:-4])] + ' by searching the whole room', from_id='RescueBot' )
                         if msg.content not in self.received_messages:
                             self.send_message(msg)
                     return action,{}
                 # If we get here, we're done
                 if str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys():
-                    msg = Message(content=str(self._goalZone['img_name'])[8:-4].capitalize() + ' not present in ' + str(self._door['room_name']), from_id='RescueBot')
+                    msg = Message(content=str(self._goalZone['img_name'])[8:-4].capitalize() + ' not present in ' + str(self._door['room_name']) + ' because I searched it completely', from_id='RescueBot')
                     if msg.content not in self.received_messages:
                         self.send_message(msg)
                 self._phase=Phase.FIND_NEXT_GOAL
@@ -205,17 +205,7 @@ class BlockWorldAgent(BW4TBrain):
                 if action!=None:
                     return action,{}
                 #if self._navigator.is_done:
-                self._phase=Phase.TAKE_VICTIM 
-                #else:
-                #    print("oops, door is closed?")
-                #    # door closed?? Explore that room now.
-                #    area = [area for area in state.values()
-                #          if 'class_inheritance' in area 
-                #          and 'AreaTile' in area['class_inheritance']
-                #          and area['location']==self._block['location']][0]
-                #    self._door=state.get_room_doors(area['room_name'])[0]
-                #    self._phase = Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
-
+                self._phase=Phase.TAKE_VICTIM
     
             if Phase.TAKE_VICTIM == self._phase:
                 # self._block must be set to info of target block 
