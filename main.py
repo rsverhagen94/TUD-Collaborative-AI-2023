@@ -1,7 +1,8 @@
 import os
 import sys
+sys.path.append("./worlds")
 
-from builder import create_builder
+from lowInterdependence.builder import create_builder
 
 
 if __name__ == "__main__":

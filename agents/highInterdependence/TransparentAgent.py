@@ -1,6 +1,8 @@
+import sys
+sys.path.append("./worlds")
 from BW4TBrain import BW4TBrain
 #from ColorBlindBW4TBrain import ColorBlindBW4TBrain
-from BlockPositions import BlockPositions, sameAppearance
+from highInterdependence.BlockPositions import BlockPositions, sameAppearance
 import enum
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.navigator import Navigator
@@ -9,7 +11,6 @@ from matrx.actions.door_actions import OpenDoorAction
 from matrx.actions.object_actions import GrabObject, DropObject
 import random
 from matrx.messages.message import Message
-import sys
 import ast
 
 class Phase(enum.Enum):
@@ -38,6 +39,7 @@ class BlockWorldAgent(BW4TBrain):
         self._blockpositions = BlockPositions()
         self._searchedRoomDoors = []
         self._foundVictims = {}
+        self._handovers = []
 
     #override
     def initialize(self):
@@ -70,6 +72,9 @@ class BlockWorldAgent(BW4TBrain):
 
             if Phase.FOLLOW_PATH_ALONG_DROPZONE==self._phase:
                 # This explores the area so we know the needed blocks afterwards
+                msg = Message(content='Exploring the drop zone', from_id='RescueBot')
+                if msg.content not in self.received_messages:
+                    self.send_message(msg)
                 self._state_tracker.update(state)
                 # execute the  path steps as planned in self._navigator
                 action=self._navigator.get_move_action(self._state_tracker)
@@ -80,7 +85,13 @@ class BlockWorldAgent(BW4TBrain):
 
             if Phase.FIND_NEXT_GOAL==self._phase:
                 self._goalZone=None
-                for info in self._getDropZones(state):
+                updated_zones = []
+                zones = self._getDropZones(state)
+                for info in zones:
+                    if str(info['img_name'])[8:-4] not in self._handovers:
+                        updated_zones.append(info)
+                print(updated_zones)
+                for info in updated_zones:
                     goodblocks = [blockinfo 
                         for blockinfo in self._blockpositions.getBlocksAt(info['location'])
                         if sameAppearance(blockinfo['img_name'], info['img_name'])]
@@ -91,6 +102,10 @@ class BlockWorldAgent(BW4TBrain):
                     # all blocks are in place. can't handle this situation.
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
+                    if str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys():
+                        msg = Message(content='Going to search for the ' + str(self._goalZone['img_name'])[8:-4], from_id='RescueBot')
+                        if msg.content not in self.received_messages:
+                            self.send_message(msg)
                     # all known blocks with required appearance that are not in dropzone
                     options=self._blockpositions.getAppearance(self._goalZone['img_name'])
                     droplocs=[info['location'] for info in self._getDropZones(state)]
@@ -111,6 +126,7 @@ class BlockWorldAgent(BW4TBrain):
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
                     self._door=random.choice(unsearchedRoomDoors)
+                    print(self._door)
                     self._searchedRoomDoors.append(self._door)
                     self._phase = Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
                     
@@ -123,6 +139,9 @@ class BlockWorldAgent(BW4TBrain):
                 doorLoc = state.get_room_objects(self._door['room_name'])[0]['doormat']
                 #print(state.get_room_objects(self._door['room_name'])[0]['doormat'])
                 #print(state[self.agent_id]['location'])
+                msg = Message(content='Moving to the ' + str(self._door['room_name']), from_id='RescueBot')
+                if msg.content not in self.received_messages:
+                    self.send_message(msg)
                 self._navigator.add_waypoints([doorLoc])
                 self._phase=Phase.FOLLOW_PATH_TO_UNSEARCHED_ROOM_DOOR
             
@@ -159,57 +178,107 @@ class BlockWorldAgent(BW4TBrain):
                 if action!=None:
                     if len(changes)>0:
                         self._foundVictims[str(changes[0]['img_name'][8:-4])] = str(self._door['room_name'])
+                    if state[self.agent_id]['location'] == self._door['location']:
+                        msg = Message(content='Searching through the ' + str(self._door['room_name']), from_id='RescueBot')
+                        if msg.content not in self.received_messages:
+                            self.send_message(msg)
+                    if len(changes)>0 and 'healthy' not in str(changes[0]['img_name']):
+                        msg = Message(content='Found '+str(changes[0]['img_name'][8:-4]) + ' in ' + self._foundVictims[str(changes[0]['img_name'][8:-4])], from_id='RescueBot' )
+                        if msg.content not in self.received_messages:
+                            self.send_message(msg)
+                    if len(changes)>0 and 'critically' in str(changes[0]['img_name']) and str(changes[0]['img_name'][8:-4])==str(self._goalZone['img_name'])[8:-4]:
+                        msg = Message(content='Found but cannot carry '+str(changes[0]['img_name'][8:-4]) + ' in ' + self._foundVictims[str(changes[0]['img_name'][8:-4])], from_id='RescueBot' )
+                        if msg.content not in self.received_messages:
+                            self.send_message(msg)
+                        self._handovers.append(str(changes[0]['img_name'][8:-4]))
                     return action,{}
                 # If we get here, we're done
+                if str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys():
+                    msg = Message(content=str(self._goalZone['img_name'])[8:-4].capitalize() + ' not present in ' + str(self._door['room_name']), from_id='RescueBot')
+                    if msg.content not in self.received_messages:
+                        self.send_message(msg)
                 self._phase=Phase.FIND_NEXT_GOAL
 
             if Phase.PLAN_PATH_TO_VICTIM==self._phase:
                 # self._block must be set to info of target block 
                 # self._goalZone must be set to goalzone needing that block
                 # we assume door to room containing block is open
-                self._navigator.reset_full()
-                self._navigator.add_waypoints([self._block['location']])
-                self._phase=Phase.FOLLOW_PATH_TO_VICTIM
+                if 'critically' not in str(self._goalZone['img_name'])[8:-4]:
+                    msg = Message(content='Picking up ' + str(self._goalZone['img_name'])[8:-4] + ' in ' + self._foundVictims[str(self._goalZone['img_name'])[8:-4]], from_id='RescueBot')
+                    if msg.content not in self.received_messages:
+                        self.send_message(msg)
+                    self._navigator.reset_full()
+                    self._navigator.add_waypoints([self._block['location']])
+                    self._phase=Phase.FOLLOW_PATH_TO_VICTIM
+                else:
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
+                    self._phase=Phase.FIND_NEXT_GOAL
             
             if Phase.FOLLOW_PATH_TO_VICTIM == self._phase:
                 # self._block must be set to info of target block 
                 # self._goalZone must be set to goalzone needing that block
                 self._state_tracker.update(state)
-                action=self._navigator.get_move_action(self._state_tracker)
-                if action!=None:
-                    return action,{}
+                if 'critically' not in str(self._goalZone['img_name'])[8:-4]:
+                    action=self._navigator.get_move_action(self._state_tracker)
+                    if action!=None:
+                        return action,{}
                 #if self._navigator.is_done:
-                self._phase=Phase.TAKE_VICTIM
+                    self._phase=Phase.TAKE_VICTIM
+                else:
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
+                    self._phase=Phase.FIND_NEXT_GOAL
     
             if Phase.TAKE_VICTIM == self._phase:
                 # self._block must be set to info of target block 
                 # self._goalZone must be set to goalzone needing that block
-                self._phase=Phase.PLAN_PATH_TO_DROPPOINT
-                return GrabObject.__name__,{'object_id':self._block['obj_id']}
+                if 'critically' not in str(self._goalZone['img_name'])[8:-4]:
+                    msg = Message(content='Transporting '+str(self._block['img_name'])[8:-4] + ' to the drop zone', from_id='RescueBot' )
+                    if msg.content not in self.received_messages:
+                        self.send_message(msg)
+                    self._phase=Phase.PLAN_PATH_TO_DROPPOINT
+                    return GrabObject.__name__,{'object_id':self._block['obj_id']}
+                else:
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
+                    self._phase=Phase.FIND_NEXT_GOAL
             
             if Phase.PLAN_PATH_TO_DROPPOINT==self._phase:
                 # self._block must be set to info of target block 
                 # self._goalZone must be set to goalzone needing that block
-                self._navigator.reset_full()
-                self._navigator.add_waypoints([self._goalZone['location']])
-                self._phase=Phase.FOLLOW_PATH_TO_DROPPOINT
+                if 'critically' not in str(self._goalZone['img_name'])[8:-4]:
+                    self._navigator.reset_full()
+                    self._navigator.add_waypoints([self._goalZone['location']])
+                    self._phase=Phase.FOLLOW_PATH_TO_DROPPOINT
+                else:
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
+                    self._phase=Phase.FIND_NEXT_GOAL
 
             if Phase.FOLLOW_PATH_TO_DROPPOINT==self._phase:
                 self._state_tracker.update(state)
+                if 'critically' not in str(self._goalZone['img_name'])[8:-4]:
                 # execute the  path steps as planned in self._navigator
-                action=self._navigator.get_move_action(self._state_tracker)
-                if action!=None:
-                    return action,{}
+                    action=self._navigator.get_move_action(self._state_tracker)
+                    if action!=None:
+                        return action,{}
                 # If we get here, we're there
-                self._phase=Phase.DROP_VICTIM
+                    self._phase=Phase.DROP_VICTIM
+                else:
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
+                    self._phase=Phase.FIND_NEXT_GOAL
                 
             if Phase.DROP_VICTIM == self._phase:
                 #print("Dropped box ",self._block)
-                self._phase=Phase.FIND_NEXT_GOAL
+                if 'critically' not in str(self._goalZone['img_name'])[8:-4]:
+                    msg = Message(content='Delivered '+str(self._block['img_name'])[8:-4] + ' at the drop zone', from_id='RescueBot' )
+                    if msg.content not in self.received_messages:
+                        self.send_message(msg)
+                    self._phase=Phase.FIND_NEXT_GOAL
                 # don't use 'object_id':self._nextBlock[0],
                 # there seems a bug in MATRX DropObject #7
                 # Maybe it's fixed now
-                return DropObject.__name__,{}
+                    return DropObject.__name__,{}
+                else:
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
+                    self._phase=Phase.FIND_NEXT_GOAL
     
     def _getDropZones(self,state:State):
         '''
@@ -219,9 +288,14 @@ class BlockWorldAgent(BW4TBrain):
         # we must use is_goal_block, not is_drop_zone, to collect also the
         # correct appearance
         places=state[{'is_goal_block':True}]
+        #print(places)
         # sort does in-place sorting
         places.sort(key=lambda info:info['location'][1], reverse=True)
-        return places
+        zones = []
+        for place in places:
+            if place['drop_zone_nr']==0:
+                zones.append(place)
+        return zones
     
     def _isCarrying(self, state:State,appearance:dict):
         """

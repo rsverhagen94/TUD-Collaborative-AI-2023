@@ -1,6 +1,8 @@
+import sys
+sys.path.append("./worlds")
 from BW4TBrain import BW4TBrain
 #from ColorBlindBW4TBrain import ColorBlindBW4TBrain
-from BlockPositions import BlockPositions, sameAppearance
+from lowInterdependence.BlockPositions import BlockPositions, sameAppearance
 import enum
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.navigator import Navigator
@@ -9,7 +11,6 @@ from matrx.actions.door_actions import OpenDoorAction
 from matrx.actions.object_actions import GrabObject, DropObject
 import random
 from matrx.messages.message import Message
-import sys
 import ast
 
 class Phase(enum.Enum):
@@ -297,9 +298,14 @@ class BlockWorldAgent(BW4TBrain):
         # we must use is_goal_block, not is_drop_zone, to collect also the
         # correct appearance
         places=state[{'is_goal_block':True}]
+        #print(places)
         # sort does in-place sorting
         places.sort(key=lambda info:info['location'][1], reverse=True)
-        return places
+        zones = []
+        for place in places:
+            if place['drop_zone_nr']==0:
+                zones.append(place)
+        return zones
     
     def _isCarrying(self, state:State,appearance:dict):
         """
