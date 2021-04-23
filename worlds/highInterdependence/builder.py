@@ -17,7 +17,7 @@ from matrx.goals import WorldGoal
 from highInterdependence.TransparentAgent import BlockWorldAgent
 from HumanBrain import HumanBrain
 
-tick_duration = 0.0
+tick_duration = 0.2
 random_seed = 1
 verbose = False
 key_action_map = {  # For the human agents

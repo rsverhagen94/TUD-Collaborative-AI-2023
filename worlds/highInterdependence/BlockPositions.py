@@ -36,14 +36,14 @@ class BlockPositions:
         return blocks
 
         
-    def updateInfo(self, blockinfo:dict):
+    def updateInfo(self, blockinfo):
         '''
         call this when given blockid was last seen at loc
         @param details the loc where the block was seen.
         must contain 'obj_id' 'location' and 'visualization' elements
         '''
-        if not ('obj_id' in blockinfo and 'location' in blockinfo and 'img_name' in blockinfo):
-            raise ValueError("blockinfo must contain location, name and obj_id but got "+str(blockinfo))
+        #if not ('obj_id' in blockinfo and 'location' in blockinfo and 'img_name' in blockinfo):
+        #    raise ValueError("blockinfo must contain location, name and obj_id but got "+str(blockinfo))
         blocks=self._blocks.copy()
         blocks[blockinfo['obj_id']]=blockinfo
         return BlockPositions(blocks)
