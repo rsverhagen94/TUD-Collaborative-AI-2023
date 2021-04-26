@@ -136,7 +136,7 @@ class BlockWorldAgent(BW4TBrain):
                     # can't handle this situation. 
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
-                    if str(self._goalZone['img_name'])[8:-4] in self._foundVictimsHuman.keys():
+                    if str(self._goalZone['img_name'])[8:-4] in self._foundVictimsHuman.keys() and str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys():
                         self._door = state.get_room_doors(self._foundVictimsHuman[str(self._goalZone['img_name'])[8:-4]])[0]
                         self._searchedRoomDoors.append(self._door)
                         self._phase=Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
@@ -212,7 +212,8 @@ class BlockWorldAgent(BW4TBrain):
                             self.send_message(msg)
                         self._handovers.append(str(changes[0]['img_name'][8:-4]))
                         self._phase=Phase.WAIT_FOR_HUMAN
-                    if len(changes)>0 and str(changes[0]['img_name'][8:-4]) in self._undistinguishable:
+                    if len(changes)>0 and str(changes[0]['img_name'][8:-4]) in self._undistinguishable and str(self._goalZone['img_name'])[8:-4] in self._undistinguishable:
+                    #if len(changes)>0 and str(self._goalZone['img_name'])[8:-4] in self._undistinguishable:
                         msg = Message(content='URGENT: ASSISTANCE REQUIRED! I need you to clarify the gender of the injured baby in ' + self._foundVictims[str(changes[0]['img_name'][8:-4])], from_id='RescueBot' )
                         if msg.content not in self.received_messages:
                             self.send_message(msg)
@@ -224,19 +225,18 @@ class BlockWorldAgent(BW4TBrain):
                     msg = Message(content=str(self._goalZone['img_name'])[8:-4].capitalize() + ' not present in ' + str(self._door['room_name']), from_id='RescueBot')
                     if msg.content not in self.received_messages:
                         self.send_message(msg)
-                    self._lastSearched=str(self._door['room_name'])
-                # CONTINUE HERE
-                if str(self._goalZone['img_name'])[8:-4] in self._foundVictimsHuman.keys() and str(self._goalZone['img_name'])[8:-4] in self._foundVictims.keys():
-                    if self._foundVictims[str(self._goalZone['img_name'])[8:-4]]!=self._foundVictimsHuman[str(self._goalZone['img_name'])[8:-4]] and str(self._door['room_name'])==self._foundVictimsHuman[str(self._goalZone['img_name'])[8:-4]]:
+                    if str(self._goalZone['img_name'])[8:-4] in self._foundVictimsHuman.keys() and str(self._door['room_name'])==self._foundVictimsHuman[str(self._goalZone['img_name'])[8:-4]]:
                         self._foundVictimsHuman.pop(str(self._goalZone['img_name'])[8:-4], None)
-                    else:
+                    else:  
                         self._correctJudgements.append(str(self._goalZone['img_name'])[8:-4])
                 #for k,v in self._foundVictimsHuman.copy().items():
                 self._phase=Phase.FIND_NEXT_GOAL
 
             if Phase.WAIT_FOR_HUMAN==self._phase:
                 self._state_tracker.update(state)
-                if 'human_0_in_team_0' in state.keys():
+                if state[{'is_human_agent':True}]:
+                    human=state[{'is_human_agent':True}]['obj_id']
+                #if 'human_0_in_team_0' in state.keys():
                     if str(self._goalZone['img_name'])[8:-4] in self._uncarryable:
                         self._phase=Phase.FIND_NEXT_GOAL
                     if str(self._goalZone['img_name'])[8:-4] in self._undistinguishable and self.received_messages[-1]==str(self._goalZone['img_name'])[8:-4].split()[-1]:
