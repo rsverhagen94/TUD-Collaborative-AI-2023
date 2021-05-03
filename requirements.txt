@@ -1,0 +1,20 @@
+matrx          == 2.0.6
+
+# all requirements below are 
+# additional libraries provided to do this assignment. 
+
+
+# libraries used by matrx and their versions, excl webserver stuff
+bidict         == 0.21.2
+chardet        == 4.0.0
+colour         == 0.1.5
+docutils       == 0.16
+gevent         == 21.1.2
+greenlet       == 1.0.0
+jsonpickle     == 1.5.1
+numpy          == 1.20.0
+Werkzeug       == 1.0.1
+
+
+# Other libraries requested by students and added to make sure
+# Everyone uses the same versions.
