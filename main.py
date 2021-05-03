@@ -1,8 +1,7 @@
 import os
 import sys
-sys.path.append("./worlds")
 
-from highInterdependence.builder import create_builder
+from builderHigh import create_builder
 
 
 if __name__ == "__main__":

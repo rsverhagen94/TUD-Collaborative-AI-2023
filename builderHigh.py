@@ -1,7 +1,5 @@
 import os
 import sys
-sys.path.append("./agents")
-sys.path.append("./brains")
 import itertools
 from collections import OrderedDict
 from itertools import product
@@ -14,7 +12,7 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from highInterdependence.TransparentAgent import BlockWorldAgent
+from TransparentHigh import BlockWorldAgent
 from HumanBrain import HumanBrain
 
 tick_duration = 0.2

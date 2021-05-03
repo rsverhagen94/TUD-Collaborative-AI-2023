@@ -1,8 +1,7 @@
 import sys
-sys.path.append("./worlds")
 from BW4TBrain import BW4TBrain
 #from ColorBlindBW4TBrain import ColorBlindBW4TBrain
-from highInterdependence.BlockPositions import BlockPositions, sameAppearance
+from BlockPositionsHigh import BlockPositions, sameAppearance
 import enum
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.navigator import Navigator
@@ -461,6 +460,12 @@ class BlockWorldAgent(BW4TBrain):
                 for room in room_names:
                     if content[2] in room.split() and content[3] in room.split():
                         self._humansQuests[content[0]+'ly injured ' + content[1]]=room
+                self.received_messages.remove(msg)
+            if msg.startswith("collect"):
+                content = msg[8:-1].split(',')
+                for room in room_names:
+                    if content[2] in room.split() and content[3] in room.split():
+                        self._collectedVictims[content[0] + 'ly injured ' + content[1]] = room
                 self.received_messages.remove(msg)
                 #try:
                 #    content=msg[6:]
