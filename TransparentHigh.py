@@ -46,6 +46,9 @@ class BlockWorldAgent(BW4TBrain):
         self._foundVictimsHuman = {}
         self._correctJudgements = []
         self._humansQuests = {}
+        self._collected = {}
+        self._collectedHuman = {}
+        self._processedMessages = []
 
     #override
     def initialize(self):
@@ -60,13 +63,14 @@ class BlockWorldAgent(BW4TBrain):
 
     #override
     def decide_on_bw4t_action(self, state:State):
-        print('Found:', self._foundVictimsHuman)
-        print('Quests:', self._humansQuests)
+        #print('Found:', self._foundVictimsHuman)
+        #print('Quests:', self._humansQuests)
+        #print('Collected:', self._collectedHuman)
         self._uncarryable = ['critically injured elderly man', 'critically injured elderly woman', 'critically injured man', 'critically injured woman']
         self._undistinguishable = ['critically injured girl', 'critically injured boy', 'mildly injured boy', 'mildly injured girl']
         oldblocks=self._blockpositions
         self._blockpositions=self._blockpositions.update(state)
-
+        print(self._processedMessages)
         changes=self._blockpositions.getDifference(oldblocks)
         #to_id=self._teamMembers(state) does not work ok yet
         #    self.send_message(msg)
@@ -97,7 +101,7 @@ class BlockWorldAgent(BW4TBrain):
                 zones = self._getDropZones(state)
                 self._firstVictim = str(zones[0]['img_name'])[8:-4]
                 for info in zones:
-                    if str(info['img_name'])[8:-4] not in self._handovers:
+                    if str(info['img_name'])[8:-4] not in self._handovers and str(info['img_name'])[8:-4] not in self._collectedHuman.keys():
                         updated_zones.append(info)
                 for info in updated_zones:
                     goodblocks = [blockinfo 
@@ -135,10 +139,12 @@ class BlockWorldAgent(BW4TBrain):
                     # can't handle this situation. 
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
-                    if str(self._goalZone['img_name'])[8:-4] in self._foundVictimsHuman.keys() and str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys():
+                    if str(self._goalZone['img_name'])[8:-4] in self._foundVictimsHuman.keys() and str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys() and str(self._goalZone['img_name'])[8:-4] not in self._collectedHuman.keys():
                         self._door = state.get_room_doors(self._foundVictimsHuman[str(self._goalZone['img_name'])[8:-4]])[0]
                         self._searchedRoomDoors.append(self._door)
                         self._phase=Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
+                    if str(self._goalZone['img_name'])[8:-4] in self._collectedHuman.keys():
+                        self._phase = Phase.FIND_NEXT_GOAL
                     else:
                         self._door=random.choice(unsearchedRoomDoors)
                         self._searchedRoomDoors.append(self._door)
@@ -162,14 +168,17 @@ class BlockWorldAgent(BW4TBrain):
             
             if Phase.FOLLOW_PATH_TO_UNSEARCHED_ROOM_DOOR == self._phase:
                 self._state_tracker.update(state)
+                if str(self._goalZone['img_name'])[8:-4] in self._collectedHuman.keys():
+                    self._phase = Phase.FIND_NEXT_GOAL
                 # self._door must be set
                 # execute the  path steps as planned in self._navigator
-                action=self._navigator.get_move_action(self._state_tracker)
-                if action!=None:
-                    #while state[self.agent_id]['location']!=state.get_room_objects(self._door['room_name'])[0]['doormat']:
-                    return action,{}
+                else:
+                    action=self._navigator.get_move_action(self._state_tracker)
+                    if action!=None:
+                        #while state[self.agent_id]['location']!=state.get_room_objects(self._door['room_name'])[0]['doormat']:
+                        return action,{}
                 # If we get here, we're there
-                self._phase=Phase.PLAN_ROOM_SEARCH_PATH
+                    self._phase=Phase.PLAN_ROOM_SEARCH_PATH
 
             if Phase.PLAN_ROOM_SEARCH_PATH==self._phase:
                 # self._door must be set
@@ -455,18 +464,21 @@ class BlockWorldAgent(BW4TBrain):
                     if content[2] in room.split() and content[3] in room.split():
                         self._foundVictimsHuman[content[0]+'ly injured '+content[1]]=room
                 self.received_messages.remove(msg)
+                self._processedMessages.append(msg)
             if msg.startswith("search"):
                 content = msg[7:-1].split(',')
                 for room in room_names:
                     if content[2] in room.split() and content[3] in room.split():
                         self._humansQuests[content[0]+'ly injured ' + content[1]]=room
                 self.received_messages.remove(msg)
+                self._processedMessages.append(msg)
             if msg.startswith("collect"):
                 content = msg[8:-1].split(',')
                 for room in room_names:
                     if content[2] in room.split() and content[3] in room.split():
-                        self._collectedVictims[content[0] + 'ly injured ' + content[1]] = room
+                        self._collectedHuman[content[0] + 'ly injured ' + content[1]] = room
                 self.received_messages.remove(msg)
+                self._processedMessages.append(msg)
                 #try:
                 #    content=msg[6:]
                 #    infos=ast.literal_eval(content)
