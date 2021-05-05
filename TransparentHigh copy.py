@@ -1,13 +1,16 @@
-import sys, random, enum, ast
+import sys
 from BW4TBrain import BW4TBrain
 from BlockPositionsHigh import BlockPositions, sameAppearance
+import enum
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.navigator import Navigator
 from matrx.agents.agent_utils.state_tracker import StateTracker
 from matrx.actions.door_actions import OpenDoorAction
 from matrx.actions.object_actions import GrabObject, DropObject
+import random
 from matrx.messages.message import Message
 from matrx.messages.message_manager import MessageManager
+import ast
 
 class Phase(enum.Enum):
     PLAN_PATH_ALONG_DROPZONE=0,
@@ -38,9 +41,9 @@ class BlockWorldAgent(BW4TBrain):
         self._foundVictimsHuman = {}
         self._correctJudgements = []
         self._humansQuests = {}
+        self._collected = {}
         self._collectedHuman = {}
-        self._uncarryable = ['critically injured elderly man', 'critically injured elderly woman', 'critically injured man', 'critically injured woman']
-        self._undistinguishable = ['critically injured girl', 'critically injured boy', 'mildly injured boy', 'mildly injured girl']
+        self._processedMessages = []
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -52,9 +55,14 @@ class BlockWorldAgent(BW4TBrain):
         return state
 
     def decide_on_bw4t_action(self, state:State):
+        self._uncarryable = ['critically injured elderly man', 'critically injured elderly woman', 'critically injured man', 'critically injured woman']
+        self._undistinguishable = ['critically injured girl', 'critically injured boy', 'mildly injured boy', 'mildly injured girl']
         oldblocks=self._blockpositions
         self._blockpositions=self._blockpositions.update(state)
         changes=self._blockpositions.getDifference(oldblocks)
+        print('Found:', self._foundVictimsHuman)
+        print('Quests:', self._humansQuests)
+        print('Collected:', self._collectedHuman)
         
         while True: 
             if Phase.PLAN_PATH_ALONG_DROPZONE==self._phase:
@@ -89,14 +97,13 @@ class BlockWorldAgent(BW4TBrain):
                 if self._goalZone==None:
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
-                    self._goalVictim = str(self._goalZone['img_name'])[8:-4]
-                    if self._goalVictim not in self._foundVictims.keys() and self._goalVictim not in self._foundVictimsHuman.keys():
-                        self._sendMessage('Going to search for the ' + self._goalVictim, 'RescueBot')
+                    if str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys() and str(self._goalZone['img_name'])[8:-4] not in self._foundVictimsHuman.keys():
+                        self._sendMessage('Going to search for the ' + str(self._goalZone['img_name'])[8:-4], 'RescueBot')
                     # all known blocks with required appearance that are not in dropzone
                     options=self._blockpositions.getAppearance(self._goalZone['img_name'])
                     droplocs=[info['location'] for info in self._getDropZones(state)]
                     options=[info for info in options if not info['location'] in droplocs]
-                    if len(options)==0 or self._goalVictim in self._foundVictimsHuman.keys() and self._goalVictim not in self._correctJudgements:
+                    if len(options)==0 or str(self._goalZone['img_name'])[8:-4] in self._foundVictimsHuman.keys() and str(self._goalZone['img_name'])[8:-4] not in self._collectedHuman.keys():
                         self._phase=Phase.PICK_SOME_UNSEARCHED_ROOM_DOOR
                     else:
                         self._block = random.choice(options)
@@ -111,13 +118,13 @@ class BlockWorldAgent(BW4TBrain):
                 if len(unsearchedRoomDoors)==0:
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
-                    if self._goalVictim in self._foundVictimsHuman.keys() and self._goalVictim not in self._foundVictims.keys() and self._goalVictim not in self._collectedHuman.keys():
-                        self._door = state.get_room_doors(self._foundVictimsHuman[self._goalVictim])[0]
+                    if str(self._goalZone['img_name'])[8:-4] in self._foundVictimsHuman.keys() and str(self._goalZone['img_name'])[8:-4] not in self._collectedHuman.keys():
+                        self._door = state.get_room_doors(self._foundVictimsHuman[str(self._goalZone['img_name'])[8:-4]])[0]
                         self._searchedRoomDoors.append(self._door)
                         self._phase=Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
-                    if self._goalVictim in self._collectedHuman.keys():
+                    if str(self._goalZone['img_name'])[8:-4] in self._collectedHuman.keys():
                         self._phase = Phase.FIND_NEXT_GOAL
-                    if self._goalVictim not in self._foundVictims.keys() and self._goalVictim not in self._foundVictimsHuman.keys():
+                    else:
                         self._door=random.choice(unsearchedRoomDoors)
                         self._searchedRoomDoors.append(self._door)
                         self._phase = Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
@@ -131,7 +138,7 @@ class BlockWorldAgent(BW4TBrain):
             
             if Phase.FOLLOW_PATH_TO_UNSEARCHED_ROOM_DOOR == self._phase:
                 self._state_tracker.update(state)
-                if self._goalVictim in self._collectedHuman.keys():
+                if str(self._goalZone['img_name'])[8:-4] in self._collectedHuman.keys():
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     action=self._navigator.get_move_action(self._state_tracker)
@@ -153,46 +160,48 @@ class BlockWorldAgent(BW4TBrain):
             
             if Phase.FOLLOW_ROOM_SEARCH_PATH == self._phase:
                 self._state_tracker.update(state)
-                if self._goalVictim in self._collectedHuman.keys():
+                if str(self._goalZone['img_name'])[8:-4] in self._collectedHuman.keys():
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     action=self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         if len(changes)>0:
-                            self._foundVictim = str(changes[0]['img_name'][8:-4])
-                            self._foundVictims[self._foundVictim] = str(self._door['room_name'])
+                            self._foundVictims[str(changes[0]['img_name'][8:-4])] = str(self._door['room_name'])
                         if state[self.agent_id]['location'] == self._door['location']:
                             self._sendMessage('Searching through the ' + str(self._door['room_name']), 'RescueBot')
                         if len(changes)>0 and 'healthy' not in str(changes[0]['img_name']) and 'boy' not in str(changes[0]['img_name']) and 'girl' not in str(changes[0]['img_name']):
-                            self._sendMessage('Found '+self._foundVictim + ' in ' + str(self._door['room_name']), 'RescueBot')
-                        if len(changes)>0 and self._foundVictim==self._goalVictim and self._foundVictim in self._uncarryable:
-                            self._sendMessage('URGENT: ASSISTANCE REQUIRED! I need you to pick up ' + self._foundVictim + ' in ' + self._foundVictims[self._foundVictim], 'RescueBot')
-                            self._handovers.append(self._foundVictim)
+                            #msg = Message(content='Found '+str(changes[0]['img_name'][8:-4]) + ' in ' + self._foundVictims[str(changes[0]['img_name'][8:-4])], from_id='RescueBot' )
+                            self._sendMessage('Found '+str(changes[0]['img_name'][8:-4]) + ' in ' + str(self._door['room_name']), 'RescueBot')
+                        #if len(changes)>0 and 'critically' in str(changes[0]['img_name']) and 'man' in str(changes[0]['img_name']) and str(changes[0]['img_name'][8:-4])==str(self._goalZone['img_name'])[8:-4]:
+                        if len(changes)>0 and str(changes[0]['img_name'][8:-4])==str(self._goalZone['img_name'])[8:-4] and str(changes[0]['img_name'][8:-4]) in self._uncarryable:
+                            self._sendMessage('URGENT: ASSISTANCE REQUIRED! I need you to pick up ' + str(changes[0]['img_name'][8:-4]) + ' in ' + self._foundVictims[str(changes[0]['img_name'][8:-4])], 'RescueBot')
+                            self._handovers.append(str(changes[0]['img_name'][8:-4]))
                             self._phase=Phase.WAIT_FOR_HUMAN
-                        if len(changes)>0 and self._foundVictim in self._undistinguishable and self._goalVictim in self._undistinguishable:
-                            self._sendMessage('URGENT: ASSISTANCE REQUIRED! I need you to clarify the gender of the injured baby in ' + self._foundVictims[self._foundVictim], 'RescueBot')
+                        if len(changes)>0 and str(changes[0]['img_name'][8:-4]) in self._undistinguishable and str(self._goalZone['img_name'])[8:-4] in self._undistinguishable:
+                        #if len(changes)>0 and str(self._goalZone['img_name'])[8:-4] in self._undistinguishable:
+                            self._sendMessage('URGENT: ASSISTANCE REQUIRED! I need you to clarify the gender of the injured baby in ' + self._foundVictims[str(changes[0]['img_name'][8:-4])], 'RescueBot')
                             self._phase=Phase.WAIT_FOR_HUMAN
                         return action,{}
-                    if self._goalVictim not in self._foundVictims.keys():
-                        self._sendMessage(self._goalVictim.capitalize() + ' not present in ' + str(self._door['room_name']), 'RescueBot')
-                        if self._goalVictim in self._foundVictimsHuman.keys() and str(self._door['room_name'])==self._foundVictimsHuman[self._goalVictim]:
-                            self._foundVictimsHuman.pop(self._goalVictim, None)
+                    if str(self._goalZone['img_name'])[8:-4] not in self._foundVictims.keys():
+                        self._sendMessage(str(self._goalZone['img_name'])[8:-4].capitalize() + ' not present in ' + str(self._door['room_name']), 'RescueBot')
+                        if str(self._goalZone['img_name'])[8:-4] in self._foundVictimsHuman.keys() and str(self._door['room_name'])==self._foundVictimsHuman[str(self._goalZone['img_name'])[8:-4]]:
+                            self._foundVictimsHuman.pop(str(self._goalZone['img_name'])[8:-4], None)
                         else:  
-                            self._correctJudgements.append(self._goalVictim)
+                            self._correctJudgements.append(str(self._goalZone['img_name'])[8:-4])
                     self._phase=Phase.FIND_NEXT_GOAL
 
             if Phase.WAIT_FOR_HUMAN==self._phase:
                 self._state_tracker.update(state)
-                if self._goalVictim in self._collectedHuman.keys():
+                if str(self._goalZone['img_name'])[8:-4] in self._collectedHuman.keys():
                     self._phase = Phase.FIND_NEXT_GOAL
-                if state[{'is_human_agent':True}]:
-                    if self._goalVictim in self._uncarryable:
+                if state[{'is_human_agent':True}] and str(self._goalZone['img_name'])[8:-4] not in self._foundVictimsHuman.keys():
+                    if str(self._goalZone['img_name'])[8:-4] in self._uncarryable:
                         self._phase=Phase.FIND_NEXT_GOAL
-                    if self._goalVictim in self._undistinguishable and self.received_messages[-1]==self._goalVictim.split()[-1]:
+                    if str(self._goalZone['img_name'])[8:-4] in self._undistinguishable and self.received_messages[-1]==str(self._goalZone['img_name'])[8:-4].split()[-1]:
                         self._phase=Phase.FIND_NEXT_GOAL
-                    if self._goalVictim in self._undistinguishable and self.received_messages[-1]=='boy' and self._goalVictim.split()[-1]!='boy':
+                    if str(self._goalZone['img_name'])[8:-4] in self._undistinguishable and self.received_messages[-1]=='boy' and str(self._goalZone['img_name'])[8:-4].split()[-1]!='boy':
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
-                    if self._goalVictim in self._undistinguishable and self.received_messages[-1]=='girl' and self._goalVictim.split()[-1]!='girl':
+                    if str(self._goalZone['img_name'])[8:-4] in self._undistinguishable and self.received_messages[-1]=='girl' and str(self._goalZone['img_name'])[8:-4].split()[-1]!='girl':
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
                     else:
                         return None,{}
@@ -201,67 +210,67 @@ class BlockWorldAgent(BW4TBrain):
                     return None,{}
 
             if Phase.PLAN_PATH_TO_VICTIM==self._phase:
-                if self._goalVictim not in self._uncarryable:
-                    self._sendMessage('Picking up ' + self._goalVictim + ' in ' + self._foundVictims[self._goalVictim], 'RescueBot')
+                if str(self._goalZone['img_name'])[8:-4] not in self._uncarryable:
+                    self._sendMessage('Picking up ' + str(self._goalZone['img_name'])[8:-4] + ' in ' + self._foundVictims[str(self._goalZone['img_name'])[8:-4]], 'RescueBot')
                     self._navigator.reset_full()
                     self._navigator.add_waypoints([self._block['location']])
                     self._phase=Phase.FOLLOW_PATH_TO_VICTIM
                 else:
-                    self._handovers.append(self._goalVictim)
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
                     self._phase=Phase.FIND_NEXT_GOAL
             
             if Phase.FOLLOW_PATH_TO_VICTIM == self._phase:
                 self._state_tracker.update(state)
-                if self._goalVictim in self._collectedHuman.keys():
+                if str(self._goalZone['img_name'])[8:-4] in self._collectedHuman.keys():
                     self._phase = Phase.FIND_NEXT_GOAL
-                if self._goalVictim not in self._uncarryable:
+                if str(self._goalZone['img_name'])[8:-4] not in self._uncarryable and str(self._goalZone['img_name'])[8:-4] not in self._foundVictimsHuman.keys():
                     action=self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         return action,{}
                     self._phase=Phase.TAKE_VICTIM
                 else:
-                    self._handovers.append(self._goalVictim)
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
                     self._phase=Phase.FIND_NEXT_GOAL
     
             if Phase.TAKE_VICTIM == self._phase:
-                if self._goalVictim in self._collectedHuman.keys():
+                if str(self._goalZone['img_name'])[8:-4] in self._collectedHuman.keys():
                     self._phase = Phase.FIND_NEXT_GOAL
-                if self._goalVictim not in self._uncarryable:
+                if str(self._goalZone['img_name'])[8:-4] not in self._uncarryable and str(self._goalZone['img_name'])[8:-4] not in self._foundVictimsHuman.keys():
                     self._sendMessage('Transporting '+str(self._block['img_name'])[8:-4] + ' to the drop zone', 'RescueBot')
                     self._phase=Phase.PLAN_PATH_TO_DROPPOINT
                     return GrabObject.__name__,{'object_id':self._block['obj_id']}
                 else:
-                    self._handovers.append(self._goalVictim)
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
                     self._phase=Phase.FIND_NEXT_GOAL
             
             if Phase.PLAN_PATH_TO_DROPPOINT==self._phase:
-                if self._goalVictim not in self._uncarryable:
+                if str(self._goalZone['img_name'])[8:-4] not in self._uncarryable:
                     self._navigator.reset_full()
                     self._navigator.add_waypoints([self._goalZone['location']])
                     self._phase=Phase.FOLLOW_PATH_TO_DROPPOINT
                 else:
-                    self._handovers.append(self._goalVictim)
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
                     self._phase=Phase.FIND_NEXT_GOAL
 
             if Phase.FOLLOW_PATH_TO_DROPPOINT==self._phase:
                 self._state_tracker.update(state)
-                if self._goalVictim not in self._uncarryable:
+                if str(self._goalZone['img_name'])[8:-4] not in self._uncarryable:
                     action=self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         return action,{}
                     self._phase=Phase.DROP_VICTIM
                 else:
-                    self._handovers.append(self._goalVictim)
+                    self._handovers.append(str(self._goalZone['img_name'])[8:-4])
                     self._phase=Phase.FIND_NEXT_GOAL
-
+                
             if Phase.DROP_VICTIM == self._phase:
                 if state[{'is_collectable':True}] or str(self._block['img_name'])[8:-4]==self._firstVictim:
-                    if self._goalVictim not in self._uncarryable:
+                    if str(self._goalZone['img_name'])[8:-4] not in self._uncarryable:
                         self._sendMessage('Delivered '+str(self._block['img_name'])[8:-4] + ' at the drop zone', 'RescueBot')
                         self._phase=Phase.FIND_NEXT_GOAL
                         return DropObject.__name__,{}
                     else:
-                        self._handovers.append(self._goalVictim)
+                        self._handovers.append(str(self._goalZone['img_name'])[8:-4])
                         self._phase=Phase.FIND_NEXT_GOAL
                 if not state[{'is_collectable':True}] and str(self._block['img_name'])[8:-4]!=self._firstVictim:
                     zones = self._getDropZones(state)
@@ -368,18 +377,21 @@ class BlockWorldAgent(BW4TBrain):
                     if content[2] in room.split() and content[3] in room.split():
                         self._foundVictimsHuman[content[0]+'ly injured '+content[1]]=room
                 self.received_messages.remove(msg)
+                self._processedMessages.append(msg)
             if msg.startswith("search"):
                 content = msg[7:-1].split(',')
                 for room in room_names:
                     if content[2] in room.split() and content[3] in room.split():
                         self._humansQuests[content[0]+'ly injured ' + content[1]]=room
                 self.received_messages.remove(msg)
+                self._processedMessages.append(msg)
             if msg.startswith("collect"):
                 content = msg[8:-1].split(',')
                 for room in room_names:
                     if content[2] in room.split() and content[3] in room.split():
                         self._collectedHuman[content[0] + 'ly injured ' + content[1]] = room
                 self.received_messages.remove(msg)
+                self._processedMessages.append(msg)
                 #try:
                 #    content=msg[6:]
                 #    infos=ast.literal_eval(content)
@@ -389,6 +401,16 @@ class BlockWorldAgent(BW4TBrain):
                 #    print("Warning. parsing err "+str(sys.exc_info())+": "+content)
         #workaround for bug
         #self.received_messages=[]
+
+    def _teamMembers(self, state):
+        '''
+        @param state the State
+        @return team members, except me
+        '''
+        #Due to bug #241 this does not work properly now.
+        return [info['name'] for info in state.values()
+                if 'isAgent' in info 
+                and info['name']!=self.agent_name]
 
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)
