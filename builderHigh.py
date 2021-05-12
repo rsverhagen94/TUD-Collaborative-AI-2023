@@ -14,6 +14,9 @@ from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
 from TransparentHigh import BlockWorldAgent
 from HumanBrain import HumanBrain
+from loggers.action_logger import ActionLogger
+from datetime import datetime
+from loggers.message_logger import MessageLogger
 
 tick_duration = 0.1
 random_seed = 1
@@ -92,10 +95,14 @@ def create_builder():
     np.random.seed(random_seed)
 
     # Create the goal
-    goal = CollectionGoal()
+    goal = CollectionGoal(max_nr_ticks=10000)
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, random_seed=random_seed, run_matrx_api=True,
                            run_matrx_visualizer=True, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
+    current_exp_folder = datetime.now().strftime("exp_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
+    logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
+    builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
+    builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")
 
     # Add the world bounds (not needed, as agents cannot 'walk off' the grid, but for visual effects)
     builder.add_room(top_left_location=(0, 0), width=24, height=25, name="world_bounds")
@@ -237,31 +244,47 @@ class GhostBlock(EnvObject):
 
 
 class CollectionGoal(WorldGoal):
-
-    def __init__(self):
+    '''
+    The goal for BW4T world (the simulator), so determines
+    when the simulator should stop.
+    '''
+    def __init__(self, max_nr_ticks:int):
+        '''
+        @param max_nr_ticks the max number of ticks to be used for this task
+        '''
         super().__init__()
+        self.max_nr_ticks = max_nr_ticks
 
         # A dictionary of all drop locations. The keys is the drop zone number, the value another dict.
         # This dictionary contains as key the rank of the to be collected object and as value the location
         # of where it should be dropped, the shape and colour of the block, and the tick number the correct
         # block was delivered. The rank and tick number is there so we can check if objects are dropped in
         # the right order.
-        self.__drop_off_zone = None
-        self.__drop_off = None
+        self.__drop_off:dict = {}
+        self.__drop_off_zone:dict = {}
 
         # We also track the progress
         self.__progress = 0
 
     def goal_reached(self, grid_world: GridWorld):
-        if self.__drop_off is None:  # find all drop off locations, its tile ID's and goal blocks
+        if grid_world.current_nr_ticks >= self.max_nr_ticks:
+            return True
+        return self.isBlocksPlaced(grid_world)
+
+    def isBlocksPlaced(self, grid_world:GridWorld):
+        '''
+        @return true if all blocks have been placed in right order
+        '''
+
+        if self.__drop_off =={}:  # find all drop off locations, its tile ID's and goal blocks
             self.__find_drop_off_locations(grid_world)
 
         # Go through each drop zone, and check if the blocks are there in the right order
         is_satisfied, progress = self.__check_completion(grid_world)
 
         # Progress in percentage
-        self.__progress = progress / sum([len(goal_blocks) for goal_blocks in self.__drop_off.values()])
-
+        self.__progress = progress / sum([len(goal_blocks)\
+            for goal_blocks in self.__drop_off.values()])
         return is_satisfied
 
     def __find_drop_off_locations(self, grid_world):
@@ -277,8 +300,8 @@ class CollectionGoal(WorldGoal):
                     else:
                         goal_blocks[zone_nr] = [obj]
 
-        self.__drop_off_zone = {}
-        self.__drop_off = {}
+        self.__drop_off_zone:dict = {}
+        self.__drop_off:dict = {}
         for zone_nr in goal_blocks.keys():  # go through all drop of zones and fill the drop_off dict
             # Instantiate the zone's dict.
             self.__drop_off_zone[zone_nr] = {}

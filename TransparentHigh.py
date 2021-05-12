@@ -1,6 +1,7 @@
 import sys, random, enum, ast
 from BW4TBrain import BW4TBrain
 from BlockPositionsHigh import BlockPositions, sameAppearance
+from matrx import utils
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.navigator import Navigator
 from matrx.agents.agent_utils.state_tracker import StateTracker
@@ -118,7 +119,9 @@ class BlockWorldAgent(BW4TBrain):
                     if self._goalVictim in self._collectedHuman.keys():
                         self._phase = Phase.FIND_NEXT_GOAL
                     if self._goalVictim not in self._foundVictims.keys() and self._goalVictim not in self._foundVictimsHuman.keys():
-                        self._door=random.choice(unsearchedRoomDoors)
+                        #self._door=random.choice(unsearchedRoomDoors)
+                        self._door=state.get_room_doors(self._getClosestRoom(state, unsearchedRoomDoors))[0]
+                        print(self._door)
                         self._searchedRoomDoors.append(self._door)
                         self._phase = Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
                     
@@ -187,9 +190,9 @@ class BlockWorldAgent(BW4TBrain):
                     self._phase = Phase.FIND_NEXT_GOAL
                 if state[{'is_human_agent':True}]:
                     if self._goalVictim in self._uncarryable:
-                        self._phase=Phase.FIND_NEXT_GOAL
+                        self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
                     if self._goalVictim in self._undistinguishable and self.received_messages[-1]==self._goalVictim.split()[-1]:
-                        self._phase=Phase.FIND_NEXT_GOAL
+                        self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
                     if self._goalVictim in self._undistinguishable and self.received_messages[-1]=='boy' and self._goalVictim.split()[-1]!='boy':
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
                     if self._goalVictim in self._undistinguishable and self.received_messages[-1]=='girl' and self._goalVictim.split()[-1]!='girl':
@@ -363,34 +366,48 @@ class BlockWorldAgent(BW4TBrain):
         room_names = state.get_all_room_names()
         for msg in self.received_messages:
             if msg.startswith("found"):
-                content = msg[6:-1].split(',')
-                for room in room_names:
-                    if content[2] in room.split() and content[3] in room.split():
-                        self._foundVictimsHuman[content[0]+'ly injured '+content[1]]=room
-                self.received_messages.remove(msg)
+                try:
+                    content = msg[6:-1].split(',')
+                    for room in room_names:
+                        if content[2] in room.split() and content[3] in room.split():
+                            self._foundVictimsHuman[content[0]+'ly injured '+content[1]]=room
+                    self.received_messages.remove(msg)
+                except:
+                    self.received_messages=[]
+                    self._sendMessage('I did not understand your message "' +msg+'", please try again','RescueBot')
             if msg.startswith("search"):
-                content = msg[7:-1].split(',')
-                for room in room_names:
-                    if content[2] in room.split() and content[3] in room.split():
-                        self._humansQuests[content[0]+'ly injured ' + content[1]]=room
-                self.received_messages.remove(msg)
+                try:
+                    content = msg[7:-1].split(',')
+                    for room in room_names:
+                        if content[2] in room.split() and content[3] in room.split():
+                            self._humansQuests[content[0]+'ly injured ' + content[1]]=room
+                    self.received_messages.remove(msg)
+                except:
+                    self.received_messages=[]
+                    self._sendMessage('I did not understand your message "' +msg+'", please try again','RescueBot')
             if msg.startswith("collect"):
-                content = msg[8:-1].split(',')
-                for room in room_names:
-                    if content[2] in room.split() and content[3] in room.split():
-                        self._collectedHuman[content[0] + 'ly injured ' + content[1]] = room
-                self.received_messages.remove(msg)
-                #try:
-                #    content=msg[6:]
-                #    infos=ast.literal_eval(content)
-                #    for blockinfo in infos:
-                #        self._blockpositions = self._blockpositions.updateInfo(blockinfo)
-                #except:
-                #    print("Warning. parsing err "+str(sys.exc_info())+": "+content)
-        #workaround for bug
-        #self.received_messages=[]
+                try:
+                    content = msg[8:-1].split(',')
+                    for room in room_names:
+                        if content[2] in room.split() and content[3] in room.split():
+                            self._collectedHuman[content[0] + 'ly injured ' + content[1]] = room
+                    self.received_messages.remove(msg)
+                except:
+                    self.received_messages=[]
+                    self._sendMessage('I did not understand your message "' +msg+'", please try again','RescueBot')
 
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)
         if msg.content not in self.received_messages:
             self.send_message(msg)
+
+    def _getClosestRoom(self, state, objs):
+        agent_location = state[self.agent_id]['location']
+        locs = {}
+        for obj in objs:
+            locs[obj['room_name']]=obj['location']
+        dists = {}
+        for room,loc in locs.items():
+            dists[room]=utils.get_distance(agent_location,loc)
+        print(dists)
+        return min(dists,key=dists.get)
