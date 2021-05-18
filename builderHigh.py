@@ -95,7 +95,7 @@ def create_builder():
     np.random.seed(random_seed)
 
     # Create the goal
-    goal = CollectionGoal(max_nr_ticks=10000)
+    goal = CollectionGoal(max_nr_ticks=4000)
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, random_seed=random_seed, run_matrx_api=True,
                            run_matrx_visualizer=True, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")

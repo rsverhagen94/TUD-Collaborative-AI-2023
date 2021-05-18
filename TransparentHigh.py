@@ -1,7 +1,10 @@
 import sys, random, enum, ast
+
+from matrx import grid_world
 from BW4TBrain import BW4TBrain
 from BlockPositionsHigh import BlockPositions, sameAppearance
 from matrx import utils
+from matrx.grid_world import GridWorld
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.navigator import Navigator
 from matrx.agents.agent_utils.state_tracker import StateTracker
@@ -42,6 +45,7 @@ class BlockWorldAgent(BW4TBrain):
         self._collectedHuman = {}
         self._uncarryable = ['critically injured elderly man', 'critically injured elderly woman', 'critically injured man', 'critically injured woman']
         self._undistinguishable = ['critically injured girl', 'critically injured boy', 'mildly injured boy', 'mildly injured girl']
+        self._maxTicks = 4000
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -56,6 +60,8 @@ class BlockWorldAgent(BW4TBrain):
         oldblocks=self._blockpositions
         self._blockpositions=self._blockpositions.update(state)
         changes=self._blockpositions.getDifference(oldblocks)
+        ticksLeft = self._maxTicks - state['World']['nr_ticks']
+        #print(ticksLeft)
         
         while True: 
             if Phase.PLAN_PATH_ALONG_DROPZONE==self._phase:
