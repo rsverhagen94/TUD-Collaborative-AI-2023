@@ -2,7 +2,7 @@ import sys
 sys.path.append("./worlds")
 from BW4TBrain import BW4TBrain
 #from ColorBlindBW4TBrain import ColorBlindBW4TBrain
-from lowInterdependence.BlockPositions import BlockPositions, sameAppearance
+from BlockPositionsLow import BlockPositions, sameAppearance
 import enum
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.navigator import Navigator

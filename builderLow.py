@@ -1,7 +1,5 @@
 import os
 import sys
-sys.path.append("./agents")
-sys.path.append("./brains")
 import itertools
 from collections import OrderedDict
 from itertools import product
@@ -14,11 +12,10 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-#from lowInterdependence.DynamicAgent import BlockWorldAgent
-from highInterdependence.TransparentAgent import BlockWorldAgent
+from ExplainableLow import BlockWorldAgent
 from HumanBrain import HumanBrain
 
-tick_duration = 0.2
+tick_duration = 0.0
 random_seed = 1
 verbose = False
 key_action_map = {  # For the human agents
