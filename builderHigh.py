@@ -98,7 +98,7 @@ def create_builder():
     goal = CollectionGoal(max_nr_ticks=4000)
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, random_seed=random_seed, run_matrx_api=True,
-                           run_matrx_visualizer=True, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
+                           run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
     current_exp_folder = datetime.now().strftime("exp_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
     logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
     builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
@@ -215,6 +215,16 @@ def create_builder():
     builder.add_room((16,13),7,11,'football pitch',door_locations=[(16,18)],doors_open=True,wall_visualize_colour=wall_color, 
     with_area_tiles=True, area_custom_properties={'doormat':(15,18)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
 
+
+    builder.add_object(location=[4,4], is_traversable=False, name="area A1 sign", img_name="/images/area1_new.svg", visualize_depth=110, visualize_size=0.55)
+    builder.add_object(location=[8,4], is_traversable=False, name="area A2 sign", img_name="/images/areaA2.svg", visualize_depth=110, visualize_size=0.6)
+    builder.add_object(location=[12,4], is_traversable=False, name="area A3 sign", img_name="/images/areaA3.svg", visualize_depth=110, visualize_size=0.6)
+    builder.add_object(location=[17,5], is_traversable=False, name="area A4 sign", img_name="/images/areaA4.svg", visualize_depth=110, visualize_size=0.65)
+    builder.add_object(location=[2,11], is_traversable=False, name="area B1 sign", img_name="/images/areaB1.svg", visualize_depth=110, visualize_size=0.5)
+    builder.add_object(location=[9,12], is_traversable=False, name="area B2 sign", img_name="/images/areaB2.svg", visualize_depth=110, visualize_size=0.6)
+    builder.add_object(location=[3,17], is_traversable=False, name="area C1 sign", img_name="/images/areaC1.svg", visualize_depth=110, visualize_size=0.5)
+    builder.add_object(location=[9,17], is_traversable=False, name="area C2 sign", img_name="/images/areaC2.svg", visualize_depth=110, visualize_size=0.6)
+    builder.add_object(location=[16,18], is_traversable=False, name="area C3 sign", img_name="/images/areaC3.svg", visualize_depth=110, visualize_size=0.6)
     # Add the collectible objects, we do so probabilistically so each world will contain different blocks
     #add_blocks(builder, room_locations)
     # Create the drop-off zones, this includes generating the random colour/shape combinations to collect.
