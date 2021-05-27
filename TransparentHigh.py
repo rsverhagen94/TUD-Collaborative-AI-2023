@@ -41,11 +41,12 @@ class BlockWorldAgent(BW4TBrain):
         self._handovers = []
         self._foundVictimsHuman = {}
         self._correctJudgements = []
-        self._humansQuests = {}
-        self._collectedHuman = {}
+        self._humansQuests = []
+        self._collectedHuman = []
         self._uncarryable = ['critically injured elderly man', 'critically injured elderly woman', 'critically injured man', 'critically injured woman']
         self._undistinguishable = ['critically injured girl', 'critically injured boy', 'mildly injured boy', 'mildly injured girl']
         self._maxTicks = 4000
+        self._humanMessages = []
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -61,8 +62,8 @@ class BlockWorldAgent(BW4TBrain):
         self._blockpositions=self._blockpositions.update(state)
         changes=self._blockpositions.getDifference(oldblocks)
         ticksLeft = self._maxTicks - state['World']['nr_ticks']
-        #print(ticksLeft)
-        
+        print(self._foundVictimsHuman)
+        print(self.received_messages)
         while True: 
             if Phase.PLAN_PATH_ALONG_DROPZONE==self._phase:
                 self._navigator.reset_full()
@@ -84,7 +85,7 @@ class BlockWorldAgent(BW4TBrain):
                 zones = self._getDropZones(state)
                 self._firstVictim = str(zones[0]['img_name'])[8:-4]
                 for info in zones:
-                    if str(info['img_name'])[8:-4] not in self._handovers and str(info['img_name'])[8:-4] not in self._collectedHuman.keys():
+                    if str(info['img_name'])[8:-4] not in self._handovers and str(info['img_name'])[8:-4] not in self._collectedHuman:
                         updated_zones.append(info)
                 for info in updated_zones:
                     goodblocks = [blockinfo 
@@ -114,20 +115,19 @@ class BlockWorldAgent(BW4TBrain):
                     if 'class_inheritance' in door 
                     and 'Door' in door['class_inheritance']
                     and door not in self._searchedRoomDoors
-                    and door['room_name'] not in self._humansQuests.values()]
+                    and door['room_name'] not in self._humansQuests]
                 if len(unsearchedRoomDoors)==0:
                     self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
-                    if self._goalVictim in self._foundVictimsHuman.keys() and self._goalVictim not in self._foundVictims.keys() and self._goalVictim not in self._collectedHuman.keys():
+                    if self._goalVictim in self._foundVictimsHuman.keys() and self._goalVictim not in self._foundVictims.keys() and self._goalVictim not in self._collectedHuman:
                         self._door = state.get_room_doors(self._foundVictimsHuman[self._goalVictim])[0]
                         self._searchedRoomDoors.append(self._door)
                         self._phase=Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
-                    if self._goalVictim in self._collectedHuman.keys():
+                    if self._goalVictim in self._collectedHuman:
                         self._phase = Phase.FIND_NEXT_GOAL
                     if self._goalVictim not in self._foundVictims.keys() and self._goalVictim not in self._foundVictimsHuman.keys():
                         #self._door=random.choice(unsearchedRoomDoors)
                         self._door=state.get_room_doors(self._getClosestRoom(state, unsearchedRoomDoors))[0]
-                        print(self._door)
                         self._searchedRoomDoors.append(self._door)
                         self._phase = Phase.PLAN_PATH_TO_UNSEARCHED_ROOM_DOOR
                     
@@ -140,7 +140,7 @@ class BlockWorldAgent(BW4TBrain):
             
             if Phase.FOLLOW_PATH_TO_UNSEARCHED_ROOM_DOOR == self._phase:
                 self._state_tracker.update(state)
-                if self._goalVictim in self._collectedHuman.keys():
+                if self._goalVictim in self._collectedHuman:
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     action=self._navigator.get_move_action(self._state_tracker)
@@ -162,7 +162,7 @@ class BlockWorldAgent(BW4TBrain):
             
             if Phase.FOLLOW_ROOM_SEARCH_PATH == self._phase:
                 self._state_tracker.update(state)
-                if self._goalVictim in self._collectedHuman.keys():
+                if self._goalVictim in self._collectedHuman:
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     action=self._navigator.get_move_action(self._state_tracker)
@@ -178,7 +178,7 @@ class BlockWorldAgent(BW4TBrain):
                             self._sendMessage('URGENT: ASSISTANCE REQUIRED! I need you to pick up ' + self._foundVictim + ' in ' + self._foundVictims[self._foundVictim], 'RescueBot')
                             self._handovers.append(self._foundVictim)
                             self._phase=Phase.WAIT_FOR_HUMAN
-                        if len(changes)>0 and self._foundVictim in self._undistinguishable and self._goalVictim in self._undistinguishable:
+                        if len(changes)>0 and self._foundVictim in self._undistinguishable:
                             self._sendMessage('URGENT: ASSISTANCE REQUIRED! I need you to clarify the gender of the injured baby in ' + self._foundVictims[self._foundVictim], 'RescueBot')
                             self._phase=Phase.WAIT_FOR_HUMAN
                         return action,{}
@@ -192,16 +192,17 @@ class BlockWorldAgent(BW4TBrain):
 
             if Phase.WAIT_FOR_HUMAN==self._phase:
                 self._state_tracker.update(state)
-                if self._goalVictim in self._collectedHuman.keys():
+                if self._foundVictim in self._collectedHuman:
                     self._phase = Phase.FIND_NEXT_GOAL
                 if state[{'is_human_agent':True}]:
-                    if self._goalVictim in self._uncarryable:
+                    if self._foundVictim in self._uncarryable and self._foundVictim not in self._undistinguishable:
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
-                    if self._goalVictim in self._undistinguishable and self.received_messages[-1]==self._goalVictim.split()[-1]:
+                    if self._foundVictim in self._undistinguishable and self.received_messages[-1]==self._foundVictim.split()[-1]:
+                        self._sendMessage('Found '+self._foundVictim + ' in ' + str(self._door['room_name']), 'RescueBot')
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
-                    if self._goalVictim in self._undistinguishable and self.received_messages[-1]=='boy' and self._goalVictim.split()[-1]!='boy':
+                    if self._foundVictim in self._undistinguishable and self.received_messages[-1]=='boy' and self._foundVictim.split()[-1]!='boy':
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
-                    if self._goalVictim in self._undistinguishable and self.received_messages[-1]=='girl' and self._goalVictim.split()[-1]!='girl':
+                    if self._foundVictim in self._undistinguishable and self.received_messages[-1]=='girl' and self._foundVictim.split()[-1]!='girl':
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
                     else:
                         return None,{}
@@ -221,7 +222,7 @@ class BlockWorldAgent(BW4TBrain):
             
             if Phase.FOLLOW_PATH_TO_VICTIM == self._phase:
                 self._state_tracker.update(state)
-                if self._goalVictim in self._collectedHuman.keys():
+                if self._goalVictim in self._collectedHuman:
                     self._phase = Phase.FIND_NEXT_GOAL
                 if self._goalVictim not in self._uncarryable:
                     action=self._navigator.get_move_action(self._state_tracker)
@@ -233,7 +234,7 @@ class BlockWorldAgent(BW4TBrain):
                     self._phase=Phase.FIND_NEXT_GOAL
     
             if Phase.TAKE_VICTIM == self._phase:
-                if self._goalVictim in self._collectedHuman.keys():
+                if self._goalVictim in self._collectedHuman:
                     self._phase = Phase.FIND_NEXT_GOAL
                 if self._goalVictim not in self._uncarryable:
                     self._sendMessage('Transporting '+str(self._block['img_name'])[8:-4] + ' to the drop zone', 'RescueBot')
@@ -369,38 +370,22 @@ class BlockWorldAgent(BW4TBrain):
         process incoming messages. 
         Reported blocks are added to self._blocks
         '''
-        room_names = state.get_all_room_names()
         for msg in self.received_messages:
-            if msg.startswith("found"):
-                try:
-                    content = msg[6:-1].split(',')
-                    for room in room_names:
-                        if content[2] in room.split() and content[3] in room.split():
-                            self._foundVictimsHuman[content[0]+'ly injured '+content[1]]=room
-                    self.received_messages.remove(msg)
-                except:
-                    self.received_messages=[]
-                    self._sendMessage('I did not understand your message "' +msg+'", please try again','RescueBot')
-            if msg.startswith("search"):
-                try:
-                    content = msg[7:-1].split(',')
-                    for room in room_names:
-                        if content[2] in room.split() and content[3] in room.split():
-                            self._humansQuests[content[0]+'ly injured ' + content[1]]=room
-                    self.received_messages.remove(msg)
-                except:
-                    self.received_messages=[]
-                    self._sendMessage('I did not understand your message "' +msg+'", please try again','RescueBot')
-            if msg.startswith("collect"):
-                try:
-                    content = msg[8:-1].split(',')
-                    for room in room_names:
-                        if content[2] in room.split() and content[3] in room.split():
-                            self._collectedHuman[content[0] + 'ly injured ' + content[1]] = room
-                    self.received_messages.remove(msg)
-                except:
-                    self.received_messages=[]
-                    self._sendMessage('I did not understand your message "' +msg+'", please try again','RescueBot')
+            if msg.startswith("Search:"):
+                area = msg.split()[-1]
+                self._currentRoom = 'area '+area
+                if area not in self._humansQuests:
+                    self._humansQuests.append(area)
+                self.received_messages=[]
+            if msg.startswith("Found:"):
+                foundVictim = msg[7:]
+                self._foundVictimsHuman[foundVictim]=self._currentRoom
+                self.received_messages=[]
+            if msg.startswith('Collected:'):
+                collectedVictim = msg[11:]
+                if collectedVictim not in self._collectedHuman:
+                    self._collectedHuman.append(collectedVictim)
+                self.received_messages=[]
 
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)

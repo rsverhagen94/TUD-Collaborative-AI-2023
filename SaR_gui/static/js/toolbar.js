@@ -9,6 +9,7 @@ var chat_blocked = true;
  * Simulation control buttons in toolbar (start/pause etc.)
  ********************************************************************/
 
+
 // Toolbar elements
 var start_button = document.getElementById("start_button"),
     pause_button = document.getElementById("pause_button"),
@@ -546,7 +547,10 @@ function send_message(event) {
     send_matrx_api_post_message(matrx_send_message_url, data);
 }
 
-
+function my_send_message_function(message) {
+    data = {"content":message, "sender": lv_agent_id, "receiver": null} // setting receiver to null sends the message to all agents
+    send_matrx_api_post_message(matrx_send_message_url, data);
+}
 
 /*
  * Reset the chat by removing all messages etc.
@@ -790,3 +794,10 @@ function startEraseDrag() {
         tiles[i].setAttribute("onmouseenter", "eraseTile(id)");
     }
 }
+
+var sec = 0;
+    function pad ( val ) { return val > 9 ? val : "0" + val; }
+    setInterval( function(){
+        document.getElementById("seconds").innerHTML=pad(++sec%60);
+        document.getElementById("minutes").innerHTML='Time: '+pad(parseInt(sec/60,10)+':');
+    }, 1000);

@@ -34,13 +34,17 @@
                 </div>
             </div>
         </div>
+        <div class="col-sm" align="center">
+            <div class="center">
+            <span id="minutes" style="color: white"></span><span id="seconds" style="color:white"></span>
+        </div>
+        </div>
         <div class="col-sm" align="right">
             <button type="button" class="btn btn-dark" id="chat_button" onclick="chatToggle()" data-toggle="collapse" data-target="#chat" aria-expanded="false" aria-controls="chat"><i class="fas fa-comments text-light"></i></button>
             <button type="button" class="btn btn-dark" id="draw_button" onclick="drawToggle()"><i class="fas fa-pencil-alt text-light"></i></button>
             <button type="button" class="btn btn-dark" id="erase_button" onclick="eraseToggle()"><i class="fas fa-eraser text-light"></i></button>
         </div>
     </div>
-
 
     <div class="row content-row">
 
@@ -63,16 +67,60 @@
                         <div id="messages">
                         </div>
                         <input class="form-control" id="chat_form_input" placeholder="Open a chatroom first..">
-                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="send_message(event)" disabled>Send</button>
-                        <button type="button" id="hi_button" class="btn btn-primary" onclick="my_send_message_function('hi')">Found</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="send_message(event)" style="margin-bottom: 1em" disabled>Send</button>
+                    </br>
+                        <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em">Found:</button>
                         <div>
-                            <button type="button" id="hi_button" class="btn btn-primary" onclick="my_send_message_function('hi')">Critically injured</button>
-                            <div>
-                                <button type="button" id="hi_button" class="btn btn-primary" onclick="my_send_message_function('hi')">Elderly woman</button>
-                                <button type="button" id="hi_button" class="btn btn-primary" onclick="my_send_message_function('hi')">Elderly man</button>
-                            </div>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured girl')"><img src='/static/images/critically injured girl.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured boy')"><img src='/static/images/critically injured boy.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured man')"><img src='/static/images/critically injured man.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured woman')"><img src='/static/images/critically injured woman.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured elderly woman')"><img src='/static/images/critically injured elderly woman.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured elderly man')"><img src='/static/images/critically injured elderly man.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured cat')"><img src='/static/images/critically injured cat.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured dog')"><img src='/static/images/critically injured dog.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured girl')"><img src='/static/images/mildly injured girl.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured boy')"><img src='/static/images/mildly injured boy.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured man')"><img src='/static/images/mildly injured man.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured woman')"><img src='/static/images/mildly injured woman.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured elderly woman')"><img src='/static/images/mildly injured elderly woman.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured elderly man')"><img src='/static/images/mildly injured elderly man.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured cat')"><img src='/static/images/mildly injured cat.svg' height= 30 width=30/></button>
+                            <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured dog')"><img src='/static/images/mildly injured dog.svg' height= 30 width=30/></button>
                         </div>
-                    </div>
+                    </br>
+                        <button type="button" id="search_button" class="btn btn-primary" style="margin-bottom: .2em">Search:</button>
+                        <div>
+                            <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: A1')">A1</button>
+                            <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: A2')">A2</button>
+                            <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: A3')">A3</button>
+                            <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: A4')">A4</button>
+                            <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: B1')">B1</button>
+                            <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: B2')">B2</button>
+                            <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: C1')">C1</button>
+                            <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: C2')">C2</button>
+                            <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: C3')">C3</button>
+                        </div>
+                    </br>
+                    <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em">Collected:</button>
+                        <div>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: critically injured girl')"><img src='/static/images/critically injured girl.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: critically injured boy')"><img src='/static/images/critically injured boy.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: critically injured man')"><img src='/static/images/critically injured man.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: critically injured woman')"><img src='/static/images/critically injured woman.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: critically injured elderly woman')"><img src='/static/images/critically injured elderly woman.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: critically injured elderly man')"><img src='/static/images/critically injured elderly man.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: critically injured cat')"><img src='/static/images/critically injured cat.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: critically injured dog')"><img src='/static/images/critically injured dog.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: mildly injured girl')"><img src='/static/images/mildly injured girl.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: mildly injured boy')"><img src='/static/images/mildly injured boy.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: mildly injured man')"><img src='/static/images/mildly injured man.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: mildly injured woman')"><img src='/static/images/mildly injured woman.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: mildly injured elderly woman')"><img src='/static/images/mildly injured elderly woman.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: mildly injured elderly man')"><img src='/static/images/mildly injured elderly man.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: mildly injured cat')"><img src='/static/images/mildly injured cat.svg' height= 30 width=30/></button>
+                            <button type="button" id="collect_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collected: mildly injured dog')"><img src='/static/images/mildly injured dog.svg' height= 30 width=30/></button>
+                    </div>                            
                 </div>
             </div>
         </div>

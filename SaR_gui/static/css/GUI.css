@@ -141,7 +141,7 @@ html {
 
 #messages {
     overflow-y: auto;
-    max-height: 50vh;
+    max-height: 40vh;
 }
 
 .message_you {
@@ -280,4 +280,13 @@ h5 {
 
 .shape {
     pointer-events: auto;
+}
+
+.center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
 }
