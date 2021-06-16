@@ -141,7 +141,7 @@ html {
 
 #messages {
     overflow-y: auto;
-    max-height: 40vh;
+    max-height: 30vh;
 }
 
 .message_you {
@@ -266,6 +266,12 @@ h5 {
 
 }
 
+#search_submit {
+  border: none;
+  background-color: red;
+
+}
+
 #chat_form_submit:hover {
     background-color: #056681;
     -webkit-transition: background-color 100ms linear;
@@ -290,3 +296,5 @@ h5 {
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
+
+

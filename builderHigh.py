@@ -12,13 +12,13 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from TransparentHigh import BlockWorldAgent
+from TransparentHighcopy import BlockWorldAgent
 from HumanBrain import HumanBrain
 from loggers.action_logger import ActionLogger
 from datetime import datetime
 from loggers.message_logger import MessageLogger
 
-tick_duration = 0.1
+tick_duration = 0.2
 random_seed = 1
 verbose = False
 key_action_map = {  # For the human agents
@@ -95,7 +95,7 @@ def create_builder():
     np.random.seed(random_seed)
 
     # Create the goal
-    goal = CollectionGoal(max_nr_ticks=4000)
+    goal = CollectionGoal(max_nr_ticks=10000)
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, random_seed=random_seed, run_matrx_api=True,
                            run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")

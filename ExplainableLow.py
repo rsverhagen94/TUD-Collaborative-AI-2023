@@ -1,8 +1,6 @@
 import sys
-sys.path.append("./worlds")
 from BW4TBrain import BW4TBrain
 #from ColorBlindBW4TBrain import ColorBlindBW4TBrain
-from lowInterdependence.BlockPositions import BlockPositions, sameAppearance
 import enum
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.navigator import Navigator
@@ -36,7 +34,7 @@ class BlockWorldAgent(BW4TBrain):
     def __init__(self, slowdown:int):
         super().__init__(slowdown)
         self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
-        self._blockpositions = BlockPositions()
+        #self._blockpositions = BlockPositions()
         self._searchedRoomDoors = []
         self._foundVictims = {}
 

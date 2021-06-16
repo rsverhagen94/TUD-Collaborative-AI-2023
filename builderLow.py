@@ -96,7 +96,7 @@ def create_builder():
     goal = CollectionGoal()
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, random_seed=random_seed, run_matrx_api=True,
-                           run_matrx_visualizer=True, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
+                           run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
 
     # Add the world bounds (not needed, as agents cannot 'walk off' the grid, but for visual effects)
     builder.add_room(top_left_location=(0, 0), width=24, height=25, name="world_bounds")

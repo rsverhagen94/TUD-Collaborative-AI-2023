@@ -34,7 +34,7 @@ class Phase(enum.Enum):
 class BlockWorldAgent(BW4TBrain):
     def __init__(self, slowdown:int):
         super().__init__(slowdown)
-        self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
+        self._phase=Phase.FIND_NEXT_GOAL
         self._blockpositions = BlockPositions()
         self._searchedRoomDoors = []
         self._foundVictims = {}
@@ -45,8 +45,10 @@ class BlockWorldAgent(BW4TBrain):
         self._collectedHuman = []
         self._uncarryable = ['critically injured elderly man', 'critically injured elderly woman', 'critically injured man', 'critically injured woman']
         self._undistinguishable = ['critically injured girl', 'critically injured boy', 'mildly injured boy', 'mildly injured girl']
-        self._maxTicks = 4000
+        self._maxTicks = 10000
+        self._agentMessages = []
         self._humanMessages = []
+        self._collectedVictims = []
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -62,22 +64,22 @@ class BlockWorldAgent(BW4TBrain):
         self._blockpositions=self._blockpositions.update(state)
         changes=self._blockpositions.getDifference(oldblocks)
         ticksLeft = self._maxTicks - state['World']['nr_ticks']
-        print(self._foundVictimsHuman)
-        print(self.received_messages)
+        print(self._foundVictims)
+        
         while True: 
-            if Phase.PLAN_PATH_ALONG_DROPZONE==self._phase:
-                self._navigator.reset_full()
-                waypoints = map(lambda info:info['location'], self._getDropZones(state))
-                self._navigator.add_waypoints(waypoints)
-                self._phase = Phase.FOLLOW_PATH_ALONG_DROPZONE
+            #if Phase.PLAN_PATH_ALONG_DROPZONE==self._phase:
+            #    self._navigator.reset_full()
+            #    waypoints = map(lambda info:info['location'], self._getDropZones(state))
+            #    self._navigator.add_waypoints(waypoints)
+            #    self._phase = Phase.FOLLOW_PATH_ALONG_DROPZONE
 
-            if Phase.FOLLOW_PATH_ALONG_DROPZONE==self._phase:
-                self._sendMessage('Exploring the drop zone', 'RescueBot')
-                self._state_tracker.update(state)
-                action=self._navigator.get_move_action(self._state_tracker)
-                if action!=None:
-                    return action,{}
-                self._phase=Phase.FIND_NEXT_GOAL
+            #if Phase.FOLLOW_PATH_ALONG_DROPZONE==self._phase:
+            #    self._sendMessage('Exploring the drop zone', 'RescueBot')
+            #    self._state_tracker.update(state)
+            #    action=self._navigator.get_move_action(self._state_tracker)
+            #    if action!=None:
+            #        return action,{}
+            #    self._phase=Phase.FIND_NEXT_GOAL
 
             if Phase.FIND_NEXT_GOAL==self._phase:
                 self._goalZone=None
@@ -94,8 +96,8 @@ class BlockWorldAgent(BW4TBrain):
                     if len(goodblocks)==0:
                         self._goalZone=info
                         break
-                if self._goalZone==None:
-                    self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
+                #if self._goalZone==None:
+                #    self._phase=Phase.PLAN_PATH_ALONG_DROPZONE
                 else:
                     self._goalVictim = str(self._goalZone['img_name'])[8:-4]
                     if self._goalVictim not in self._foundVictims.keys() and self._goalVictim not in self._foundVictimsHuman.keys():
@@ -197,12 +199,12 @@ class BlockWorldAgent(BW4TBrain):
                 if state[{'is_human_agent':True}]:
                     if self._foundVictim in self._uncarryable and self._foundVictim not in self._undistinguishable:
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
-                    if self._foundVictim in self._undistinguishable and self.received_messages[-1]==self._foundVictim.split()[-1]:
+                    if self._foundVictim in self._undistinguishable and self._humanMessages[-1]==self._foundVictim.split()[-1]:
                         self._sendMessage('Found '+self._foundVictim + ' in ' + str(self._door['room_name']), 'RescueBot')
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
-                    if self._foundVictim in self._undistinguishable and self.received_messages[-1]=='boy' and self._foundVictim.split()[-1]!='boy':
+                    if self._foundVictim in self._undistinguishable and self._humanMessages[-1]=='boy' and self._foundVictim.split()[-1]!='boy':
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
-                    if self._foundVictim in self._undistinguishable and self.received_messages[-1]=='girl' and self._foundVictim.split()[-1]!='girl':
+                    if self._foundVictim in self._undistinguishable and self._humanMessages[-1]=='girl' and self._foundVictim.split()[-1]!='girl':
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
                     else:
                         return None,{}
@@ -372,25 +374,31 @@ class BlockWorldAgent(BW4TBrain):
         '''
         for msg in self.received_messages:
             if msg.startswith("Search:"):
-                area = msg.split()[-1]
-                self._currentRoom = 'area '+area
+                self._humanMessages.append(msg)
+                area = 'area '+ msg.split()[-1]
+                self._currentRoom = area
                 if area not in self._humansQuests:
                     self._humansQuests.append(area)
-                self.received_messages=[]
+                #self.received_messages=[]
             if msg.startswith("Found:"):
+                self._humanMessages.append(msg)
                 foundVictim = msg[7:]
                 self._foundVictimsHuman[foundVictim]=self._currentRoom
-                self.received_messages=[]
+                #self.received_messages=[]
             if msg.startswith('Collected:'):
+                self._humanMessages.append(msg)
                 collectedVictim = msg[11:]
                 if collectedVictim not in self._collectedHuman:
                     self._collectedHuman.append(collectedVictim)
-                self.received_messages=[]
+                #self.received_messages=[]
+            if msg == 'boy' or msg == 'girl':
+                self._humanMessages.append(msg)
 
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)
-        if msg.content not in self.received_messages:
+        if msg.content not in self.received_messages:# and msg.content not in self._agentMessages:
             self.send_message(msg)
+            #self._agentMessages.append(msg.content)
 
     def _getClosestRoom(self, state, objs):
         agent_location = state[self.agent_id]['location']
