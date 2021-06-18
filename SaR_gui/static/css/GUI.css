@@ -141,7 +141,7 @@ html {
 
 #messages {
     overflow-y: auto;
-    max-height: 30vh;
+    max-height: 35vh;
 }
 
 .message_you {
@@ -341,4 +341,3 @@ h5 {
 
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 .show {display:block;}
-
