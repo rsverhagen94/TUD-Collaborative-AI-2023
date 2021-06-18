@@ -18,7 +18,7 @@ from loggers.action_logger import ActionLogger
 from datetime import datetime
 from loggers.message_logger import MessageLogger
 
-tick_duration = 0.2
+tick_duration = 0.1
 random_seed = 1
 verbose = False
 key_action_map = {  # For the human agents
@@ -78,7 +78,7 @@ def add_agents(builder):
         # Add agents
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
-            brain = BlockWorldAgent(slowdown=agent_slowdown[agent_nr])
+            brain = BlockWorldAgent(slowdown=10)
             loc = (9,23)
             builder.add_agent(loc, brain, team=team_name, name=f"Agent {agent_nr} in {team_name}",
                               sense_capability=sense_capability, is_traversable=True, img_name="/images/robotics5.svg")

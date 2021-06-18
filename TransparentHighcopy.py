@@ -69,6 +69,7 @@ class BlockWorldAgent(BW4TBrain):
 
             if Phase.FIND_NEXT_GOAL==self._phase:
                 zones = self._getDropZones(state)
+                locs = [zone['location'] for zone in zones]
                 self._firstVictim = str(zones[0]['img_name'])[8:-4]
                 remainingZones = []
                 for info in zones:
@@ -77,17 +78,21 @@ class BlockWorldAgent(BW4TBrain):
                 if remainingZones:
                     self._goalVic = str(remainingZones[0]['img_name'])[8:-4]
                     self._goalLoc = remainingZones[0]['location']
-                    #if len(remainingZones)>1:
-                    #    self._sendMessage('Still ' + str(len(remainingZones)) + ' victims to rescue. Current victim to rescue: ' + self._goalVic ,'RescueBot')
-                    #else:
-                    #    self._sendMessage('Still ' + str(len(remainingZones)) + ' victim to rescue. victim to rescue: ' + self._goalVic ,'RescueBot')
                 else:
                     return None,{}
                 if self._goalVic not in self._foundVictims:
+                    self._sendMessage('Next victim to rescue: ' + self._goalVic ,'RescueBot')
                     self._phase=Phase.PICK_UNSEARCHED_ROOM
                 if self._goalVic in self._foundVictims and self._goalVic not in self._uncarryable and 'location' in self._foundVictimLocs[self._goalVic].keys():
-                    self._phase=Phase.PLAN_PATH_TO_VICTIM
+                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs:
+                        self._sendMessage('Next victim to pick up is' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. \
+                        I suggest you pick up this victim','RescueBot')
+                        self._collectedVictims.append(self._goalVic)
+                        self._phase=Phase.FIND_NEXT_GOAL
+                    else:
+                        self._phase=Phase.PLAN_PATH_TO_VICTIM
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
+                    self._sendMessage('Next victim to rescue: ' + self._goalVic ,'RescueBot')
                     self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'], 'RescueBot')
                     self._phase=Phase.PLAN_PATH_TO_ROOM
 
@@ -171,17 +176,16 @@ class BlockWorldAgent(BW4TBrain):
                 if self._goalVic not in self._foundVictims:
                     self._sendMessage(self._goalVic.capitalize() + ' not present in ' + str(self._door['room_name']), 'RescueBot')
                 if self._goalVic in self._foundVictims and self._goalVic not in self._roomVics and self._foundVictimLocs[self._goalVic]['room']!=self._door['room_name']:
-                    self._sendMessage(self._goalVic.capitalize() + ' not present in ' + str(self._door['room_name']) + ', you liar', 'RescueBot')
+                    self._sendMessage(self._goalVic.capitalize() + ' not present in ' + str(self._door['room_name']), 'RescueBot')
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
                     self._roomVics = []  
-                    self.received_messages=[]
                 self._searchedRooms.append(self._door['room_name'])
                 self._phase=Phase.FIND_NEXT_GOAL
 
             if Phase.WAIT_FOR_HUMAN==self._phase:
                 self._state_tracker.update(state)
-                if state[{'is_human_agent':True}] and self._foundVictims:
+                if state[{'is_human_agent':True}]:
                     if self._foundVictim in self._undistinguishable and self.received_messages[-1]==self._foundVictim.split()[-1]:
                         self._sendMessage('Found '+self._foundVictim + ' in ' + self._door['room_name'], 'RescueBot')
                         self._foundVictims.append(self._foundVictim)
@@ -236,12 +240,7 @@ class BlockWorldAgent(BW4TBrain):
                     self._phase=Phase.FIND_NEXT_GOAL
                     return DropObject.__name__,{}
                 if not state[{'is_collectable':True}] and self._goalVic!=self._firstVictim:
-                    zones = self._getDropZones(state)
-                    previous_victims = []
-                    for info in zones:
-                        if str(info['img_name'])[8:-4] in self._uncarryable:
-                            previous_victims.append(str(info['img_name'])[8:-4])
-                    self._sendMessage('Waiting for human operator to deliver ' + ' and '.join(previous_victims), 'RescueBot')
+                    self._sendMessage('Waiting for human operator at drop zone', 'RescueBot')
                     return None,{}    
 
             
@@ -263,31 +262,30 @@ class BlockWorldAgent(BW4TBrain):
         process incoming messages. 
         Reported blocks are added to self._blocks
         '''
-        self._currentRoom = None
-        self._foundVic = None
         for msg in self.received_messages:
             if msg.startswith("Search:"):
                 area = 'area '+ msg.split()[-1]
-                self._currentRoom = area
                 if area not in self._searchedRooms:
                     self._searchedRooms.append(area)
-                if self._foundVic!=None:
-                    self._foundVictimLocs[self._foundVic] = {'room':self._currentRoom}
             if msg.startswith("Found:"):
-                self._foundVic = msg[7:]
-                if self._currentRoom==None:
-                    self._sendMessage('Please click the button of the area where you found ' + self._foundVic, 'RescueBot')
+                if len(msg.split()) == 6:
+                    foundVic = ' '.join(msg.split()[1:4])
                 else:
-                    if self._foundVic not in self._foundVictims:
-                        self._foundVictims.append(self._foundVic)
-                        self._foundVictimLocs[self._foundVic] = {'room':self._currentRoom}
-            if msg.startswith('Collected:'):
-                collectedVictim = msg[11:]
-                if collectedVictim not in self._collectedVictims:
-                    self._collectedVictims.append(collectedVictim)
-                    self.received_messages = []
-                if collectedVictim==self._goalVic:
-                    self._sendMessage('Copy that, switching to next victim to rescue', 'RescueBot')
+                    foundVic = ' '.join(msg.split()[1:5]) 
+                loc = 'area '+ msg.split()[-1]
+                if foundVic not in self._foundVictims:
+                    self._foundVictims.append(foundVic)
+                    self._foundVictimLocs[foundVic] = {'room':loc}
+            if msg.startswith('Collect:'):
+                if len(msg.split()) == 6:
+                    collectVic = ' '.join(msg.split()[1:4])
+                else:
+                    collectVic = ' '.join(msg.split()[1:5]) 
+                if collectVic not in self._collectedVictims:
+                    self._collectedVictims.append(collectVic)
+                    #self.received_messages = []
+                ##if collectedVictim==self._goalVic:
+                 #   self._sendMessage('Copy that, switching to next victim to rescue', 'RescueBot')
                 
 
     def _sendMessage(self, mssg, sender):
