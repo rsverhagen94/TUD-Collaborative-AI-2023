@@ -446,6 +446,15 @@ function add_message(chatroom_ID, mssg) {
     div.appendChild(document.createTextNode(mssg_content));
     */
 
+    mssg_content = mssg_content.replace("healthy girl", "<img src='http://localhost:3000/fetch_external_media/images/healthy%20girl.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replace("healthy boy", "<img src='/static/images/healthy boy.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replace("healthy man", "<img src='/static/images/healthy man.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replace("healthy woman", "<img src='/static/images/healthy woman.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replace("healthy dog", "<img src='/static/images/healthy dog.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replace("healthy cat", "<img src='/static/images/healthy cat.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replace("healthy elderly man", "<img src='/static/images/healthy elderly man.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replace("healthy elderly woman", "<img src='/static/images/healthy elderly woman.svg' height= 30 width=30/>");
+
     mssg_content = mssg_content.replace("critically injured girl", "<img src='/static/images/critically injured girl.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replace("critically injured boy", "<img src='/static/images/critically injured boy.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replace("critically injured man", "<img src='/static/images/critically injured man.svg' height= 30 width=30/>");
@@ -479,6 +488,8 @@ function add_message(chatroom_ID, mssg) {
     mssg_content = mssg_content.replace("Mildly injured cat", "<img src='/static/images/mildly injured cat.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replace("Mildly injured elderly man", "<img src='/static/images/mildly injured elderly man.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replace("Mildly injured elderly woman", "<img src='/static/images/mildly injured elderly woman.svg' height= 30 width=30/>");
+
+
 
     var div = document.createElement("div");
     div.className = "message_you"; // by default assume we sent this message
@@ -795,11 +806,9 @@ function startEraseDrag() {
     }
 }
 
-/*
+
 var sec = 0;
     function pad ( val ) { return val > 9 ? val : "0" + val; }
     setInterval( function(){
-        document.getElementById("seconds").innerHTML=pad(++sec%60);
-        document.getElementById("minutes").innerHTML='Time: '+pad(parseInt(sec/60,10)+':');
+        document.getElementById("minutes").innerHTML='Why this outcome? What knowledge lead to this consequence? Behavior/action explained by beliefs/percepts and goals';
     }, 1000);
-*/

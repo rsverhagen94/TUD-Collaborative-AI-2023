@@ -12,10 +12,13 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from TransparentLow import BlockWorldAgent
+from Instructions import BlockWorldAgent
 from HumanBrain import HumanBrain
+from loggers.action_logger import ActionLogger
+from datetime import datetime
+from loggers.message_logger import MessageLogger
 
-tick_duration = 0.2
+tick_duration = 0.1
 random_seed = 1
 verbose = False
 key_action_map = {  # For the human agents
@@ -35,7 +38,7 @@ room_colors = ['#0008ff', '#ff1500', '#0dff00']
 wall_color = "#8a8a8a"
 drop_off_color = "#878787"
 block_size = 0.8
-nr_drop_zones = 2
+nr_drop_zones = 1
 nr_teams = 1
 agents_per_team = 2
 human_agents_per_team = 1
@@ -59,9 +62,8 @@ def add_drop_off_zones(builder, world_size):
     for nr_zone in range(nr_drop_zones):
         # Add the zone's tiles. Area tiles are special types of objects in MATRX that simply function as
         # a kind of floor. They are always traversable and cannot be picked up.
-        builder.add_area((1,23), width=4, height=1, name=f"Drop off {nr_zone}", visualize_colour=drop_off_color, drop_zone_nr=nr_zone,
+        builder.add_area((1,23), width=8, height=1, name=f"Drop off {nr_zone}", visualize_colour=drop_off_color, drop_zone_nr=nr_zone,
         is_drop_zone=True, is_goal_block=False, is_collectable=False)  
-        builder.add_area((5,23), width=4, height=1, name=f"Drop off {nr_zone}", drop_zone_nr=nr_zone, is_drop_zone=True, is_goal_block=False, is_collectable=False)
 
 def add_agents(builder):
     # Create the agents sense capability. This is a circular range around the agent that denotes what it can perceive.
@@ -76,7 +78,7 @@ def add_agents(builder):
         # Add agents
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
-            brain = BlockWorldAgent(slowdown=agent_slowdown[agent_nr])
+            brain = BlockWorldAgent(slowdown=10)
             loc = (9,23)
             builder.add_agent(loc, brain, team=team_name, name=f"Agent {agent_nr} in {team_name}",
                               sense_capability=sense_capability, is_traversable=True, img_name="/images/robotics5.svg")
@@ -93,10 +95,14 @@ def create_builder():
     np.random.seed(random_seed)
 
     # Create the goal
-    goal = CollectionGoal()
+    goal = CollectionGoal(max_nr_ticks=10000)
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, random_seed=random_seed, run_matrx_api=True,
                            run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
+    #current_exp_folder = datetime.now().strftime("exp_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
+    #logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
+    #builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
+    #builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")
 
     # Add the world bounds (not needed, as agents cannot 'walk off' the grid, but for visual effects)
     builder.add_room(top_left_location=(0, 0), width=24, height=25, name="world_bounds")
@@ -132,62 +138,18 @@ def create_builder():
     builder.add_object((11,1),'tree',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/tree.svg")
     builder.add_object((12,22),'ball',EnvObject,is_traversable=False,is_movable=True,visualize_shape='img',img_name="/images/soccer-ball.svg")
 
-    builder.add_object((8,3),'critically injured elderly woman in area A2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
-    builder.add_object((2,19),'healthy man in area C1', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/healthy man.svg")
-    builder.add_object((19,22),'mildly injured elderly man in area C3', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
-    builder.add_object((10,8),'mildly injured boy in area B2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured boy.svg")
-    builder.add_object((12,3),'critically injured man in area A3', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/critically injured man.svg")
-    #builder.add_object((10,19),'healthy woman in lower right house', callable_class=CollectableBlock, 
-    #visualize_shape='img',img_name="/images/healthy woman.svg")
-    builder.add_object((7,10),'healthy dog in area B2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/healthy dog.svg")
-    builder.add_object((12,9),'critically injured girl in area B2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/critically injured girl.svg")
+    #builder.add_object((1,16),'car',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/car (1).svg")
+    builder.add_object((1,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
+    builder.add_object((2,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured elderly woman.svg",drop_zone_nr=0)
+    builder.add_object((3,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured man.svg",drop_zone_nr=0)
+    builder.add_object((4,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured dog.svg",drop_zone_nr=0)
+    builder.add_object((5,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured boy.svg",drop_zone_nr=0)
+    builder.add_object((6,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured elderly man.svg",drop_zone_nr=0)
+    builder.add_object((7,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured woman.svg",drop_zone_nr=0)
+    builder.add_object((8,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured cat.svg",drop_zone_nr=0)
 
-    builder.add_object((4,19),'healthy woman in area C1', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/healthy woman.svg")
     builder.add_object((10,11),'healthy girl in area B2', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy girl.svg")
-    builder.add_object((20,17),'healthy elderly man in area C3', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/healthy elderly man.svg")
-    builder.add_object((10,18),'healthy boy in area C2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/healthy boy.svg")
-    builder.add_object((20,9),'healthy man in area A4', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/healthy man.svg")
-    builder.add_object((10,19),'mildly injured woman in area C2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured woman.svg")
-    builder.add_object((21,15),'critically injured dog in area C3', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/critically injured dog.svg")
-    builder.add_object((8,18),'mildly injured cat in area C2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured cat.svg")
-
-    man_locs=[(21,4),(8,8),(18,20),(18,16),(20,19)]#8,3
-    woman_locs=[(18,2),(19,5),(18,4),(20,21),(7,9),(19,14)]#,(10,8)]
-    granny_locs=[(19,6),(19,8)]
-
-    for loc in man_locs:
-        builder.add_object(loc,'healthy man', callable_class=CollectableBlock, visualize_shape='img',img_name="/images/healthy man.svg")
-    for loc in woman_locs:
-        builder.add_object(loc,'healthy woman', callable_class=CollectableBlock, visualize_shape='img',img_name="/images/healthy woman.svg")
-    for loc in granny_locs:
-        builder.add_object(loc,'healthy elderly man', callable_class=CollectableBlock, visualize_shape='img',img_name="/images/healthy elderly man.svg")
-
-
-    #builder.add_object((1,16),'car',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/car (1).svg")
-    builder.add_object((1,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured elderly woman.svg",drop_zone_nr=0)
-    builder.add_object((2,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured dog.svg",drop_zone_nr=0)
-    builder.add_object((3,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured elderly man.svg",drop_zone_nr=0)
-    builder.add_object((4,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured cat.svg",drop_zone_nr=0)
-    builder.add_object((5,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=1)
-    builder.add_object((6,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured man.svg",drop_zone_nr=1)
-    builder.add_object((7,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured boy.svg",drop_zone_nr=1)
-    builder.add_object((8,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured woman.svg",drop_zone_nr=1)
-
     # Create the rooms
    # room_locations = add_rooms(builder)
     builder.add_room(top_left_location=(17,1), width=6, height=10, name='area A4', door_locations=[(17,5)],doors_open=True, wall_visualize_colour=wall_color, 
@@ -208,6 +170,7 @@ def create_builder():
     with_area_tiles=True, area_custom_properties={'doormat':(9,16)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
     builder.add_room((16,13),7,11,'area C3',door_locations=[(16,18)],doors_open=True,wall_visualize_colour=wall_color, 
     with_area_tiles=True, area_custom_properties={'doormat':(15,18)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
+
 
     builder.add_object(location=[4,4], is_traversable=True, name="area A1 sign", img_name="/images/area1_new.svg", visualize_depth=110, visualize_size=0.55)
     builder.add_object(location=[8,4], is_traversable=True, name="area A2 sign", img_name="/images/areaA2.svg", visualize_depth=110, visualize_size=0.6)
@@ -247,31 +210,47 @@ class GhostBlock(EnvObject):
 
 
 class CollectionGoal(WorldGoal):
-
-    def __init__(self):
+    '''
+    The goal for BW4T world (the simulator), so determines
+    when the simulator should stop.
+    '''
+    def __init__(self, max_nr_ticks:int):
+        '''
+        @param max_nr_ticks the max number of ticks to be used for this task
+        '''
         super().__init__()
+        self.max_nr_ticks = max_nr_ticks
 
         # A dictionary of all drop locations. The keys is the drop zone number, the value another dict.
         # This dictionary contains as key the rank of the to be collected object and as value the location
         # of where it should be dropped, the shape and colour of the block, and the tick number the correct
         # block was delivered. The rank and tick number is there so we can check if objects are dropped in
         # the right order.
-        self.__drop_off_zone = None
-        self.__drop_off = None
+        self.__drop_off:dict = {}
+        self.__drop_off_zone:dict = {}
 
         # We also track the progress
         self.__progress = 0
 
     def goal_reached(self, grid_world: GridWorld):
-        if self.__drop_off is None:  # find all drop off locations, its tile ID's and goal blocks
+        if grid_world.current_nr_ticks >= self.max_nr_ticks:
+            return True
+        return self.isBlocksPlaced(grid_world)
+
+    def isBlocksPlaced(self, grid_world:GridWorld):
+        '''
+        @return true if all blocks have been placed in right order
+        '''
+
+        if self.__drop_off =={}:  # find all drop off locations, its tile ID's and goal blocks
             self.__find_drop_off_locations(grid_world)
 
         # Go through each drop zone, and check if the blocks are there in the right order
         is_satisfied, progress = self.__check_completion(grid_world)
 
         # Progress in percentage
-        self.__progress = progress / sum([len(goal_blocks) for goal_blocks in self.__drop_off.values()])
-
+        self.__progress = progress / sum([len(goal_blocks)\
+            for goal_blocks in self.__drop_off.values()])
         return is_satisfied
 
     def __find_drop_off_locations(self, grid_world):
@@ -287,8 +266,8 @@ class CollectionGoal(WorldGoal):
                     else:
                         goal_blocks[zone_nr] = [obj]
 
-        self.__drop_off_zone = {}
-        self.__drop_off = {}
+        self.__drop_off_zone:dict = {}
+        self.__drop_off:dict = {}
         for zone_nr in goal_blocks.keys():  # go through all drop of zones and fill the drop_off dict
             # Instantiate the zone's dict.
             self.__drop_off_zone[zone_nr] = {}
