@@ -21,16 +21,18 @@ from loggers.message_logger import MessageLogger
 tick_duration = 0.1
 random_seed = 1
 verbose = False
-key_action_map = {  # For the human agents
-    'w': MoveNorth.__name__,
-    'd': MoveEast.__name__,
-    's': MoveSouth.__name__,
-    'a': MoveWest.__name__,
-    'q': GrabObject.__name__,
-    'e': DropObject.__name__,
-    'r': OpenDoorAction.__name__,
-    'f': CloseDoorAction.__name__,
-}
+key_action_map = {
+        'ArrowUp': MoveNorth.__name__,
+        'ArrowRight': MoveEast.__name__,
+        'ArrowDown': MoveSouth.__name__,
+        'ArrowLeft': MoveWest.__name__,
+        'b': GrabObject.__name__,
+        'n': DropObject.__name__,
+        #'r': RemoveObject.__name__,
+        #'l': GrabLargeObject.__name__,
+        #'m': DropLargeObject.__name__,
+        #'b': BreakObject.__name__
+    }
 
 # Some BW4T settings
 nr_rooms = 9
@@ -148,8 +150,6 @@ def create_builder():
     builder.add_object((7,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured woman.svg",drop_zone_nr=0)
     builder.add_object((8,23),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured cat.svg",drop_zone_nr=0)
 
-    builder.add_object((10,11),'healthy girl in area B2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/healthy girl.svg")
     # Create the rooms
    # room_locations = add_rooms(builder)
     builder.add_room(top_left_location=(17,1), width=6, height=10, name='area A4', door_locations=[(17,5)],doors_open=True, wall_visualize_colour=wall_color, 
@@ -171,6 +171,12 @@ def create_builder():
     builder.add_room((16,13),7,11,'area C3',door_locations=[(16,18)],doors_open=True,wall_visualize_colour=wall_color, 
     with_area_tiles=True, area_custom_properties={'doormat':(15,18)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
 
+    builder.add_object((9,18),'critically injured elderly woman in area C2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
+    builder.add_object((3,18),'critically injured man in area C1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured man.svg")
+    builder.add_object((18,18),'critically injured girl in area C3', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured girl.svg")
 
     builder.add_object(location=[4,4], is_traversable=True, name="area A1 sign", img_name="/images/area1_new.svg", visualize_depth=110, visualize_size=0.55)
     builder.add_object(location=[8,4], is_traversable=True, name="area A2 sign", img_name="/images/areaA2.svg", visualize_depth=110, visualize_size=0.6)
@@ -181,6 +187,8 @@ def create_builder():
     builder.add_object(location=[3,17], is_traversable=True, name="area C1 sign", img_name="/images/areaC1.svg", visualize_depth=110, visualize_size=0.5)
     builder.add_object(location=[9,17], is_traversable=True, name="area C2 sign", img_name="/images/areaC2.svg", visualize_depth=110, visualize_size=0.6)
     builder.add_object(location=[16,18], is_traversable=True, name="area C3 sign", img_name="/images/areaC3.svg", visualize_depth=110, visualize_size=0.6)
+
+    builder.add_object(location=[10,0], is_traversable=True, name="keyboard sign", img_name="/images/keyboard2.svg", visualize_depth=110, visualize_size=10)
     # Add the collectible objects, we do so probabilistically so each world will contain different blocks
     #add_blocks(builder, room_locations)
     # Create the drop-off zones, this includes generating the random colour/shape combinations to collect.
@@ -205,7 +213,7 @@ class GhostBlock(EnvObject):
         super().__init__(location, name, is_traversable=True, is_movable=False,
                          visualize_shape=visualize_shape, img_name=img_name,
                          visualize_size=block_size, class_callable=GhostBlock,
-                         visualize_depth=85, drop_zone_nr=drop_zone_nr, visualize_opacity=0.7,
+                         visualize_depth=85, drop_zone_nr=drop_zone_nr, visualize_opacity=0.6,
                          is_drop_zone=False, is_goal_block=True, is_collectable=False)
 
 

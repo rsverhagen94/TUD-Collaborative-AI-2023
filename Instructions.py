@@ -41,7 +41,7 @@ class BlockWorldAgent(BW4TBrain):
             action_set=self.action_set, algorithm=Navigator.A_STAR_ALGORITHM)
 
     def filter_bw4t_observations(self, state):
-        self._processMessages(state)
+        
         return state
 
     def decide_on_bw4t_action(self, state:State):
@@ -55,7 +55,12 @@ class BlockWorldAgent(BW4TBrain):
                 You will receive and send messages in the chatbox. You can send your messages using the buttons. It is recommended to send messages \
                 when you will search in an area, when you find one of the victims, and when you are going to pick up a victim.  \
                 There are 8 victim and 3 injury types. The red color refers to critically injured victims, yellow to mildly injured victims, and green to healthy victims. \
-                The 8 victims area a girl (critically injured girl/mildly injured girl/healthy girl).', 'RescueBot')
+                The 8 victims are a girl (critically injured girl/mildly injured girl/healthy girl), boy (critically injured boy/mildly injured boy/healthy boy), \
+                woman (critically injured woman/mildly injured woman/healthy woman), man (critically injured man/mildly injured man/healthy man), \
+                elderly woman (critically injured elderly woman/mildly injured elderly woman/healthy elderly woman), \
+                elderly man (critically injured elderly man/mildly injured elderly man/healthy elderly man), dog (critically injured dog/mildly injured dog/healthy dog), \
+                and a cat (critically injured cat/mildly injured cat/healthy cat). In the toolbar above you can find the keyboard controls, for moving you can simply use the arrow keys. Your sense range is limited, so it is important to search the areas well.\
+                You can now practice and familiarize yourself with the environment, controls, and messaging system as long as you want. In this environment there are only 3 victims present. Please contact the experimenter when you feel comfortable enough to start the real experiment.', 'RescueBot')
                 self.Phase=Phase.FIND_NEXT_GOAL
                 return None,{}
             
@@ -72,35 +77,7 @@ class BlockWorldAgent(BW4TBrain):
                 zones.append(place)
         return zones
 
-    def _processMessages(self, state):
-        '''
-        process incoming messages. 
-        Reported blocks are added to self._blocks
-        '''
-        for msg in self.received_messages:
-            if msg.startswith("Search:"):
-                area = 'area '+ msg.split()[-1]
-                if area not in self._searchedRooms:
-                    self._searchedRooms.append(area)
-            if msg.startswith("Found:"):
-                if len(msg.split()) == 6:
-                    foundVic = ' '.join(msg.split()[1:4])
-                else:
-                    foundVic = ' '.join(msg.split()[1:5]) 
-                loc = 'area '+ msg.split()[-1]
-                if foundVic not in self._foundVictims:
-                    self._foundVictims.append(foundVic)
-                    self._foundVictimLocs[foundVic] = {'room':loc}
-            if msg.startswith('Collect:'):
-                if len(msg.split()) == 6:
-                    collectVic = ' '.join(msg.split()[1:4])
-                else:
-                    collectVic = ' '.join(msg.split()[1:5]) 
-                if collectVic not in self._collectedVictims:
-                    self._collectedVictims.append(collectVic)
-                    #self.received_messages = []
-                ##if collectedVictim==self._goalVic:
-                 #   self._sendMessage('Copy that, switching to next victim to rescue', 'RescueBot')
+    
                 
 
     def _sendMessage(self, mssg, sender):

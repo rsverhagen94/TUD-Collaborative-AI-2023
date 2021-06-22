@@ -15,19 +15,21 @@ from matrx.goals import WorldGoal
 from TransparentLow import BlockWorldAgent
 from HumanBrain import HumanBrain
 
-tick_duration = 0.2
+tick_duration = 0.1
 random_seed = 1
 verbose = False
-key_action_map = {  # For the human agents
-    'w': MoveNorth.__name__,
-    'd': MoveEast.__name__,
-    's': MoveSouth.__name__,
-    'a': MoveWest.__name__,
-    'q': GrabObject.__name__,
-    'e': DropObject.__name__,
-    'r': OpenDoorAction.__name__,
-    'f': CloseDoorAction.__name__,
-}
+key_action_map = {
+        'ArrowUp': MoveNorth.__name__,
+        'ArrowRight': MoveEast.__name__,
+        'ArrowDown': MoveSouth.__name__,
+        'ArrowLeft': MoveWest.__name__,
+        'b': GrabObject.__name__,
+        'n': DropObject.__name__,
+        #'r': RemoveObject.__name__,
+        #'l': GrabLargeObject.__name__,
+        #'m': DropLargeObject.__name__,
+        #'b': BreakObject.__name__
+    }
 
 # Some BW4T settings
 nr_rooms = 9
@@ -76,7 +78,7 @@ def add_agents(builder):
         # Add agents
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
-            brain = BlockWorldAgent(slowdown=agent_slowdown[agent_nr])
+            brain = BlockWorldAgent(slowdown=10)
             loc = (9,23)
             builder.add_agent(loc, brain, team=team_name, name=f"Agent {agent_nr} in {team_name}",
                               sense_capability=sense_capability, is_traversable=True, img_name="/images/robotics5.svg")

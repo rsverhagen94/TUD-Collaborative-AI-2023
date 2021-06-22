@@ -82,13 +82,13 @@ class BlockWorldAgent(BW4TBrain):
                     self._sendMessage('Next victim to rescue: ' + self._goalVic ,'RescueBot')
                     self._phase=Phase.PICK_UNSEARCHED_ROOM
                 if self._goalVic in self._foundVictims and 'location' in self._foundVictimLocs[self._goalVic].keys():
-                    if self._collectedVictims:
-                        self._sendMessage('Next victim to rescue is' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] ,'RescueBot')
                     self._phase=Phase.PLAN_PATH_TO_VICTIM
-                if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     if self._collectedVictims:
                         self._sendMessage('Next victim to rescue is' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] ,'RescueBot')
+                if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     self._phase=Phase.PLAN_PATH_TO_ROOM
+                    if self._collectedVictims:
+                        self._sendMessage('Next victim to rescue is' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] ,'RescueBot')
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
                 unsearchedRooms=[room['room_name'] for room in state.values()
@@ -102,6 +102,7 @@ class BlockWorldAgent(BW4TBrain):
             if Phase.PLAN_PATH_TO_ROOM==self._phase:
                 self._navigator.reset_full()
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
+                    print('TEST')
                     self._door = state.get_room_doors(self._foundVictimLocs[self._goalVic]['room'])[0]
                     doorLoc = self._door['location']
                 else:

@@ -21,16 +21,18 @@ from loggers.message_logger import MessageLogger
 tick_duration = 0.1
 random_seed = 1
 verbose = False
-key_action_map = {  # For the human agents
-    'w': MoveNorth.__name__,
-    'd': MoveEast.__name__,
-    's': MoveSouth.__name__,
-    'a': MoveWest.__name__,
-    'q': GrabObject.__name__,
-    'e': DropObject.__name__,
-    'r': OpenDoorAction.__name__,
-    'f': CloseDoorAction.__name__,
-}
+key_action_map = {
+        'ArrowUp': MoveNorth.__name__,
+        'ArrowRight': MoveEast.__name__,
+        'ArrowDown': MoveSouth.__name__,
+        'ArrowLeft': MoveWest.__name__,
+        'b': GrabObject.__name__,
+        'n': DropObject.__name__,
+        #'r': RemoveObject.__name__,
+        #'l': GrabLargeObject.__name__,
+        #'m': DropLargeObject.__name__,
+        #'b': BreakObject.__name__
+    }
 
 # Some BW4T settings
 nr_rooms = 9
