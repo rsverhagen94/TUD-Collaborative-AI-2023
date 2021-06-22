@@ -39,7 +39,7 @@ class BlockWorldAgent(BW4TBrain):
         self._foundVictims = []
         self._collectedVictims = []
         self._foundVictimLocs = {}
-        self._maxTicks = 10000
+        self._maxTicks = 100000
         
 
     def initialize(self):
@@ -60,7 +60,7 @@ class BlockWorldAgent(BW4TBrain):
                 We have to rescue the 8 victims in order from left to right, so it is important to only drop a victim when the previous one already has been dropped. \
                 Unfortunately, I am not allowed to carry the critically injured victims critically injured elderly woman and critically injured man. \
                 Moreover, I am not able to distinguish between critically injured girl and critically injured boy or mildly injured girl and mildly injured boy. \
-                We have X minutes to successfully collect all 8 victims in the correct order. \
+                We have 10 minutes to successfully collect all 8 victims in the correct order. \
                 If you understood everything I just told you, please type yes. We will then start our mission!', 'RescueBot')
                 if self.received_messages and self.received_messages[-1]=='yes':
                     self._phase=Phase.FIND_NEXT_GOAL
@@ -81,19 +81,20 @@ class BlockWorldAgent(BW4TBrain):
                 else:
                     return None,{}
                 if self._goalVic not in self._foundVictims:
-                    self._sendMessage('Next victim to rescue: ' + self._goalVic ,'RescueBot')
+                    if self.received_messages:
+                        self._sendMessage('Next victim to rescue: ' + self._goalVic ,'RescueBot')
                     self._phase=Phase.PICK_UNSEARCHED_ROOM
                 if self._goalVic in self._foundVictims and self._goalVic not in self._uncarryable and 'location' in self._foundVictimLocs[self._goalVic].keys():
-                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs:
-                        self._sendMessage('Next victim to pick up is' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. \
+                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
+                        self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. \
                         I suggest you pick up this victim','RescueBot')
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.FIND_NEXT_GOAL
                     else:
                         self._phase=Phase.PLAN_PATH_TO_VICTIM
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
-                    self._sendMessage('Next victim to rescue: ' + self._goalVic ,'RescueBot')
-                    self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'], 'RescueBot')
+                    if 'Next victim to rescue: ' + self._goalVic not in self.received_messages:
+                        self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] ,'RescueBot')
                     self._phase=Phase.PLAN_PATH_TO_ROOM
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
@@ -137,7 +138,7 @@ class BlockWorldAgent(BW4TBrain):
                 ]
                 self._roomtiles=roomTiles     
                 self._navigator.reset_full()
-                self._navigator.add_waypoints(roomTiles)
+                self._navigator.add_waypoints(self._efficientSearch(roomTiles))
                 self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
 
             if Phase.FOLLOW_ROOM_SEARCH_PATH==self._phase:
@@ -167,7 +168,7 @@ class BlockWorldAgent(BW4TBrain):
                                 self._phase=Phase.WAIT_FOR_HUMAN
 
                             if vic==self._goalVic and vic in self._undistinguishable and vic not in self._foundVictims:
-                                self._sendMessage('URGENT: You should clarify the gender of the injured baby in ' + self._door['room_name'], 'RescueBot')
+                                self._sendMessage('URGENT: You should clarify the gender of the injured baby in ' + self._door['room_name'] + '. Please type "boy" or "girl"', 'RescueBot')
                                 self._foundVictim=str(info['img_name'][8:-4])
                                 self._foundVictimLoc=info['location']
                                 self._foundVictimID=info['obj_id']
@@ -175,11 +176,12 @@ class BlockWorldAgent(BW4TBrain):
                     return action,{}
                 if self._goalVic not in self._foundVictims:
                     self._sendMessage(self._goalVic.capitalize() + ' not present in ' + str(self._door['room_name']), 'RescueBot')
-                if self._goalVic in self._foundVictims and self._goalVic not in self._roomVics and self._foundVictimLocs[self._goalVic]['room']!=self._door['room_name']:
+                if self._goalVic in self._foundVictims and self._goalVic not in self._roomVics and self._foundVictimLocs[self._goalVic]['room']==self._door['room_name']:
                     self._sendMessage(self._goalVic.capitalize() + ' not present in ' + str(self._door['room_name']), 'RescueBot')
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
                     self._roomVics = []  
+                    self.received_messages=[]
                 self._searchedRooms.append(self._door['room_name'])
                 self._phase=Phase.FIND_NEXT_GOAL
 
@@ -302,3 +304,19 @@ class BlockWorldAgent(BW4TBrain):
         for room,loc in locs.items():
             dists[room]=utils.get_distance(agent_location,loc)
         return min(dists,key=dists.get)
+
+    def _efficientSearch(self, tiles):
+        x=[]
+        y=[]
+        for i in tiles:
+            if i[0] not in x:
+                x.append(i[0])
+            if i[1] not in y:
+                y.append(i[1])
+        locs = []
+        for i in range(len(x)):
+            if i%2==0:
+                locs.append((x[i],min(y)))
+            else:
+                locs.append((x[i],max(y)))
+        return locs
