@@ -82,14 +82,14 @@ def add_agents(builder):
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
             brain = BlockWorldAgent(slowdown=15)
-            loc = (9,24)
+            loc = (9,23)
             builder.add_agent(loc, brain, team=team_name, name=f"Agent {agent_nr} in {team_name}",
                               sense_capability=sense_capability, is_traversable=True, img_name="/images/robotics5.svg")
 
         # Add human agents
         for human_agent_nr in range(human_agents_per_team):
             brain = HumanBrain(max_carry_objects=1, grab_range=0, drop_range=0, fov_occlusion=fov_occlusion)
-            loc = (10,24)
+            loc = (10,23)
             builder.add_human_agent(loc, brain, team=team_name, name=f"Human {human_agent_nr} in {team_name}",
                                     key_action_map=key_action_map, sense_capability=sense_capability, is_traversable=True, img_name="/images/first-responder6.svg")
 
