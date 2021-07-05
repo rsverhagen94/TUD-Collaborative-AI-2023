@@ -12,13 +12,13 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from Instructions import BlockWorldAgent
+from InstructionsTrans import BlockWorldAgent
 from HumanBrain import HumanBrain
 from loggers.action_logger import ActionLogger
 from datetime import datetime
 from loggers.message_logger import MessageLogger
 
-tick_duration = 0.1
+tick_duration = 0.0
 random_seed = 1
 verbose = False
 key_action_map = {
@@ -64,7 +64,7 @@ def add_drop_off_zones(builder, world_size):
     for nr_zone in range(nr_drop_zones):
         # Add the zone's tiles. Area tiles are special types of objects in MATRX that simply function as
         # a kind of floor. They are always traversable and cannot be picked up.
-        builder.add_area((1,23), width=8, height=1, name=f"Drop off {nr_zone}", visualize_colour=drop_off_color, drop_zone_nr=nr_zone,
+        builder.add_area((1,23), width=8, height=1, name=f"Drop off {nr_zone}", visualize_opacity=0.5, visualize_colour=drop_off_color, drop_zone_nr=nr_zone,
         is_drop_zone=True, is_goal_block=False, is_collectable=False)  
 
 def add_agents(builder):
@@ -80,7 +80,7 @@ def add_agents(builder):
         # Add agents
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
-            brain = BlockWorldAgent(slowdown=10)
+            brain = BlockWorldAgent(slowdown=65)
             loc = (9,23)
             builder.add_agent(loc, brain, team=team_name, name=f"Agent {agent_nr} in {team_name}",
                               sense_capability=sense_capability, is_traversable=True, img_name="/images/robotics5.svg")
@@ -97,7 +97,7 @@ def create_builder():
     np.random.seed(random_seed)
 
     # Create the goal
-    goal = CollectionGoal(max_nr_ticks=10000)
+    goal = CollectionGoal(max_nr_ticks=100000000)
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, random_seed=random_seed, run_matrx_api=True,
                            run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
@@ -177,6 +177,26 @@ def create_builder():
     visualize_shape='img',img_name="/images/critically injured man.svg")
     builder.add_object((18,18),'critically injured girl in area C3', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/critically injured girl.svg")
+    builder.add_object((9,11),'critically injured dog in area B2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured dog.svg")
+    builder.add_object((2,10),'mildly injured boy in area B1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured boy.svg")
+    builder.add_object((4,3),'mildly injured elderly man in area A1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
+    builder.add_object((8,3),'mildly injured woman in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured woman.svg")
+    builder.add_object((10,19),'mildly injured cat in area C2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured cat.svg")
+
+
+    builder.add_object((18,17),'healthy man in area C3', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy man.svg")  
+    builder.add_object((18,19),'healthy woman in area C3', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy woman.svg")   
+    builder.add_object((20,19),'healthy dog in area C3', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy dog.svg")   
+
+
 
     builder.add_object(location=[4,4], is_traversable=True, name="area A1 sign", img_name="/images/area1_new.svg", visualize_depth=110, visualize_size=0.55)
     builder.add_object(location=[8,4], is_traversable=True, name="area A2 sign", img_name="/images/areaA2.svg", visualize_depth=110, visualize_size=0.6)
@@ -213,7 +233,7 @@ class GhostBlock(EnvObject):
         super().__init__(location, name, is_traversable=True, is_movable=False,
                          visualize_shape=visualize_shape, img_name=img_name,
                          visualize_size=block_size, class_callable=GhostBlock,
-                         visualize_depth=85, drop_zone_nr=drop_zone_nr, visualize_opacity=0.6,
+                         visualize_depth=110, drop_zone_nr=drop_zone_nr, visualize_opacity=0.5,
                          is_drop_zone=False, is_goal_block=True, is_collectable=False)
 
 

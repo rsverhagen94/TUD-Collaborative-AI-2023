@@ -61,8 +61,8 @@ class BlockWorldAgent(BW4TBrain):
                 Unfortunately, I am not allowed to carry the critically injured victims critically injured elderly woman and critically injured man. \
                 Moreover, I am not able to distinguish between critically injured girl and critically injured boy or mildly injured girl and mildly injured boy. \
                 We have 10 minutes to successfully collect all 8 victims in the correct order. \
-                If you understood everything I just told you, please type yes. We will then start our mission!', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='yes':
+                If you understood everything I just told you, please press the "Ready!" button. We will then start our mission!', 'RescueBot')
+                if self.received_messages and self.received_messages[-1]=='yes' or not state[{'is_human_agent':True}]:
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     return None,{}
@@ -81,7 +81,7 @@ class BlockWorldAgent(BW4TBrain):
                 else:
                     return None,{}
                 if self._goalVic not in self._foundVictims:
-                    if self.received_messages:
+                    if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
                         self._sendMessage('Next victim to rescue: ' + self._goalVic ,'RescueBot')
                     self._phase=Phase.PICK_UNSEARCHED_ROOM
                 if self._goalVic in self._foundVictims and self._goalVic not in self._uncarryable and 'location' in self._foundVictimLocs[self._goalVic].keys():
@@ -188,7 +188,7 @@ class BlockWorldAgent(BW4TBrain):
             if Phase.WAIT_FOR_HUMAN==self._phase:
                 self._state_tracker.update(state)
                 if state[{'is_human_agent':True}]:
-                    if self._foundVictim in self._undistinguishable and self.received_messages[-1]==self._foundVictim.split()[-1]:
+                    if self._foundVictim in self._undistinguishable and self.received_messages[-1].lower()==self._foundVictim.split()[-1]:
                         self._sendMessage('Found '+self._foundVictim + ' in ' + self._door['room_name'], 'RescueBot')
                         self._foundVictims.append(self._foundVictim)
                         self._foundVictimLocs[self._foundVictim] = {'location':self._foundVictimLoc,'room':self._door['room_name'],'obj_id':self._foundVictimID}

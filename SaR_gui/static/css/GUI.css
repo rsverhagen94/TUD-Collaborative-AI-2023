@@ -266,12 +266,6 @@ h5 {
 
 }
 
-#search_submit {
-  border: none;
-  background-color: red;
-
-}
-
 #chat_form_submit:hover {
     background-color: #056681;
     -webkit-transition: background-color 100ms linear;

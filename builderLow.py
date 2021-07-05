@@ -18,7 +18,7 @@ from loggers.action_logger import ActionLogger
 from datetime import datetime
 from loggers.message_logger import MessageLogger
 
-tick_duration = 0.1
+tick_duration = 0.0
 random_seed = 1
 verbose = False
 key_action_map = {
@@ -66,7 +66,7 @@ def add_drop_off_zones(builder, world_size):
         # a kind of floor. They are always traversable and cannot be picked up.
         builder.add_area((1,23), width=4, height=1, name=f"Drop off {nr_zone}", visualize_colour=drop_off_color, drop_zone_nr=nr_zone,
         is_drop_zone=True, is_goal_block=False, is_collectable=False)  
-        builder.add_area((5,23), width=4, height=1, name=f"Drop off {nr_zone}", drop_zone_nr=nr_zone, is_drop_zone=True, is_goal_block=False, is_collectable=False)
+        builder.add_area((5,23), width=4, height=1, name=f"Drop off {nr_zone}", visualize_opacity=0.3, drop_zone_nr=nr_zone, is_drop_zone=True, is_goal_block=False, is_collectable=False)
 
 def add_agents(builder):
     # Create the agents sense capability. This is a circular range around the agent that denotes what it can perceive.
@@ -81,7 +81,7 @@ def add_agents(builder):
         # Add agents
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
-            brain = BlockWorldAgent(slowdown=15)
+            brain = BlockWorldAgent(slowdown=65)
             loc = (9,23)
             builder.add_agent(loc, brain, team=team_name, name=f"Agent {agent_nr} in {team_name}",
                               sense_capability=sense_capability, is_traversable=True, img_name="/images/robotics5.svg")
@@ -227,6 +227,8 @@ def create_builder():
     builder.add_object(location=[3,17], is_traversable=True, name="area C1 sign", img_name="/images/areaC1.svg", visualize_depth=110, visualize_size=0.5)
     builder.add_object(location=[9,17], is_traversable=True, name="area C2 sign", img_name="/images/areaC2.svg", visualize_depth=110, visualize_size=0.6)
     builder.add_object(location=[16,18], is_traversable=True, name="area C3 sign", img_name="/images/areaC3.svg", visualize_depth=110, visualize_size=0.6)
+
+    builder.add_object(location=[10,0], is_traversable=True, name="keyboard sign", img_name="/images/keyboard2.svg", visualize_depth=110, visualize_size=10)
     # Add the collectible objects, we do so probabilistically so each world will contain different blocks
     #add_blocks(builder, room_locations)
     # Create the drop-off zones, this includes generating the random colour/shape combinations to collect.
@@ -251,7 +253,7 @@ class GhostBlock(EnvObject):
         super().__init__(location, name, is_traversable=True, is_movable=False,
                          visualize_shape=visualize_shape, img_name=img_name,
                          visualize_size=block_size, class_callable=GhostBlock,
-                         visualize_depth=85, drop_zone_nr=drop_zone_nr, visualize_opacity=0.7,
+                         visualize_depth=110, drop_zone_nr=drop_zone_nr, visualize_opacity=0.5,
                          is_drop_zone=False, is_goal_block=True, is_collectable=False)
 
 

@@ -12,36 +12,44 @@ from matrx.messages.message import Message
 from matrx.messages.message_manager import MessageManager
 
 class Phase(enum.Enum):
-    INTRODUCTION=0,
-    FIND_NEXT_GOAL=1,
-    PICK_UNSEARCHED_ROOM=2,
-    PLAN_PATH_TO_ROOM=3,
-    FOLLOW_PATH_TO_ROOM=4,
-    PLAN_ROOM_SEARCH_PATH=5,
-    FOLLOW_ROOM_SEARCH_PATH=6,
-    PLAN_PATH_TO_VICTIM=7,
-    FOLLOW_PATH_TO_VICTIM=8,
-    TAKE_VICTIM=9,
-    PLAN_PATH_TO_DROPPOINT=10,
-    FOLLOW_PATH_TO_DROPPOINT=11,
-    DROP_VICTIM=12,
-    WAIT_FOR_HUMAN=13,
-    WAIT_AT_ZONE=14
+    INTRO0=0,
+    INTRO1=1,
+    INTRO2=2,
+    INTRO3=3,
+    INTRO4=4,
+    INTRO5=5,
+    INTRO6=6,
+    INTRO7=7,
+    INTRO8=8,
+    INTRO9=9,
+    INTRO10=10,
+    INTRO11=11,
+    FIND_NEXT_GOAL=12,
+    PICK_UNSEARCHED_ROOM=13,
+    PLAN_PATH_TO_ROOM=14,
+    FOLLOW_PATH_TO_ROOM=15,
+    PLAN_ROOM_SEARCH_PATH=16,
+    FOLLOW_ROOM_SEARCH_PATH=17,
+    PLAN_PATH_TO_VICTIM=18,
+    FOLLOW_PATH_TO_VICTIM=19,
+    TAKE_VICTIM=20,
+    PLAN_PATH_TO_DROPPOINT=21,
+    FOLLOW_PATH_TO_DROPPOINT=22,
+    DROP_VICTIM=23,
+    WAIT_FOR_HUMAN=24,
+    WAIT_AT_ZONE=25
     
 class BlockWorldAgent(BW4TBrain):
     def __init__(self, slowdown:int):
         super().__init__(slowdown)
-        self._phase=Phase.INTRODUCTION
-        #self._uncarryable = ['critically injured elderly man', 'critically injured elderly woman', 'critically injured man', 'critically injured woman']
-        #self._undistinguishable = ['critically injured girl', 'critically injured boy', 'mildly injured boy', 'mildly injured girl']
+        self._phase=Phase.INTRO0
         self._roomVics = []
-        self._searchedRooms = []
-        self._foundVictims = []
-        self._collectedVictims = []
+        self._searchedRooms = ['area C3', 'area C2']
+        self._foundVictims = ['mildly injured cat']
+        self._collectedVictims = ['critically injured girl', 'critically injured elderly woman']
         self._foundVictimLocs = {}
         self._maxTicks = 100000
         self._sendMessages = []
-        
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -56,16 +64,109 @@ class BlockWorldAgent(BW4TBrain):
         ticksLeft = self._maxTicks - state['World']['nr_ticks']
         #print(self._foundVictimLocs)
         while True: 
-            if Phase.INTRODUCTION==self._phase:
-                self._sendMessage('Hello! My name is RescueBot. Together we will collaborate and try to search and rescue the 8 victims on our left as quickly as possible. \
-                I will search and rescue the 4 victims on the left drop zone (critically injured elderly woman, critically injured dog, mildly injured elderly man, mildly injured cat) \
-                and you will search and rescue the 4 victims on the right drop zone (critically injured girl, critically injured man, mildly injured boy, mildly injured woman).  \
-                We have to rescue our 4 victims in order from left to right, so it is important to only drop a victim when the previous one already has been dropped. \
-                When you have rescued your 4 victims, feel free to help me with the rest of my 4 victims. \
-                We have 10 minutes to successfully collect all 8 victims. \
-                If you understood everything I just told you, please press the "Ready!" button. We will then start our mission!', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!' or not state[{'is_human_agent':True}]:
+            if Phase.INTRO0==self._phase:
+                self._sendMessage('Hello! My name is RescueBot. During this experiment we will collaborate and communicate with each other. \
+                It is our goal to search and rescue the victims on the drop zone on our left as quickly as possible.  \
+                We have to rescue the victims in order from left to right, so it is important to only drop a victim when the previous one already has been dropped. \
+                You will receive and send messages in the chatbox. You can send your messages using the buttons. It is recommended to send messages \
+                when you will search in an area, when you find one of the victims, and when you are going to pick up a victim.  \
+                There are 8 victim and 3 injury types. The red color refers to critically injured victims, yellow to mildly injured victims, and green to healthy victims. \
+                The 8 victims are a girl (critically injured girl/mildly injured girl/healthy girl), boy (critically injured boy/mildly injured boy/healthy boy), \
+                woman (critically injured woman/mildly injured woman/healthy woman), man (critically injured man/mildly injured man/healthy man), \
+                elderly woman (critically injured elderly woman/mildly injured elderly woman/healthy elderly woman), \
+                elderly man (critically injured elderly man/mildly injured elderly man/healthy elderly man), dog (critically injured dog/mildly injured dog/healthy dog), \
+                and a cat (critically injured cat/mildly injured cat/healthy cat). In the toolbar above you can find the keyboard controls, for moving you can simply use the arrow keys. Your sense range is limited to 1, so it is important to search the areas well.\
+                We will now practice and familiarize you with everything mentioned above, until you are comfortable enough to start the real experiment. \
+                If you read the text, press the "Ready!" button.', 'RescueBot')
+                if self.received_messages and self.received_messages[-1]=='Ready!':
+                    self._phase=Phase.INTRO1
+                    self.received_messages=[]
+                else:
+                    return None,{}
+
+            if Phase.INTRO1==self._phase:
+                print('phase1')
+                self._sendMessage('Lets try out the controls first. You can move with the arrow keys. If you move up twice, you will notice that you can now no longer see me in your field of view. \
+                So you can only see as far as 1 grid cell. Therefore, it is important to search the areas well. If you moved up twice, press the "Ready!" button.','RescueBot')
+                if self.received_messages and self.received_messages[-1]=='Ready!':
+                    self._phase=Phase.INTRO2
+                    self.received_messages=[]
+                else:
+                    return None,{}
+                #self._phase=Phase.INTRO2
+
+            if Phase.INTRO2==self._phase:
+                self._sendMessage('Lets move to area C3 now, and search it completely. In this area you should find 4 victims. One of them is our first goal victim on the drop zone: critically injured girl, the other three are healthy. \
+                If you searched the whole area and found the 4 victims, press the "Ready!" button.', 'RescueBot')
+                if self.received_messages and self.received_messages[-1]=='Ready!':
+                    self._phase=Phase.INTRO3
+                    self.received_messages=[]
+                else:
+                    return None,{}
+
+            if Phase.INTRO3==self._phase:
+                self._sendMessage('Lets pick up our first goal victim critically injured girl now. To pick up a victim, move yourself on the victim first. \
+                Now, you can press "B" on your keyboard to grab the victim. If you now move left, right, up, or down once, you can see the victim is no longer there. \
+                If you finished this step, press the "Ready!" button.', 'RescueBot')
+                if self.received_messages and self.received_messages[-1]=='Ready!':
+                    self._phase=Phase.INTRO4
+                    self.received_messages=[]
+                else:
+                    return None,{}
+
+            if Phase.INTRO4==self._phase:
+                self._sendMessage('Lets drop our first goal victim critically injured girl at the drop zone now. The drop zone is located at the lower left of the environment, next to where you started. \
+                You can move to the drop zone using the arrow keys. If you reach the drop zone, move on top of the image of the first goal victim you are currently carrying (critically injured girl). \
+                This is the most left image on the drop zone, because it is the first victim to rescue. If you are located on top of this image, press "N" on your keyboard to drop the victim. \
+                If you now move right once, you can see that you dropped critically injured girl in the right place. If you finished this step, press the "Ready!" button.', 'RescueBot')
+                if self.received_messages and self.received_messages[-1]=='Ready!':
+                    self._phase=Phase.INTRO5
+                    self.received_messages=[]
+                else:
+                    return None,{}
+
+            if Phase.INTRO5==self._phase:
+                self._sendMessage('You just dropped the first victim, nice! Time for the next step and goal victim critically injured elderly woman. Lets move to and search through area C2 for this victim. But this time, let me know in the chat that you are going to search in area C2. \
+                You can do this using the button "C2". By doing so, you will make sure that I will not also search for critically injured elderly woman in this area. This way, we can collaborate more efficiently! \
+                If you pressed the button "C2" and moved to the entrance of the area, press the "Ready!" button.', 'RescueBot')
+                if self.received_messages and self.received_messages[-1]=='Ready!':
+                    self._phase=Phase.INTRO6
+                    self.received_messages=[]
+                else:
+                    return None,{}
+
+            if Phase.INTRO6==self._phase:
+                self._sendMessage('You should now be present in area C2. If you search this area you should find critically injured elderly woman and mildly injured cat. \
+                When you find one of our goal victims in an area, it is important to communicate this with me in the chat. You can do so using the buttons below "I have found:". \
+                For example, in this area you should press the button "critically injured elderly woman in C2" and "mildly injured cat in C2". You can select the correct room using the dropdown menu. \
+                Communicating this information with me can improve efficiency, so it is highly recommended! If you searched the whole area, found the 2 victims, and communicated this using the "found" buttons, press the "Ready!" button.', 'RescueBot')
+                if self.received_messages and self.received_messages[-1]=='Ready!':
+                    self._foundVictimLocs['mildly injured cat'] = {'room':'area C2'}
+                    self._phase=Phase.INTRO7
+                    self.received_messages=[]
+                else:
+                    return None,{}
+
+            if Phase.INTRO7==self._phase:
+                self._sendMessage('Lets pick up the next goal victim to drop off at the drop zone: critically injured elderly woman in area C2. But this time, let me know you will pick up this victim using the corresponding button. \
+                Similar to when you found this victim, select the button "critically injured elderly woman in C2" below "I will pick up:" in the chat window. \
+                This way, I will know that I no longer have to search this goal victim, and can start searching for the next goal victim to rescue: critically injured man. \
+                After sending the message to me, pick up/grab critically injured elderly woman, move to the drop zone, and drop critically injured elderly woman in the right place. \
+                If you did so, press the "Ready!" button.', 'RescueBot')
+                if self.received_messages and self.received_messages[-1]=='Ready!':
+                    self._phase=Phase.INTRO8
+                    self.received_messages=[]
+                else:
+                    return None,{}
+
+            if Phase.INTRO8==self._phase:
+                self._sendMessage('You just rescued the second goal victim critically injured elderly woman, great work! You should now have a good understanding of the controls and messaging system. \
+                The next step is a small trial of how the real experiment will be. So now I will also be moving to and searching through areas, picking up and dropping off victims, and communicating this relevant info with you during the mission. \
+                We still have to rescue the following victims in this order: critically injured man, critically injured dog, mildly injured boy, mildly injured elderly man, mildly injured woman, mildly injured cat. \
+                One we delivered the last victim mildly injured cat, the game will end automatically. If you are ready to start searching for critically injured man, press the "Ready!" button.' , 'RescueBot')
+                if self.received_messages and self.received_messages[-1]=='Ready!':
                     self._phase=Phase.FIND_NEXT_GOAL
+                    self.received_messages=[]
                 else:
                     return None,{}
 
@@ -212,7 +313,8 @@ class BlockWorldAgent(BW4TBrain):
                     return DropObject.__name__,{}
                 if not state[{'is_collectable':True}] and self._goalVic!=self._firstVictim:
                     self._sendMessage('Waiting for human operator at drop zone', 'RescueBot')
-                    return None,{}
+                    return None,{}               
+
             
     def _getDropZones(self,state:State):
         '''

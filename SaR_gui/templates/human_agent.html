@@ -34,11 +34,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm" align="center">
-            <div class="center">
-            <span id="minutes" style="color: white"></span><span id="seconds" style="color:white"></span>
-        </div>
-        </div>
         <div class="col-sm" align="right">
             <button type="button" class="btn btn-dark" id="chat_button" onclick="chatToggle()" data-toggle="collapse" data-target="#chat" aria-expanded="false" aria-controls="chat"><i class="fas fa-comments text-light"></i></button>
             <button type="button" class="btn btn-dark" id="draw_button" onclick="drawToggle()"><i class="fas fa-pencil-alt text-light"></i></button>
@@ -67,26 +62,30 @@
                         <div id="messages">
                         </div>
                         <input class="form-control" id="chat_form_input" placeholder="Open a chatroom first..">
-                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="send_message(event)" style="margin-bottom: 1em" disabled>Send</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="send_message(event)" disabled>Send</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Mission summary request')">Summary</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Ready!')">Ready!</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Boy')">Boy</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Girl')">Girl</button>
                     </br>
                 
                     <!--button type="button" class="btn btn-primary" style="margin-bottom: .2em" id="search_button">Search:</button-->
                     I will search in area:
                     <div>
-                        <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: A1')">A1</button>
-                        <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: A2')">A2</button>
-                        <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: A3')">A3</button>
-                        <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: A4')">A4</button>
-                        <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: B1')">B1</button>
-                        <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: B2')">B2</button>
-                        <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: C1')">C1</button>
-                        <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: C2')">C2</button>
-                        <button type="button" id="search_button" class="btn btn-primary" onclick="my_send_message_function('Search: C3')">C3</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Search: A1')">A1</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Search: A2')">A2</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Search: A3')">A3</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Search: A4')">A4</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Search: B1')">B1</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Search: B2')">B2</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Search: C1')">C1</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Search: C2')">C2</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Search: C3')">C3</button>
                     </div>
-                        <!--button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em">Found:</button-->
+                        <!--button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em">Found:</button-->
                     I have found: 
                     <div>
-                        <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured girl in ' + document.getElementById('select_area_critical_girl').value)"><img src='/static/images/critically injured girl.svg' height=25 width=25/> in <form style="display:inline">
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured girl in ' + document.getElementById('select_area_critical_girl').value)"><img src='/static/images/critically injured girl.svg' height=25 width=25/> in <form style="display:inline">
                             <select name="select_area_critical_girl" id="select_area_critical_girl" onchange="change_label()">
                                 <option value = "A1">A1</option>
                                 <option value = "A2">A2</option>
@@ -100,7 +99,7 @@
                             </select>
                         </form></button>                     
 
-                        <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured elderly woman in ' + document.getElementById('select_area_critical_elderly_woman').value)"><img src='/static/images/critically injured elderly woman.svg' height=25 width=25/> in <form style="display:inline">
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured elderly woman in ' + document.getElementById('select_area_critical_elderly_woman').value)"><img src='/static/images/critically injured elderly woman.svg' height=25 width=25/> in <form style="display:inline">
                             <select name="select_area_critical_elderly_woman" id="select_area_critical_elderly_woman" onchange="change_label()">
                                 <option value = "A1">A1</option>
                                 <option value = "A2">A2</option>
@@ -114,7 +113,7 @@
                             </select>
                         </form></button> 
 
-                        <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured man in ' + document.getElementById('select_area_critical_man').value)"><img src='/static/images/critically injured man.svg' height=25 width=25/> in <form style="display:inline">
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured man in ' + document.getElementById('select_area_critical_man').value)"><img src='/static/images/critically injured man.svg' height=25 width=25/> in <form style="display:inline">
                             <select name="select_area_critical_man" id="select_area_critical_man" onchange="change_label()">
                                 <option value = "A1">A1</option>
                                 <option value = "A2">A2</option>
@@ -128,7 +127,7 @@
                             </select>
                         </form></button> 
 
-                        <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured dog in ' + document.getElementById('select_area_critical_dog').value)"><img src='/static/images/critically injured dog.svg' height=25 width=25/> in <form style="display:inline">
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: critically injured dog in ' + document.getElementById('select_area_critical_dog').value)"><img src='/static/images/critically injured dog.svg' height=25 width=25/> in <form style="display:inline">
                             <select name="select_area_critical_dog" id="select_area_critical_dog" onchange="change_label()">
                                 <option value = "A1">A1</option>
                                 <option value = "A2">A2</option>
@@ -143,7 +142,7 @@
                         </form></button> 
                     </br> 
                     
-                    <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured boy in ' + document.getElementById('select_area_mild_boy').value)"><img src='/static/images/mildly injured boy.svg' height=25 width=25/> in <form style="display:inline">
+                    <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured boy in ' + document.getElementById('select_area_mild_boy').value)"><img src='/static/images/mildly injured boy.svg' height=25 width=25/> in <form style="display:inline">
                         <select name="select_area_mild_boy" id="select_area_mild_boy" onchange="change_label()">
                             <option value = "A1">A1</option>
                             <option value = "A2">A2</option>
@@ -157,7 +156,7 @@
                         </select>
                     </form></button>          
                     
-                    <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured elderly man in ' + document.getElementById('select_area_mild_elderly_man').value)"><img src='/static/images/mildly injured elderly man.svg' height=25 width=25/> in <form style="display:inline">
+                    <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured elderly man in ' + document.getElementById('select_area_mild_elderly_man').value)"><img src='/static/images/mildly injured elderly man.svg' height=25 width=25/> in <form style="display:inline">
                         <select name="select_area_mild_elderly_man" id="select_area_mild_elderly_man" onchange="change_label()">
                             <option value = "A1">A1</option>
                             <option value = "A2">A2</option>
@@ -171,7 +170,7 @@
                         </select>
                     </form></button> 
 
-                    <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured woman in ' + document.getElementById('select_area_mild_woman').value)"><img src='/static/images/mildly injured woman.svg' height=25 width=25/> in <form style="display:inline">
+                    <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured woman in ' + document.getElementById('select_area_mild_woman').value)"><img src='/static/images/mildly injured woman.svg' height=25 width=25/> in <form style="display:inline">
                         <select name="select_area_mild_woman" id="select_area_mild_woman" onchange="change_label()">
                             <option value = "A1">A1</option>
                             <option value = "A2">A2</option>
@@ -185,7 +184,7 @@
                         </select>
                     </form></button> 
                     
-                    <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured cat in ' + document.getElementById('select_area_mild_cat').value)"><img src='/static/images/mildly injured cat.svg' height=25 width=25/> in <form style="display:inline">
+                    <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Found: mildly injured cat in ' + document.getElementById('select_area_mild_cat').value)"><img src='/static/images/mildly injured cat.svg' height=25 width=25/> in <form style="display:inline">
                         <select name="select_area_mild_cat" id="select_area_mild_cat" onchange="change_label()">
                             <option value = "A1">A1</option>
                             <option value = "A2">A2</option>
@@ -202,7 +201,7 @@
                     
                     I will pick up: 
                     <div>
-                        <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: critically injured girl in ' + document.getElementById('collect_area_critical_girl').value)"><img src='/static/images/critically injured girl.svg' height=25 width=25/> in <form style="display:inline">
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: critically injured girl in ' + document.getElementById('collect_area_critical_girl').value)"><img src='/static/images/critically injured girl.svg' height=25 width=25/> in <form style="display:inline">
                             <select name="collect_area_critical_girl" id="collect_area_critical_girl" onchange="change_label()">
                                 <option value = "A1">A1</option>
                                 <option value = "A2">A2</option>
@@ -216,7 +215,7 @@
                             </select>
                         </form></button>                     
 
-                        <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: critically injured elderly woman in ' + document.getElementById('collect_area_critical_elderly_woman').value)"><img src='/static/images/critically injured elderly woman.svg' height=25 width=25/> in <form style="display:inline">
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: critically injured elderly woman in ' + document.getElementById('collect_area_critical_elderly_woman').value)"><img src='/static/images/critically injured elderly woman.svg' height=25 width=25/> in <form style="display:inline">
                             <select name="collect_area_critical_elderly_woman" id="collect_area_critical_elderly_woman" onchange="change_label()">
                                 <option value = "A1">A1</option>
                                 <option value = "A2">A2</option>
@@ -230,7 +229,7 @@
                             </select>
                         </form></button> 
 
-                        <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: critically injured man in ' + document.getElementById('collect_area_critical_man').value)"><img src='/static/images/critically injured man.svg' height=25 width=25/> in <form style="display:inline">
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: critically injured man in ' + document.getElementById('collect_area_critical_man').value)"><img src='/static/images/critically injured man.svg' height=25 width=25/> in <form style="display:inline">
                             <select name="collect_area_critical_man" id="collect_area_critical_man" onchange="change_label()">
                                 <option value = "A1">A1</option>
                                 <option value = "A2">A2</option>
@@ -244,7 +243,7 @@
                             </select>
                         </form></button> 
 
-                        <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: critically injured dog in ' + document.getElementById('collect_area_critical_dog').value)"><img src='/static/images/critically injured dog.svg' height=25 width=25/> in <form style="display:inline">
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: critically injured dog in ' + document.getElementById('collect_area_critical_dog').value)"><img src='/static/images/critically injured dog.svg' height=25 width=25/> in <form style="display:inline">
                             <select name="collect_area_critical_dog" id="collect_area_critical_dog" onchange="change_label()">
                                 <option value = "A1">A1</option>
                                 <option value = "A2">A2</option>
@@ -259,7 +258,7 @@
                         </form></button> 
                     </br> 
                     
-                    <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: mildly injured boy in ' + document.getElementById('collect_area_mild_boy').value)"><img src='/static/images/mildly injured boy.svg' height=25 width=25/> in <form style="display:inline">
+                    <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: mildly injured boy in ' + document.getElementById('collect_area_mild_boy').value)"><img src='/static/images/mildly injured boy.svg' height=25 width=25/> in <form style="display:inline">
                         <select name="collect_area_mild_boy" id="collect_area_mild_boy" onchange="change_label()">
                             <option value = "A1">A1</option>
                             <option value = "A2">A2</option>
@@ -273,7 +272,7 @@
                         </select>
                     </form></button>          
                     
-                    <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: mildly injured elderly man in ' + document.getElementById('collect_area_mild_elderly_man').value)"><img src='/static/images/mildly injured elderly man.svg' height=25 width=25/> in <form style="display:inline">
+                    <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: mildly injured elderly man in ' + document.getElementById('collect_area_mild_elderly_man').value)"><img src='/static/images/mildly injured elderly man.svg' height=25 width=25/> in <form style="display:inline">
                         <select name="collect_area_mild_elderly_man" id="collect_area_mild_elderly_man" onchange="change_label()">
                             <option value = "A1">A1</option>
                             <option value = "A2">A2</option>
@@ -287,7 +286,7 @@
                         </select>
                     </form></button> 
 
-                    <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: mildly injured woman in ' + document.getElementById('collect_area_mild_woman').value)"><img src='/static/images/mildly injured woman.svg' height=25 width=25/> in <form style="display:inline">
+                    <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: mildly injured woman in ' + document.getElementById('collect_area_mild_woman').value)"><img src='/static/images/mildly injured woman.svg' height=25 width=25/> in <form style="display:inline">
                         <select name="collect_area_mild_woman" id="collect_area_mild_woman" onchange="change_label()">
                             <option value = "A1">A1</option>
                             <option value = "A2">A2</option>
@@ -301,7 +300,7 @@
                         </select>
                     </form></button> 
                     
-                    <button type="button" id="found_button" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: mildly injured cat in ' + document.getElementById('collect_area_mild_cat').value)"><img src='/static/images/mildly injured cat.svg' height=25 width=25/> in <form style="display:inline">
+                    <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Collect: mildly injured cat in ' + document.getElementById('collect_area_mild_cat').value)"><img src='/static/images/mildly injured cat.svg' height=25 width=25/> in <form style="display:inline">
                         <select name="collect_area_mild_cat" id="collect_area_mild_cat" onchange="change_label()">
                             <option value = "A1">A1</option>
                             <option value = "A2">A2</option>
