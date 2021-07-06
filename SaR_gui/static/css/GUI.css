@@ -302,6 +302,8 @@ h5 {
 .dropdown {
   position: relative;
   display: inline-block;
+  padding-right: 5px;
+  padding-bottom: 5px;
 }
 
 /* Dropdown Content (Hidden by Default) */
@@ -320,7 +322,7 @@ h5 {
   color: white;
   padding: 12px 12px;
   text-decoration: none;
-  display: block;
+  display: inline-block;
   font-size: 14px;
 }
 
