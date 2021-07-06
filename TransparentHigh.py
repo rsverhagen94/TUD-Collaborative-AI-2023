@@ -62,7 +62,7 @@ class BlockWorldAgent(BW4TBrain):
                 Moreover, I am not able to distinguish between critically injured girl and critically injured boy or mildly injured girl and mildly injured boy. \
                 We have 10 minutes to successfully collect all 8 victims in the correct order. \
                 If you understood everything I just told you, please press the "Ready!" button. We will then start our mission!', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='yes' or not state[{'is_human_agent':True}]:
+                if self.received_messages and self.received_messages[-1]=='Ready!' or not state[{'is_human_agent':True}]:
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     return None,{}
@@ -168,7 +168,7 @@ class BlockWorldAgent(BW4TBrain):
                                 self._phase=Phase.WAIT_FOR_HUMAN
 
                             if vic==self._goalVic and vic in self._undistinguishable and vic not in self._foundVictims:
-                                self._sendMessage('URGENT: You should clarify the gender of the injured baby in ' + self._door['room_name'] + '. Please type "boy" or "girl"', 'RescueBot')
+                                self._sendMessage('URGENT: You should clarify the gender of the injured baby in ' + self._door['room_name'] + '. Please press button "Boy" or "Girl"', 'RescueBot')
                                 self._foundVictim=str(info['img_name'][8:-4])
                                 self._foundVictimLoc=info['location']
                                 self._foundVictimID=info['obj_id']

@@ -163,7 +163,7 @@ class BlockWorldAgent(BW4TBrain):
                 self._sendMessage('You just rescued the second goal victim critically injured elderly woman, great work! You should now have a good understanding of the controls and messaging system. \
                 The next step is a small trial of how the real experiment will be. So now I will also be moving to and searching through areas, picking up and dropping off victims, and communicating this relevant info with you during the mission. \
                 We still have to rescue the following victims in this order: critically injured man, critically injured dog, mildly injured boy, mildly injured elderly man, mildly injured woman, mildly injured cat. \
-                One we delivered the last victim mildly injured cat, the game will end automatically. If you are ready to start searching for critically injured man, press the "Ready!" button.' , 'RescueBot')
+                Once we delivered the last victim mildly injured cat, the game will end automatically. If you are ready to start searching for critically injured man, press the "Ready!" button.' , 'RescueBot')
                 if self.received_messages and self.received_messages[-1]=='Ready!':
                     self._phase=Phase.FIND_NEXT_GOAL
                     self.received_messages=[]
