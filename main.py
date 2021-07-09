@@ -19,6 +19,7 @@ if __name__ == "__main__":
         print("Started world...")
         world.run(builder.api_info)
         # stop the custom visualizer
+        print("DONE!")
         print("Shutting down custom visualizer")
         r = requests.get("http://localhost:" + str(visualization_server.port) + "/shutdown_visualizer")
         vis_thread.join()

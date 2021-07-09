@@ -1,6 +1,7 @@
 import sys, random, enum, ast
 from matrx import grid_world
 from BW4TBrain import BW4TBrain
+from customActions import *
 from matrx import utils
 from matrx.grid_world import GridWorld
 from matrx.agents.agent_utils.state import State
@@ -93,7 +94,8 @@ class BlockWorldAgent(BW4TBrain):
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
                         self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] ,'RescueBot')
-                    self._phase=Phase.PLAN_PATH_TO_ROOM                        
+                    self._phase=Phase.PLAN_PATH_TO_ROOM     
+                return Idle.__name__,{'duration_in_ticks':75}                            
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
                 unsearchedRooms=[room['room_name'] for room in state.values()
