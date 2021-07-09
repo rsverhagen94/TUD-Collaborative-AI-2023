@@ -215,7 +215,7 @@ class BlockWorldAgent(BW4TBrain):
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] ,'RescueBot')
                             #self._direct = False
                         self._phase=Phase.PLAN_PATH_TO_ROOM
-                return Idle.__name__,{'duration_in_ticks':75}                     
+                return Idle.__name__,{'duration_in_ticks':50}                     
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
                 unsearchedRooms=[room['room_name'] for room in state.values()

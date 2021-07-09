@@ -1,7 +1,7 @@
 import os, requests
 import sys
 from SaR_gui import visualization_server
-from builderTrial import create_builder
+from builderLow import create_builder
 
 
 if __name__ == "__main__":
