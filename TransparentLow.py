@@ -81,6 +81,7 @@ class BlockWorldAgent(BW4TBrain):
                 if remainingZones:
                     self._goalVic = str(remainingZones[0]['img_name'])[8:-4]
                     self._goalLoc = remainingZones[0]['location']
+                    self._remainingZones = remainingZones
                 else:
                     return None,{}
                 
@@ -105,9 +106,14 @@ class BlockWorldAgent(BW4TBrain):
                 if 'class_inheritance' in room
                 and 'Door' in room['class_inheritance']
                 and room['room_name'] not in self._searchedRooms]
-                self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms))[0]
-                #self._sendMessage('Areas still to search: ' + ', '.join([i.split()[-1] for i in unsearchedRooms]), 'RescueBot')
-                self._phase = Phase.PLAN_PATH_TO_ROOM
+                if self._remainingZones and len(unsearchedRooms)==0:
+                    self._searchedRooms = []
+                    self._sendMessages = []
+                    self.received_messages = []
+                    self._phase = Phase.FIND_NEXT_GOAL
+                else:
+                    self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms))[0]
+                    self._phase = Phase.PLAN_PATH_TO_ROOM
 
             if Phase.PLAN_PATH_TO_ROOM==self._phase:
                 self._navigator.reset_full()
@@ -122,6 +128,8 @@ class BlockWorldAgent(BW4TBrain):
             if Phase.FOLLOW_PATH_TO_ROOM==self._phase:
                 if self._goalVic in self._collectedVictims:
                     self._phase=Phase.FIND_NEXT_GOAL
+                if self._goalVic in self._foundVictims and self._door['room_name']!=self._foundVictimLocs[self._goalVic]['room']:
+                    self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     self._state_tracker.update(state)
                     self._sendMessage('Moving to ' + str(self._door['room_name']), 'RescueBot')
@@ -154,14 +162,15 @@ class BlockWorldAgent(BW4TBrain):
                                 self._roomVics.append(vic)
 
                             if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys():
-                                self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
                                 self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'], 'RescueBot')# + ' like you said', 'RescueBot')
+                                self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
+                                self._searchedRooms.append(self._door['room_name'])
                                 self._phase=Phase.FIND_NEXT_GOAL
 
                             if 'healthy' not in vic and vic not in self._foundVictims:
+                                self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'], 'RescueBot')
                                 self._foundVictims.append(vic)
                                 self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
-                                self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'], 'RescueBot')
                     return action,{}
                 if self._goalVic not in self._foundVictims:
                     self._sendMessage(self._goalVic.capitalize() + ' not present in ' + str(self._door['room_name']), 'RescueBot')
@@ -235,7 +244,7 @@ class BlockWorldAgent(BW4TBrain):
         process incoming messages. 
         Reported blocks are added to self._blocks
         '''
-        areas = ['area A1','area A2','area A3','area A4','area B1','area B2','area C1','area C2','area C3']
+        #areas = ['area A1','area A2','area A3','area A4','area B1','area B2','area C1','area C2','area C3']
         for msg in self.received_messages:
             if msg.startswith("Search:"):
                 area = 'area '+ msg.split()[-1]
@@ -247,6 +256,8 @@ class BlockWorldAgent(BW4TBrain):
                 else:
                     foundVic = ' '.join(msg.split()[1:5]) 
                 loc = 'area '+ msg.split()[-1]
+                if loc not in self._searchedRooms:
+                    self._searchedRooms.append(loc)
                 if foundVic not in self._foundVictims:
                     self._foundVictims.append(foundVic)
                     self._foundVictimLocs[foundVic] = {'room':loc}
@@ -255,12 +266,15 @@ class BlockWorldAgent(BW4TBrain):
                     collectVic = ' '.join(msg.split()[1:4])
                 else:
                     collectVic = ' '.join(msg.split()[1:5]) 
+                loc = 'aread ' + msg.split()[-1]
+                if loc not in self._searchedRooms:
+                    self._searchedRooms.append(loc)
                 if collectVic not in self._collectedVictims:
                     self._collectedVictims.append(collectVic)
-            if msg.startswith('Mission'):
-                self._sendMessage('Unsearched areas: '  + ', '.join([i.split()[1] for i in areas if i not in self._searchedRooms]) + '. Collected victims: ' + ', '.join(self._collectedVictims) +
-                '. Found victims: ' +  ', '.join([i + ' in ' + self._foundVictimLocs[i]['room'] for i in self._foundVictimLocs]) ,'RescueBot')
-                self.received_messages=[]
+            #if msg.startswith('Mission'):
+            #    self._sendMessage('Unsearched areas: '  + ', '.join([i.split()[1] for i in areas if i not in self._searchedRooms]) + '. Collected victims: ' + ', '.join(self._collectedVictims) +
+            #    '. Found victims: ' +  ', '.join([i + ' in ' + self._foundVictimLocs[i]['room'] for i in self._foundVictimLocs]) ,'RescueBot')
+            #    self.received_messages=[]
 
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)

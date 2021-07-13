@@ -368,7 +368,7 @@ class BlockWorldAgent(BW4TBrain):
         process incoming messages. 
         Reported blocks are added to self._blocks
         '''
-        areas = ['area A1','area A2','area A3','area A4','area B1','area B2','area C1','area C2','area C3']
+        #areas = ['area A1','area A2','area A3','area A4','area B1','area B2','area C1','area C2','area C3']
         for msg in self.received_messages:
             if msg.startswith("Search:"):
                 area = 'area '+ msg.split()[-1]
@@ -395,10 +395,10 @@ class BlockWorldAgent(BW4TBrain):
                     self._searchedRooms.append(loc)
                 if collectVic not in self._collectedVictims:
                     self._collectedVictims.append(collectVic)
-            if msg.startswith('Mission'):
-                self._sendMessage('Unsearched areas: '  + ', '.join([i.split()[1] for i in areas if i not in self._searchedRooms]) + '. Collected victims: ' + ', '.join(self._collectedVictims) +
-                '. Found victims: ' +  ', '.join([i + ' in ' + self._foundVictimLocs[i]['room'] for i in self._foundVictimLocs]) ,'RescueBot')
-                self.received_messages=[]
+            #if msg.startswith('Mission'):
+            #    self._sendMessage('Unsearched areas: '  + ', '.join([i.split()[1] for i in areas if i not in self._searchedRooms]) + '. Collected victims: ' + ', '.join(self._collectedVictims) +
+            #    '. Found victims: ' +  ', '.join([i + ' in ' + self._foundVictimLocs[i]['room'] for i in self._foundVictimLocs]) ,'RescueBot')
+            #    self.received_messages=[]
 
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)
