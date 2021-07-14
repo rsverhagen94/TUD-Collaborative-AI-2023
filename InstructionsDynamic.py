@@ -52,7 +52,6 @@ class BlockWorldAgent(BW4TBrain):
         self._maxTicks = 100000
         self._sendMessages = []
         self._providedExplanations = []
-        self._phases = []
         #self._direct = False
 
     def initialize(self):
@@ -226,7 +225,7 @@ class BlockWorldAgent(BW4TBrain):
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] ,'RescueBot')
                             #self._direct = False
                         self._phase=Phase.PLAN_PATH_TO_ROOM
-                return Idle.__name__,{'duration_in_ticks':50}                     
+                return Idle.__name__,{'duration_in_ticks':50}                 
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
                 unsearchedRooms=[room['room_name'] for room in state.values()
@@ -458,11 +457,7 @@ class BlockWorldAgent(BW4TBrain):
                 self._sendMessage(mssg2,sender)      
         if 'Searching' not in mssg1 and 'Found' not in mssg1:
             if explanation in self._providedExplanations and self._sendMessages[-1]!=mssg1:
-                self._sendMessage(mssg2,sender) 
-        #if 'Searching' and 'Found' not in mssg1:
-         ##   if explanation in self._providedExplanations and self._sendMessages[-1]!=mssg1 and self._providedExplanations[-1]!=explanation:
-          #      self._sendMessage(mssg2,sender)
-        
+                self._sendMessage(mssg2,sender)        
 
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)

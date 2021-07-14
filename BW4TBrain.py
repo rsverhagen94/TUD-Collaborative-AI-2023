@@ -7,8 +7,7 @@ class BW4TBrain(AgentBrain, ABC):
     This class is the obligatory base class for BW4T agents.
     BW4T agents must implement decide_on_bw4t_action
     """
-        
-    NOT_ALLOWED_PARAMS={'remove_range', 'grab_range', 'door_range', 'action_duration'}
+    
 
     def __init__(self, slowdown:int):
         '''
@@ -28,13 +27,10 @@ class BW4TBrain(AgentBrain, ABC):
         Final . Agents must override decide_on_bw4t_action instead
         '''
         act,params = self.decide_on_bw4t_action(state)
-        wrong = self.NOT_ALLOWED_PARAMS.intersection(set(params.keys()))
-        if len(wrong) > 0:
-            raise ValueError("Parameter use not allowed ", wrong)
         params['grab_range']=1
         # door_range=1 does not work, doors don't open
        # params['door_range']=1
-        params['max_objects']=3
+        params['max_objects']=1
         params['action_duration'] = self.__slowdown
         return act,params
     

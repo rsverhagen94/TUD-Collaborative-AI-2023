@@ -40,7 +40,7 @@ class BlockWorldAgent(BW4TBrain):
         self._foundVictims = []
         self._collectedVictims = []
         self._foundVictimLocs = {}
-        self._maxTicks = 100000
+        self._maxTicks = 25500
         self._sendMessages = []
         
 
@@ -119,7 +119,7 @@ class BlockWorldAgent(BW4TBrain):
                     if self._foundVictimLocs[self._goalVic]['room'] not in ['area A1', 'area A2', 'area A3', 'area A4'] and self._goalVic not in self._uncarryable:
                         if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] ,'RescueBot')
-                    self._phase=Phase.PLAN_PATH_TO_ROOM
+                        self._phase=Phase.PLAN_PATH_TO_ROOM
                 return Idle.__name__,{'duration_in_ticks':50} 
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
