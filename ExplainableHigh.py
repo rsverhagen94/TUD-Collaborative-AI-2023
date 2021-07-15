@@ -60,17 +60,17 @@ class BlockWorldAgent(BW4TBrain):
         agent_location = state[self.agent_id]['location']
         ticksLeft = self._maxTicks - state['World']['nr_ticks']
         #print(self._foundVictimLocs)
-        #print(ticksLeft)
+        print(ticksLeft)
         #print(self._mode)
-        if ticksLeft == 5789:
+        if ticksLeft <= 5789 and ticksLeft > 4631 and 'Still 5 minutes left to finish the task.' not in self._sendMessages:
             self._sendMessage('Still 5 minutes left to finish the task.', 'RescueBot')
-        if ticksLeft == 4631:
+        if ticksLeft <= 4631 and ticksLeft > 3473 and 'Still 4 minutes left to finish the task.' not in self._sendMessages:
             self._sendMessage('Still 4 minutes left to finish the task.', 'RescueBot')
-        if ticksLeft == 3473:
+        if ticksLeft <= 3473 and ticksLeft > 2315 and 'Still 3 minutes left to finish the task.' not in self._sendMessages:
             self._sendMessage('Still 3 minutes left to finish the task.', 'RescueBot')
-        if ticksLeft == 2315:
+        if ticksLeft <= 2315 and ticksLeft > 1158 and 'Still 2 minutes left to finish the task.' not in self._sendMessages:
             self._sendMessage('Still 2 minutes left to finish the task.', 'RescueBot')
-        if ticksLeft == 1158:
+        if ticksLeft <= 1158 and 'Only 1 minute left to finish the task.' not in self._sendMessages:
             self._sendMessage('Only 1 minute left to finish the task.', 'RescueBot')
 
         while True: 
@@ -112,7 +112,7 @@ class BlockWorldAgent(BW4TBrain):
 
                 if self._goalVic in self._foundVictims and 'location' in self._foundVictimLocs[self._goalVic].keys():
                     if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims and self._goalVic not in self._uncarryable:
-                        if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
+                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. I suggest you pick up ' + self._goalVic + ' there because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster.','RescueBot')
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.FIND_NEXT_GOAL
@@ -121,7 +121,7 @@ class BlockWorldAgent(BW4TBrain):
                         if self._mode=='quick':
                             return Idle.__name__,{'duration_in_ticks':10}
                     if self._goalVic in self._uncarryable:
-                        if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
+                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. You need to pick up ' + self._goalVic + ' there because I am not allowed to carry critically injured adults.','RescueBot')
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.FIND_NEXT_GOAL
@@ -130,7 +130,7 @@ class BlockWorldAgent(BW4TBrain):
                         if self._mode=='quick':
                             return Idle.__name__,{'duration_in_ticks':10}
                     if self._foundVictimLocs[self._goalVic]['room'] not in ['area A1', 'area A2', 'area A3', 'area A4'] and self._goalVic not in self._uncarryable:
-                        if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
+                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] +'.','RescueBot')
                         self._phase=Phase.PLAN_PATH_TO_VICTIM
                         if self._mode=='normal':
@@ -140,7 +140,7 @@ class BlockWorldAgent(BW4TBrain):
                         
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims and self._goalVic not in self._uncarryable:
-                        if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
+                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. I suggest you pick up ' + self._goalVic + ' there because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster.','RescueBot')
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.FIND_NEXT_GOAL
@@ -149,7 +149,7 @@ class BlockWorldAgent(BW4TBrain):
                         if self._mode=='quick':
                             return Idle.__name__,{'duration_in_ticks':10}
                     if self._goalVic in self._uncarryable:
-                        if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
+                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. You need to pick up ' + self._goalVic + ' there because I am not allowed to carry critically injured adults.','RescueBot')
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.FIND_NEXT_GOAL
@@ -158,7 +158,7 @@ class BlockWorldAgent(BW4TBrain):
                         if self._mode=='quick':
                             return Idle.__name__,{'duration_in_ticks':10}
                     if self._foundVictimLocs[self._goalVic]['room'] not in ['area A1', 'area A2', 'area A3', 'area A4'] and self._goalVic not in self._uncarryable:
-                        if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
+                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] +'.','RescueBot')
                         self._phase=Phase.PLAN_PATH_TO_ROOM
                         if self._mode=='normal':
