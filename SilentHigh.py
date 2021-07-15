@@ -40,7 +40,7 @@ class BlockWorldAgent(BW4TBrain):
         self._foundVictims = []
         self._collectedVictims = []
         self._foundVictimLocs = {}
-        self._maxTicks = 25500
+        self._maxTicks = 11577
         self._sendMessages = []
         
 
@@ -56,6 +56,7 @@ class BlockWorldAgent(BW4TBrain):
     def decide_on_bw4t_action(self, state:State):
         ticksLeft = self._maxTicks - state['World']['nr_ticks']
         #print(self._foundVictimLocs)
+        print(ticksLeft)
         while True: 
             if Phase.INTRODUCTION==self._phase:
                 self._sendMessage('Hello! My name is RescueBot. Together we will collaborate and try to search and rescue the 8 victims on our left as quickly as possible. \
@@ -86,6 +87,7 @@ class BlockWorldAgent(BW4TBrain):
 
                 if self._goalVic not in self._foundVictims:
                     self._phase=Phase.PICK_UNSEARCHED_ROOM
+                    return Idle.__name__,{'duration_in_ticks':75}
 
                 if self._goalVic in self._foundVictims and 'location' in self._foundVictimLocs[self._goalVic].keys():
                     if self._goalVic in self._uncarryable:
@@ -93,8 +95,10 @@ class BlockWorldAgent(BW4TBrain):
                             self._sendMessage('You need to rescue ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'],'RescueBot')
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.FIND_NEXT_GOAL
+                        return Idle.__name__,{'duration_in_ticks':75}
                     if self._goalVic not in self._uncarryable:
                         self._phase=Phase.PLAN_PATH_TO_VICTIM
+                        return Idle.__name__,{'duration_in_ticks':75}
                         
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     if self._goalVic in self._uncarryable:
@@ -102,8 +106,10 @@ class BlockWorldAgent(BW4TBrain):
                             self._sendMessage('You need to rescue ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'],'RescueBot')
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.FIND_NEXT_GOAL
+                        return Idle.__name__,{'duration_in_ticks':75}
                     if self._goalVic not in self._uncarryable:
                         self._phase=Phase.PLAN_PATH_TO_ROOM
+                        return Idle.__name__,{'duration_in_ticks':75}
                 #return Idle.__name__,{'duration_in_ticks':50} 
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
@@ -141,6 +147,7 @@ class BlockWorldAgent(BW4TBrain):
                     if action!=None:
                         return action,{}
                     self._phase=Phase.PLAN_ROOM_SEARCH_PATH
+                    return Idle.__name__,{'duration_in_ticks':75}
 
             if Phase.PLAN_ROOM_SEARCH_PATH==self._phase:
                 roomTiles = [info['location'] for info in state.values()
@@ -153,6 +160,7 @@ class BlockWorldAgent(BW4TBrain):
                 self._navigator.reset_full()
                 self._navigator.add_waypoints(self._efficientSearch(roomTiles))
                 self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
+                return Idle.__name__,{'duration_in_ticks':75}
 
             if Phase.FOLLOW_ROOM_SEARCH_PATH==self._phase:
                 self._state_tracker.update(state)
@@ -170,13 +178,12 @@ class BlockWorldAgent(BW4TBrain):
                                 self._phase=Phase.FIND_NEXT_GOAL
 
                             if 'healthy' not in vic and vic not in self._foundVictims and 'boy' not in vic and 'girl' not in vic:
+                                if vic==self._goalVic and vic in self._uncarryable:
+                                    self._sendMessage('URGENT: You should pick up ' + vic + ' in ' + self._door['room_name'], 'RescueBot')
+                                    self._foundVictim=str(info['img_name'][8:-4])
+                                    self._phase=Phase.WAIT_FOR_HUMAN
                                 self._foundVictims.append(vic)
-                                self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
-
-                            if vic==self._goalVic and vic in self._uncarryable:
-                                self._sendMessage('URGENT: You should pick up ' + vic + ' in ' + self._door['room_name'], 'RescueBot')
-                                self._foundVictim=str(info['img_name'][8:-4])
-                                self._phase=Phase.WAIT_FOR_HUMAN
+                                self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}                            
 
                             if vic==self._goalVic and vic in self._undistinguishable and vic not in self._foundVictims:
                                 self._sendMessage('URGENT: You should clarify the gender of the injured baby in ' + self._door['room_name'] + '. Please press button "Boy" or "Girl"', 'RescueBot')
@@ -192,6 +199,7 @@ class BlockWorldAgent(BW4TBrain):
                     self.received_messages=[]
                 self._searchedRooms.append(self._door['room_name'])
                 self._phase=Phase.FIND_NEXT_GOAL
+                return Idle.__name__,{'duration_in_ticks':75}
 
             if Phase.WAIT_FOR_HUMAN==self._phase:
                 self._state_tracker.update(state)
@@ -200,6 +208,7 @@ class BlockWorldAgent(BW4TBrain):
                         self._foundVictims.append(self._foundVictim)
                         self._foundVictimLocs[self._foundVictim] = {'location':self._foundVictimLoc,'room':self._door['room_name'],'obj_id':self._foundVictimID}
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
+                        return Idle.__name__,{'duration_in_ticks':75}
                     if self._foundVictim in self._uncarryable:
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
@@ -213,6 +222,7 @@ class BlockWorldAgent(BW4TBrain):
                 self._navigator.reset_full()
                 self._navigator.add_waypoints([self._foundVictimLocs[self._goalVic]['location']])
                 self._phase=Phase.FOLLOW_PATH_TO_VICTIM
+                return Idle.__name__,{'duration_in_ticks':75}
                     
             if Phase.FOLLOW_PATH_TO_VICTIM==self._phase:
                 if self._goalVic in self._collectedVictims:
@@ -240,6 +250,7 @@ class BlockWorldAgent(BW4TBrain):
                 if action!=None:
                     return action,{}
                 self._phase=Phase.DROP_VICTIM
+                return Idle.__name__,{'duration_in_ticks':75}
 
             if Phase.DROP_VICTIM == self._phase:
                 if state[{'is_collectable':True}] or self._goalVic==self._firstVictim:
@@ -247,6 +258,7 @@ class BlockWorldAgent(BW4TBrain):
                     return DropObject.__name__,{}
                 if not state[{'is_collectable':True}] and self._goalVic!=self._firstVictim:
                     return None,{}    
+                return Idle.__name__,{'duration_in_ticks':75}
 
             
     def _getDropZones(self,state:State):

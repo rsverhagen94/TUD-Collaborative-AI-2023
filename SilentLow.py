@@ -88,13 +88,15 @@ class BlockWorldAgent(BW4TBrain):
                 
                 if self._goalVic not in self._foundVictims:
                     self._phase=Phase.PICK_UNSEARCHED_ROOM
+                    return Idle.__name__,{'duration_in_ticks':75}
 
                 if self._goalVic in self._foundVictims and 'location' in self._foundVictimLocs[self._goalVic].keys():
                     self._phase=Phase.PLAN_PATH_TO_VICTIM
+                    return Idle.__name__,{'duration_in_ticks':75}
 
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
-                    self._phase=Phase.PLAN_PATH_TO_ROOM     
-                #return Idle.__name__,{'duration_in_ticks':50}                            
+                    self._phase=Phase.PLAN_PATH_TO_ROOM          
+                    return Idle.__name__,{'duration_in_ticks':75}                 
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
                 unsearchedRooms=[room['room_name'] for room in state.values()
@@ -131,6 +133,7 @@ class BlockWorldAgent(BW4TBrain):
                     if action!=None:
                         return action,{}
                     self._phase=Phase.PLAN_ROOM_SEARCH_PATH
+                    return Idle.__name__,{'duration_in_ticks':75}
 
             if Phase.PLAN_ROOM_SEARCH_PATH==self._phase:
                 roomTiles = [info['location'] for info in state.values()
@@ -143,6 +146,7 @@ class BlockWorldAgent(BW4TBrain):
                 self._navigator.reset_full()
                 self._navigator.add_waypoints(self._efficientSearch(roomTiles))
                 self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
+                return Idle.__name__,{'duration_in_ticks':75}
 
             if Phase.FOLLOW_ROOM_SEARCH_PATH==self._phase:
                 self._state_tracker.update(state)
@@ -170,11 +174,13 @@ class BlockWorldAgent(BW4TBrain):
                     self.received_messages = []
                 self._searchedRooms.append(self._door['room_name'])
                 self._phase=Phase.FIND_NEXT_GOAL
+                return Idle.__name__,{'duration_in_ticks':75}
                 
             if Phase.PLAN_PATH_TO_VICTIM==self._phase:
                 self._navigator.reset_full()
                 self._navigator.add_waypoints([self._foundVictimLocs[self._goalVic]['location']])
                 self._phase=Phase.FOLLOW_PATH_TO_VICTIM
+                return Idle.__name__,{'duration_in_ticks':75}
                     
             if Phase.FOLLOW_PATH_TO_VICTIM==self._phase:
                 if self._goalVic in self._collectedVictims:
@@ -202,6 +208,7 @@ class BlockWorldAgent(BW4TBrain):
                 if action!=None:
                     return action,{}
                 self._phase=Phase.DROP_VICTIM
+                return Idle.__name__,{'duration_in_ticks':75}
 
             if Phase.DROP_VICTIM == self._phase:
                 if state[{'is_collectable':True}] or self._goalVic==self._firstVictim:
@@ -209,6 +216,7 @@ class BlockWorldAgent(BW4TBrain):
                     return DropObject.__name__,{}
                 if not state[{'is_collectable':True}] and self._goalVic!=self._firstVictim:
                     return None,{}
+                return Idle.__name__,{'duration_in_ticks':75}
             
     def _getDropZones(self,state:State):
         '''

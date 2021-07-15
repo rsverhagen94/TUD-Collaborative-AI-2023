@@ -12,13 +12,13 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from TransparentHigh import BlockWorldAgent
+from ExplainableHigh import BlockWorldAgent
 from HumanBrain import HumanBrain
 from loggers.action_logger import ActionLogger
 from datetime import datetime
 from loggers.message_logger import MessageLogger
 
-tick_duration = 0.0
+tick_duration = 0.05
 random_seed = 1
 verbose = False
 key_action_map = {
@@ -80,7 +80,7 @@ def add_agents(builder):
         # Add agents
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
-            brain = BlockWorldAgent(slowdown=55)
+            brain = BlockWorldAgent(slowdown=25)
             loc = (9,23)
             builder.add_agent(loc, brain, team=team_name, name=f"Agent {agent_nr} in {team_name}",
                               sense_capability=sense_capability, is_traversable=True, img_name="/images/robotics5.svg")
@@ -97,9 +97,9 @@ def create_builder():
     np.random.seed(random_seed)
 
     # Create the goal
-    goal = CollectionGoal(max_nr_ticks=25500)
+    goal = CollectionGoal(max_nr_ticks=11577)
     # Create our world builder
-    builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, random_seed=random_seed, run_matrx_api=True,
+    builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, run_matrx_api=True,
                            run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
     current_exp_folder = datetime.now().strftime("exp_high_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
     logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
