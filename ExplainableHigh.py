@@ -102,11 +102,11 @@ class BlockWorldAgent(BW4TBrain):
                     return None,{}
 
                 if self._goalVic not in self._foundVictims:
-                    if 'Next victim to rescue: ' + self._goalVic not in self._sendMessages:
+                    if 'Next victim to rescue: ' + self._goalVic + '.' not in self._sendMessages:
                         self._sendMessage('Next victim to rescue: ' + self._goalVic + '.','RescueBot')
                     self._phase=Phase.PICK_UNSEARCHED_ROOM
                     if self._mode=='normal':
-                        return Idle.__name__,{'duration_in_ticks':75}
+                        return Idle.__name__,{'duration_in_ticks':25}
                     if self._mode=='quick':
                         return Idle.__name__,{'duration_in_ticks':10}
 
@@ -167,6 +167,7 @@ class BlockWorldAgent(BW4TBrain):
                             return Idle.__name__,{'duration_in_ticks':10}
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
+                agent_location = state[self.agent_id]['location']
                 unsearchedRooms=[room['room_name'] for room in state.values()
                 if 'class_inheritance' in room
                 and 'Door' in room['class_inheritance']
@@ -177,7 +178,10 @@ class BlockWorldAgent(BW4TBrain):
                     self.received_messages = []
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
-                    self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,self._currentDoor))[0]
+                    if self._currentDoor==None:
+                        self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,agent_location))[0]
+                    if self._currentDoor!=None:
+                        self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,self._currentDoor))[0]
                     self._phase = Phase.PLAN_PATH_TO_ROOM
 
             if Phase.PLAN_PATH_TO_ROOM==self._phase:
@@ -204,6 +208,7 @@ class BlockWorldAgent(BW4TBrain):
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic+'.', 'RescueBot')
                     else:
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.', 'RescueBot')
+                    self._currentDoor=self._door['location']
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         return action,{}
@@ -224,7 +229,7 @@ class BlockWorldAgent(BW4TBrain):
                 self._navigator.reset_full()
                 self._navigator.add_waypoints(self._efficientSearch(roomTiles))
                 self._sendMessage('Searching through whole ' + str(self._door['room_name']) + ' because my sense range is limited and to find ' + self._goalVic+'.', 'RescueBot')
-                self._currentDoor = self._door['location']
+                #self._currentDoor = self._door['location']
                 self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
                 if self._mode=='normal':
                     return Idle.__name__,{'duration_in_ticks':75}
@@ -343,10 +348,10 @@ class BlockWorldAgent(BW4TBrain):
                 if action!=None:
                     return action,{}
                 self._phase=Phase.DROP_VICTIM
-                if self._mode=='normal':
-                    return Idle.__name__,{'duration_in_ticks':75}
-                if self._mode=='quick':
-                    return Idle.__name__,{'duration_in_ticks':10}
+                #if self._mode=='normal':
+                #    return Idle.__name__,{'duration_in_ticks':75}
+                #if self._mode=='quick':
+                #    return Idle.__name__,{'duration_in_ticks':10}
 
             if Phase.DROP_VICTIM == self._phase:
                 if state[{'is_collectable':True}] or self._goalVic==self._firstVictim:
@@ -424,7 +429,6 @@ class BlockWorldAgent(BW4TBrain):
         for obj in objs:
             locs[obj]=state.get_room_doors(obj)[0]['location']
         dists = {}
-        moves = {}
         for room,loc in locs.items():
             if currentDoor!=None:
                 dists[room]=utils.get_distance(currentDoor,loc)

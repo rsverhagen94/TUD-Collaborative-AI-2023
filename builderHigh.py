@@ -101,7 +101,7 @@ def create_builder():
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, run_matrx_api=True,
                            run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
-    current_exp_folder = datetime.now().strftime("exp_high_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
+    current_exp_folder = datetime.now().strftime("exp_HIGH_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
     logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
     builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
     builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")
