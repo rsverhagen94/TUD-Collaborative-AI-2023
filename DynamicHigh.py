@@ -1,4 +1,4 @@
-import sys, random, enum, ast
+import sys, random, enum, ast, os
 from matrx import grid_world
 from BW4TBrain import BW4TBrain
 from customActions import *
@@ -169,8 +169,7 @@ class BlockWorldAgent(BW4TBrain):
                             return Idle.__name__,{'duration_in_ticks':75}
                         if self._mode=='quick':
                             return Idle.__name__,{'duration_in_ticks':10}
-                    #if self._foundVictimLocs[self._goalVic]['room'] not in ['area A1', 'area A2', 'area A3', 'area A4'] and self._goalVic not in self._uncarryable:
-                    else:
+                    if self._foundVictimLocs[self._goalVic]['room'] not in ['area A1', 'area A2', 'area A3', 'area A4'] and self._goalVic not in self._uncarryable:
                         if 'Next victim to rescue: ' + self._goalVic + '.' not in self._sendMessages:
                             self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] +'.','RescueBot')
                         self._phase=Phase.PLAN_PATH_TO_ROOM
@@ -273,29 +272,12 @@ class BlockWorldAgent(BW4TBrain):
                             if vic not in self._roomVics:
                                 self._roomVics.append(vic)
 
-                            if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys():
-                                ## NOT COMPLETELY CORRECT, CHANGE
-                                if vic == self._goalVic and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
-                                    msg1 = 'Found '+ vic + ' in ' + self._door['room_name'] + ' because you told me '+vic+ ' was located here.'
-                                    msg2 = 'Found '+ vic + ' in ' + self._door['room_name'] +'.'
-                                    explanation = 'because you told me it was located here'
-                                    self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
-                                    ## NEWLY ADDED
-                                    self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
-                                    self._searchedRooms.append(self._door['room_name'])
-                                    self._phase=Phase.FIND_NEXT_GOAL
-                                else:
-                                    msg1 = 'Found '+ vic + ' in ' + self._door['room_name'] + ' because I am traversing the whole area.'
-                                    msg2 = 'Found '+ vic + ' in ' + self._door['room_name']
-                                    explanation = 'because I am traversing the whole area'
-                                    self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
-                                    #NEWLY ADDED
-                                    self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
-                                    self._searchedRooms.append(self._door['room_name'])
-                                ## NEWLY ADDED
-                                #self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
-                                #self._searchedRooms.append(self._door['room_name'])
-                                #self._phase=Phase.FIND_NEXT_GOAL
+                            #NEWLY ADDED
+                            if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys() and vic == self._goalVic:
+                                self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ' because you told me ' + vic + ' was located here.', 'RescueBot')
+                                self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
+                                self._searchedRooms.append(self._door['room_name'])
+                                self._phase=Phase.FIND_NEXT_GOAL
 
                             if 'healthy' not in vic and vic not in self._foundVictims and 'boy' not in vic and 'girl' not in vic:
                                 msg1 = 'Found '+ vic + ' in ' + self._door['room_name'] + ' because I am traversing the whole area.'
