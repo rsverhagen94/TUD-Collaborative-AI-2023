@@ -3,7 +3,7 @@ import sys
 import csv
 import glob
 from SaR_gui import visualization_server
-from builderLow import create_builder
+from builderHigh import create_builder
 from typing import final, List, Dict, Final
 from pathlib import Path
 
@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     # Start overarching MATRX scripts and threads, such as the api and/or visualizer if requested. Here we also link our
     # own media resource folder with MATRX.
-    media_folder = os.path.dirname(os.path.join(os.path.realpath("/home/ruben/MATRX"), "media"))
+    media_folder = os.path.dirname(os.path.join(os.path.realpath("/home/ruben/Documents/MATRX/MATRX"), "media"))
     builder.startup(media_folder=media_folder)
     print("Starting custom visualizer")
     vis_thread = visualization_server.run_matrx_visualizer(verbose=False, media_folder=media_folder)

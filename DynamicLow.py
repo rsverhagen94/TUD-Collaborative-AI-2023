@@ -196,17 +196,12 @@ class BlockWorldAgent(BW4TBrain):
                             if vic not in self._roomVics:
                                 self._roomVics.append(vic)
 
-                            if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys():
-                                if vic == self._goalVic and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
-                                    msg1 = 'Found '+ vic + ' in ' + self._door['room_name'] + ' because you told me '+vic+ ' was located here.'
-                                    msg2 = 'Found '+ vic + ' in ' + self._door['room_name']+'.'
-                                    explanation = 'because you told me it was located here'
-                                    self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
-                                else:
-                                    msg1 = 'Found '+ vic + ' in ' + self._door['room_name'] + ' because I am traversing the whole area.'
-                                    msg2 = 'Found '+ vic + ' in ' + self._door['room_name']+'.'
-                                    explanation = 'because I am traversing the whole area'
-                                    self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                            ##NEWLY ADDED
+                            if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys() and vic == self._goalVic:
+                                msg1 = 'Found '+ vic + ' in ' + self._door['room_name'] + ' because you told me '+vic+ ' was located here.'
+                                msg2 = 'Found '+ vic + ' in ' + self._door['room_name']+'.'
+                                explanation = 'because you told me it was located here'
+                                self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
                                 self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
                                 self._searchedRooms.append(self._door['room_name'])
                                 self._phase=Phase.FIND_NEXT_GOAL
