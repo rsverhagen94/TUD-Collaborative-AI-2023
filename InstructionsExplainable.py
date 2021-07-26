@@ -46,13 +46,12 @@ class BlockWorldAgent(BW4TBrain):
         self._phase=Phase.INTRO0
         self._roomVics = []
         self._searchedRooms = ['area C3', 'area C2']
-        self._foundVictims = ['mildly injured cat']
-        self._collectedVictims = ['critically injured girl', 'critically injured elderly woman']
+        self._foundVictims = []
+        self._collectedVictims = ['critically injured girl']
         self._foundVictimLocs = {}
         self._maxTicks = 100000
         self._sendMessages = []
-        #self._direct = False
-        self._currentDoor=None   
+        self._currentDoor=None 
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -64,8 +63,7 @@ class BlockWorldAgent(BW4TBrain):
         return state
 
     def decide_on_bw4t_action(self, state:State):
-        #ticksLeft = self._maxTicks - state['World']['nr_ticks']
-        #print(self._foundVictimLocs)
+        
         while True: 
             if Phase.INTRO0==self._phase:
                 self._sendMessage('Hello! My name is RescueBot. During this experiment we will collaborate and communicate with each other. \
@@ -107,7 +105,8 @@ class BlockWorldAgent(BW4TBrain):
 
             if Phase.INTRO3==self._phase:
                 self._sendMessage('Lets pick up our first goal victim critically injured girl now. To pick up a victim, move yourself on the victim first. \
-                Now, you can press "B" on your keyboard to grab the victim. If you now move left, right, up, or down once, you can see the victim is no longer there. \
+                Now, you can press "B" or "Q" on your keyboard to grab the victim. If you now move left, right, up, or down once, you can see the victim is no longer there. \
+                You can only carry one victim at a time. \
                 If you finished this step, press the "Ready!" button.', 'RescueBot')
                 if self.received_messages and self.received_messages[-1]=='Ready!':
                     self._phase=Phase.INTRO4
@@ -118,7 +117,7 @@ class BlockWorldAgent(BW4TBrain):
             if Phase.INTRO4==self._phase:
                 self._sendMessage('Lets drop our first goal victim critically injured girl at the drop zone now. The drop zone is located at the lower left of the environment, next to where you started. \
                 You can move to the drop zone using the arrow keys. If you reach the drop zone, move on top of the image of the first goal victim you are currently carrying (critically injured girl). \
-                This is the most left image on the drop zone, because it is the first victim to rescue. If you are located on top of this image, press "N" on your keyboard to drop the victim. \
+                This is the most left image on the drop zone, because it is the first victim to rescue. If you are located on top of this image, press "N" or "E" on your keyboard to drop the victim. \
                 If you now move right once, you can see that you dropped critically injured girl in the right place. If you finished this step, press the "Ready!" button.', 'RescueBot')
                 if self.received_messages and self.received_messages[-1]=='Ready!':
                     self._phase=Phase.INTRO5
@@ -188,38 +187,44 @@ class BlockWorldAgent(BW4TBrain):
                     return None,{}
 
                 if self._goalVic not in self._foundVictims:
-                    if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:                        
-                        self._sendMessage('Next victim to rescue: ' + self._goalVic +'.','RescueBot')
+                    #if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:                        
+                    #    self._sendMessage('Next victim to rescue: ' + self._goalVic +'.','RescueBot')
                     self._phase=Phase.PICK_UNSEARCHED_ROOM
                     return Idle.__name__,{'duration_in_ticks':25}
 
                 if self._goalVic in self._foundVictims and 'location' in self._foundVictimLocs[self._goalVic].keys():                      
-                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:# and self._direct==False:
-                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages: 
-                            self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. I suggest you pick up ' + self._goalVic + ' there because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster.','RescueBot')
-                        self._collectedVictims.append(self._goalVic)
-                        self._phase=Phase.FIND_NEXT_GOAL
-                        return Idle.__name__,{'duration_in_ticks':75}
+                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
+                        #if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages: 
+                        #    self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. I suggest you pick up ' + self._goalVic + ' there because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster.','RescueBot')
+                        self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')
+                        if self.received_messages and self.received_messages[-1]=='Yes' or self._goalVic in self._collectedVictims:
+                            self._collectedVictims.append(self._goalVic)
+                            self._phase=Phase.FIND_NEXT_GOAL
+                        if self.received_messages and self.received_messages[-1]=='No' or state['World']['nr_ticks'] > self._tick + 579:
+                            self._phase=Phase.PLAN_PATH_TO_VICTIM
+                        return Idle.__name__,{'duration_in_ticks':50}
                     else:
-                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
-                            self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room']+'.' ,'RescueBot')
-                            #self._direct = False
+                        #if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
+                        #    self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room']+'.' ,'RescueBot')
                         self._phase=Phase.PLAN_PATH_TO_VICTIM
-                        return Idle.__name__,{'duration_in_ticks':75}
+                        return Idle.__name__,{'duration_in_ticks':50}
                         
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
-                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:# and self._direct==False:
-                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
-                            self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. I suggest you pick up ' + self._goalVic + ' there because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster.','RescueBot')
-                        self._collectedVictims.append(self._goalVic)
-                        self._phase=Phase.FIND_NEXT_GOAL
-                        return Idle.__name__,{'duration_in_ticks':75}
+                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
+                        #if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
+                        #    self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. I suggest you pick up ' + self._goalVic + ' there because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster.','RescueBot')
+                        self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')
+                        if self.received_messages and self.received_messages[-1]=='Yes' or self._goalVic in self._collectedVictims:
+                            self._collectedVictims.append(self._goalVic)
+                            self._phase=Phase.FIND_NEXT_GOAL
+                        if self.received_messages and self.received_messages[-1]=='No' or state['World']['nr_ticks'] > self._tick + 579:
+                            self._phase=Phase.PLAN_PATH_TO_ROOM
+                        return Idle.__name__,{'duration_in_ticks':50}
                     else:
-                        if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
-                            self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] +'.','RescueBot')
-                            #self._direct = False
+                        #if 'Next victim to rescue: ' + self._goalVic +'.' not in self._sendMessages:
+                        #    self._sendMessage('Next victim to rescue is ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] +'.','RescueBot')
                         self._phase=Phase.PLAN_PATH_TO_ROOM
-                        return Idle.__name__,{'duration_in_ticks':75}                    
+                        return Idle.__name__,{'duration_in_ticks':50}                    
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
                 agent_location = state[self.agent_id]['location']
@@ -231,6 +236,8 @@ class BlockWorldAgent(BW4TBrain):
                     self._searchedRooms = []
                     self._sendMessages = []
                     self.received_messages = []
+                    self._searchedRooms.append(self._door['room_name'])
+                    self._sendMessage('Going to re-search areas to find ' + self._goalVic +' because we searched all areas but did not find ' + self._goalVic,'RescueBot')
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     if self._currentDoor==None:
@@ -251,21 +258,26 @@ class BlockWorldAgent(BW4TBrain):
 
             if Phase.FOLLOW_PATH_TO_ROOM==self._phase:
                 if self._goalVic in self._collectedVictims:
+                    self._currentDoor=None
                     self._phase=Phase.FIND_NEXT_GOAL
                 if self._goalVic in self._foundVictims and self._door['room_name']!=self._foundVictimLocs[self._goalVic]['room']:
+                    self._currentDoor=None
+                    self._phase=Phase.FIND_NEXT_GOAL
+                if self._door['room_name'] in self._searchedRooms and self._goalVic not in self._foundVictims:
+                    self._currentDoor=None
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     self._state_tracker.update(state)
                     if self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic+'.', 'RescueBot')
-                    else:
+                    if self._goalVic not in self._foundVictims:
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.', 'RescueBot')
                     self._currentDoor=self._door['location']
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         return action,{}
                     self._phase=Phase.PLAN_ROOM_SEARCH_PATH
-                    return Idle.__name__,{'duration_in_ticks':75}                        
+                    return Idle.__name__,{'duration_in_ticks':50}                        
 
             if Phase.PLAN_ROOM_SEARCH_PATH==self._phase:
                 roomTiles = [info['location'] for info in state.values()
@@ -279,8 +291,9 @@ class BlockWorldAgent(BW4TBrain):
                 self._navigator.add_waypoints(self._efficientSearch(roomTiles))
                 self._sendMessage('Searching through whole ' + str(self._door['room_name']) + ' because my sense range is limited and to find ' + self._goalVic+'.', 'RescueBot')
                 #self._currentDoor = self._door['location']
+                self._roomVics=[]
                 self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
-                return Idle.__name__,{'duration_in_ticks':75}
+                return Idle.__name__,{'duration_in_ticks':50}
 
             if Phase.FOLLOW_ROOM_SEARCH_PATH==self._phase:
                 self._state_tracker.update(state)
@@ -294,13 +307,11 @@ class BlockWorldAgent(BW4TBrain):
                                 self._roomVics.append(vic)
 
                             if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys():
-                                if vic == self._goalVic and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
-                                    self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ' because you told me '+vic+ ' was located here.', 'RescueBot')# + ' like you said', 'RescueBot')
-                                else:
-                                    self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ' because I am traversing the whole area.', 'RescueBot')
                                 self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
-                                self._searchedRooms.append(self._door['room_name'])
-                                self._phase=Phase.FIND_NEXT_GOAL
+                                if vic == self._goalVic:
+                                    self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ' because you told me '+vic+ ' was located here.', 'RescueBot')
+                                    self._searchedRooms.append(self._door['room_name'])
+                                    self._phase=Phase.FIND_NEXT_GOAL
 
                             if 'healthy' not in vic and vic not in self._foundVictims:
                                 self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ' because I am traversing the whole area.', 'RescueBot')
@@ -317,14 +328,14 @@ class BlockWorldAgent(BW4TBrain):
                     self.received_messages = []
                 self._searchedRooms.append(self._door['room_name'])
                 self._phase=Phase.FIND_NEXT_GOAL
-                return Idle.__name__,{'duration_in_ticks':75}
+                return Idle.__name__,{'duration_in_ticks':50}
                 
             if Phase.PLAN_PATH_TO_VICTIM==self._phase:
                 self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._goalVic + ' should be transported to the drop zone.', 'RescueBot')
                 self._navigator.reset_full()
                 self._navigator.add_waypoints([self._foundVictimLocs[self._goalVic]['location']])
                 self._phase=Phase.FOLLOW_PATH_TO_VICTIM
-                return Idle.__name__,{'duration_in_ticks':75} 
+                return Idle.__name__,{'duration_in_ticks':50} 
                     
             if Phase.FOLLOW_PATH_TO_VICTIM==self._phase:
                 if self._goalVic in self._collectedVictims:
@@ -353,18 +364,19 @@ class BlockWorldAgent(BW4TBrain):
                 if action!=None:
                     return action,{}
                 self._phase=Phase.DROP_VICTIM
-                #return Idle.__name__,{'duration_in_ticks':75}  
+                #return Idle.__name__,{'duration_in_ticks':50}  
 
             if Phase.DROP_VICTIM == self._phase:
                 if state[{'is_collectable':True}] or self._goalVic==self._firstVictim:
                     self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
                     self._phase=Phase.FIND_NEXT_GOAL
                     self._currentDoor = None
+                    self._tick = state['World']['nr_ticks']
                     return DropObject.__name__,{}
                 if not state[{'is_collectable':True}] and self._goalVic!=self._firstVictim:
                     self._sendMessage('Waiting for human operator at drop zone because previous victim should be collected first.', 'RescueBot')
                     return None,{}
-                return Idle.__name__,{'duration_in_ticks':75}              
+                return Idle.__name__,{'duration_in_ticks':50}              
 
             
     def _getDropZones(self,state:State):
@@ -402,14 +414,21 @@ class BlockWorldAgent(BW4TBrain):
                 if foundVic not in self._foundVictims:
                     self._foundVictims.append(foundVic)
                     self._foundVictimLocs[foundVic] = {'room':loc}
+                if foundVic in self._foundVictims and self._foundVictimLocs[foundVic]['room'] != loc:
+                    self._foundVictimLocs[foundVic] = {'room':loc}
             if msg.startswith('Collect:'):
                 if len(msg.split()) == 6:
                     collectVic = ' '.join(msg.split()[1:4])
                 else:
                     collectVic = ' '.join(msg.split()[1:5]) 
-                loc = 'area '+ msg.split()[-1]
+                loc = 'area ' + msg.split()[-1]
                 if loc not in self._searchedRooms:
                     self._searchedRooms.append(loc)
+                if collectVic not in self._foundVictims:
+                    self._foundVictims.append(collectVic)
+                    self._foundVictimLocs[collectVic] = {'room':loc}
+                if collectVic in self._foundVictims and self._foundVictimLocs[collectVic]['room'] != loc:
+                    self._foundVictimLocs[collectVic] = {'room':loc}
                 if collectVic not in self._collectedVictims:
                     self._collectedVictims.append(collectVic)
             #if msg.startswith('Mission'):

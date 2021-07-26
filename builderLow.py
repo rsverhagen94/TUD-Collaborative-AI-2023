@@ -23,16 +23,18 @@ tick_duration = 0.05
 random_seed = 1
 verbose = False
 key_action_map = {
+        'w': MoveNorth.__name__,
+        'd': MoveEast.__name__,
+        's': MoveSouth.__name__,
+        'a': MoveWest.__name__,
         'ArrowUp': MoveNorth.__name__,
         'ArrowRight': MoveEast.__name__,
         'ArrowDown': MoveSouth.__name__,
         'ArrowLeft': MoveWest.__name__,
+        'q': GrabObject.__name__,
+        'e': DropObject.__name__,
         'b': GrabObject.__name__,
-        'n': DropObject.__name__,
-        #'r': RemoveObject.__name__,
-        #'l': GrabLargeObject.__name__,
-        #'m': DropLargeObject.__name__,
-        #'b': BreakObject.__name__
+        'n': DropObject.__name__
     }
 
 # Some BW4T settings
@@ -102,10 +104,10 @@ def create_builder():
     # Create our world builder
     builder = WorldBuilder(shape=[24,25], tick_duration=tick_duration, run_matrx_api=True,
                            run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_img="/images/background_70.svg")
-    #current_exp_folder = datetime.now().strftime("exp_LOW_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
-    #logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
-    #builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
-    #builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")
+    current_exp_folder = datetime.now().strftime("exp_LOW_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
+    logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
+    builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
+    builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")
 
     # Add the world bounds (not needed, as agents cannot 'walk off' the grid, but for visual effects)
     builder.add_room(top_left_location=(0, 0), width=24, height=25, name="world_bounds")
@@ -228,7 +230,7 @@ def create_builder():
     builder.add_object(location=[9,17], is_traversable=True, name="area C2 sign", img_name="/images/areaC2.svg", visualize_depth=110, visualize_size=0.6)
     builder.add_object(location=[16,18], is_traversable=True, name="area C3 sign", img_name="/images/areaC3.svg", visualize_depth=110, visualize_size=0.6)
 
-    builder.add_object(location=[10,0], is_traversable=True, name="keyboard sign", img_name="/images/keyboard2.svg", visualize_depth=110, visualize_size=10)
+    #builder.add_object(location=[10,0], is_traversable=True, name="keyboard sign", img_name="/images/keyboard2.svg", visualize_depth=110, visualize_size=10)
     # Add the collectible objects, we do so probabilistically so each world will contain different blocks
     #add_blocks(builder, room_locations)
     # Create the drop-off zones, this includes generating the random colour/shape combinations to collect.
