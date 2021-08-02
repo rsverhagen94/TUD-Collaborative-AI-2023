@@ -331,6 +331,12 @@ class BlockWorldAgent(BW4TBrain):
             self.send_message(msg)
             self._sendMessages.append(msg.content)
 
+        if self.received_messages and self._sendMessages:
+            self._last_mssg = self._sendMessages[-1]
+            if self._last_mssg.startswith('Searching') or self._last_mssg.startswith('Moving'):
+                self.received_messages=[]
+                self.received_messages.append(self._last_mssg)
+
     def _getClosestRoom(self, state, objs, currentDoor):
         agent_location = state[self.agent_id]['location']
         locs = {}

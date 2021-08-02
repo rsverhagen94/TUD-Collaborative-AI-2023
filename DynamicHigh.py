@@ -385,7 +385,10 @@ class BlockWorldAgent(BW4TBrain):
                     if self._foundVictim in self._uncarryable:
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
-                    else:
+                    if self._foundVictim in self._undistinguishable and self.received_messages[-1].lower()=='boy' and self._foundVictim.split()[-1]=='girl' or self.received_messages[-1].lower()=='girl' and self._foundVictim.split()[-1]=='boy':
+                        self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
+                        self._waitedFor=self._foundVictim
+                     else:
                         return None,{}
                 else:
                     if self._foundVictim in self._undistinguishable:
@@ -559,6 +562,12 @@ class BlockWorldAgent(BW4TBrain):
         if msg.content not in self.received_messages:
             self.send_message(msg)
             self._sendMessages.append(msg.content)
+
+        if self.received_messages and self._sendMessages:
+            self._last_mssg = self._sendMessages[-1]
+            if self._last_mssg.startswith('Searching') or self._last_mssg.startswith('Moving'):
+                self.received_messages=[]
+                self.received_messages.append(self._last_mssg)
 
     def _getClosestRoom(self, state, objs, currentDoor):
         agent_location = state[self.agent_id]['location']

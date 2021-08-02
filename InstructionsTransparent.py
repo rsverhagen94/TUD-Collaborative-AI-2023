@@ -433,11 +433,18 @@ class BlockWorldAgent(BW4TBrain):
             #    self._sendMessage('Unsearched areas: '  + ', '.join([i.split()[1] for i in areas if i not in self._searchedRooms]) + '. Collected victims: ' + ', '.join(self._collectedVictims) +
             #    '. Found victims: ' +  ', '.join([i + ' in ' + self._foundVictimLocs[i]['room'] for i in self._foundVictimLocs]) ,'RescueBot')
             #    self.received_messages=[]
+
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)
         if msg.content not in self.received_messages:
             self.send_message(msg)
             self._sendMessages.append(msg.content)
+
+        if self.received_messages and self._sendMessages:
+            self._last_mssg = self._sendMessages[-1]
+            if self._last_mssg.startswith('Searching') or self._last_mssg.startswith('Moving'):
+                self.received_messages=[]
+                self.received_messages.append(self._last_mssg)
 
     def _getClosestRoom(self, state, objs, currentDoor):
         agent_location = state[self.agent_id]['location']
