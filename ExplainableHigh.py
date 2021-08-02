@@ -282,7 +282,7 @@ class BlockWorldAgent(BW4TBrain):
                                 self._foundVictims.append(vic)
                                 self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
 
-                            if vic in self._undistinguishable and vic not in self._foundVictims vic!=self._waitedFor:
+                            if vic in self._undistinguishable and vic not in self._foundVictims and vic!=self._waitedFor:
                                 self._sendMessage('URGENT: You should clarify the gender of the injured baby in ' + self._door['room_name'] + ' because I am unable to distinguish them. Please come here and press button "Boy" or "Girl".', 'RescueBot')
                                 self._foundVictim=str(info['img_name'][8:-4])
                                 self._foundVictimLoc=info['location']

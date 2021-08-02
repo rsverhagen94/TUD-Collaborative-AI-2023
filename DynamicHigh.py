@@ -388,7 +388,7 @@ class BlockWorldAgent(BW4TBrain):
                     if self._foundVictim in self._undistinguishable and self.received_messages[-1].lower()=='boy' and self._foundVictim.split()[-1]=='girl' or self.received_messages[-1].lower()=='girl' and self._foundVictim.split()[-1]=='boy':
                         self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
                         self._waitedFor=self._foundVictim
-                     else:
+                    else:
                         return None,{}
                 else:
                     if self._foundVictim in self._undistinguishable:
