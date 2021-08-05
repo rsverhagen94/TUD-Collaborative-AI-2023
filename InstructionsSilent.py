@@ -38,7 +38,9 @@ class Phase(enum.Enum):
     FOLLOW_PATH_TO_DROPPOINT=22,
     DROP_VICTIM=23,
     WAIT_FOR_HUMAN=24,
-    WAIT_AT_ZONE=25
+    WAIT_AT_ZONE=25,
+    FIX_ORDER_GRAB=26,
+    FIX_ORDER_DROP=27
     
 class BlockWorldAgent(BW4TBrain):
     def __init__(self, slowdown:int):
@@ -174,6 +176,7 @@ class BlockWorldAgent(BW4TBrain):
                 zones = self._getDropZones(state)
                 locs = [zone['location'] for zone in zones]
                 self._firstVictim = str(zones[0]['img_name'])[8:-4]
+                self._lastVictim = str(zones[-1]['img_name'])[8:-4]
                 remainingZones = []
                 for info in zones:
                     if str(info['img_name'])[8:-4] not in self._collectedVictims:
@@ -324,14 +327,38 @@ class BlockWorldAgent(BW4TBrain):
                 #return Idle.__name__,{'duration_in_ticks':50}
 
             if Phase.DROP_VICTIM == self._phase:
-                if state[{'is_collectable':True}] or self._goalVic==self._firstVictim:
+                zones = self._getDropZones(state)
+                for i in range(len(zones)):
+                    if zones[i]['img_name'][8:-4]==self._goalVic:
+                        if self._goalVic!=self._firstVictim:
+                            self._previousVic = zones[i-1]['img_name']
+                        if self._goalVic!=self._lastVictim:
+                            self._nextVic = zones[i+1]['img_name']
+
+                if state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}] or self._goalVic==self._firstVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and self._goalVic==self._lastVictim:
                     self._phase=Phase.FIND_NEXT_GOAL
                     self._currentDoor = None
-                    self._tick = state['World']['nr_ticks']
                     return DropObject.__name__,{}
-                if not state[{'is_collectable':True}] and self._goalVic!=self._firstVictim:
-                    return None,{}    
-                return Idle.__name__,{'duration_in_ticks':50}           
+                if state[{'img_name':self._nextVic, 'is_collectable':True}] and state[{'img_name':self._previousVic, 'is_collectable':True}]:
+                    self._phase=Phase.FIX_ORDER_GRAB
+                    return DropObject.__name__,{}
+                else:
+                    return None,{}
+                return Idle.__name__,{'duration_in_ticks':50} 
+
+            if Phase.FIX_ORDER_GRAB == self._phase:
+                self._navigator.reset_full()
+                self._navigator.add_waypoints([state[{'img_name':self._nextVic, 'is_collectable':True}]['location']])
+                self._state_tracker.update(state)
+                action=self._navigator.get_move_action(self._state_tracker)
+                if action!=None:
+                    return action,{}
+                self._phase=Phase.FIX_ORDER_DROP
+                return GrabObject.__name__,{'object_id':state[{'img_name':self._nextVic, 'is_collectable':True}]['obj_id']}
+                
+            if Phase.FIX_ORDER_DROP==self._phase:
+                self._phase=Phase.FIND_NEXT_GOAL
+                return DropObject.__name__,{}        
 
             
     def _getDropZones(self,state:State):

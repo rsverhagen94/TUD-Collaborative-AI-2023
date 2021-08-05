@@ -27,7 +27,10 @@ class Phase(enum.Enum):
     FOLLOW_PATH_TO_DROPPOINT=11,
     DROP_VICTIM=12,
     WAIT_FOR_HUMAN=13,
-    WAIT_AT_ZONE=14
+    WAIT_AT_ZONE=14,
+    ## NEWLY ADDED
+    FIX_ORDER_GRAB=15,
+    FIX_ORDER_DROP=16
     
 class BlockWorldAgent(BW4TBrain):
     def __init__(self, slowdown:int):
@@ -87,6 +90,8 @@ class BlockWorldAgent(BW4TBrain):
                 zones = self._getDropZones(state)
                 locs = [zone['location'] for zone in zones]
                 self._firstVictim = str(zones[0]['img_name'])[8:-4]
+                ## NEWLY ADDED
+                self._lastVictim = str(zones[-1]['img_name'])[8:-4]
                 remainingZones = []
                 for info in zones:
                     if str(info['img_name'])[8:-4] not in self._collectedVictims:
@@ -252,17 +257,46 @@ class BlockWorldAgent(BW4TBrain):
                     return action,{}
                 self._phase=Phase.DROP_VICTIM
                 #return Idle.__name__,{'duration_in_ticks':50}
-
+            
+            ## NEWLY ADDED
             if Phase.DROP_VICTIM == self._phase:
-                if state[{'is_collectable':True}] or self._goalVic==self._firstVictim:
+                zones = self._getDropZones(state)
+                for i in range(len(zones)):
+                    if zones[i]['img_name'][8:-4]==self._goalVic:
+                        if self._goalVic!=self._firstVictim:
+                            self._previousVic = zones[i-1]['img_name']
+                        if self._goalVic!=self._lastVictim:
+                            self._nextVic = zones[i+1]['img_name']
+
+                if state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}] or self._goalVic==self._firstVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and self._goalVic==self._lastVictim:
                     self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone.', 'RescueBot')
                     self._phase=Phase.FIND_NEXT_GOAL
                     self._currentDoor = None
                     return DropObject.__name__,{}
-                if not state[{'is_collectable':True}] and self._goalVic!=self._firstVictim:
+                if state[{'img_name':self._nextVic, 'is_collectable':True}] and state[{'img_name':self._previousVic, 'is_collectable':True}]:
+                    #self._sendMessage('You dropped ' + self._nextVic[8:-4] + ' before I dropped ' + self._goalVic + '.', 'RescueBot')
+                    self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone.', 'RescueBot')
+                    self._phase=Phase.FIX_ORDER_GRAB
+                    return DropObject.__name__,{}
+                else:
                     self._sendMessage('Waiting for human operator at drop zone.', 'RescueBot')
                     return None,{}
                 return Idle.__name__,{'duration_in_ticks':50}
+
+            if Phase.FIX_ORDER_GRAB == self._phase:
+                self._navigator.reset_full()
+                self._navigator.add_waypoints([state[{'img_name':self._nextVic, 'is_collectable':True}]['location']])
+                self._state_tracker.update(state)
+                action=self._navigator.get_move_action(self._state_tracker)
+                if action!=None:
+                    return action,{}
+                self._phase=Phase.FIX_ORDER_DROP
+                return GrabObject.__name__,{'object_id':state[{'img_name':self._nextVic, 'is_collectable':True}]['obj_id']}
+                
+            if Phase.FIX_ORDER_DROP==self._phase:
+                self._phase=Phase.FIND_NEXT_GOAL
+                return DropObject.__name__,{}
+            ## NEWLY ADDED UNTIL HERE
             
     def _getDropZones(self,state:State):
         '''
