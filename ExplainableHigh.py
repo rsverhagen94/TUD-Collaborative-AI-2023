@@ -400,7 +400,7 @@ class BlockWorldAgent(BW4TBrain):
                         if self._goalVic!=self._lastVictim:
                             self._nextVic = zones[i+1]['img_name']
 
-                if state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}] or self._goalVic==self._firstVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and self._goalVic==self._lastVictim:
+                if self._goalVic==self._firstVictim or state[{'img_name':self._previousVic,'is_collectable':True}] and self._goalVic==self._lastVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}]:
                     self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
                     self._phase=Phase.FIND_NEXT_GOAL
                     self._currentDoor = None

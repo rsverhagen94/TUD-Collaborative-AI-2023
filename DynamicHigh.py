@@ -472,8 +472,9 @@ class BlockWorldAgent(BW4TBrain):
                             self._previousVic = zones[i-1]['img_name']
                         if self._goalVic!=self._lastVictim:
                             self._nextVic = zones[i+1]['img_name']
-
-                if state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}] or self._goalVic==self._firstVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and self._goalVic==self._lastVictim:
+                
+                if self._goalVic==self._firstVictim or state[{'img_name':self._previousVic,'is_collectable':True}] and self._goalVic==self._lastVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}]:
+                #if state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}] or self._goalVic==self._firstVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and self._goalVic==self._lastVictim:
                     msg1 = 'Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.'
                     msg2 = 'Delivered '+ self._goalVic + ' at the drop zone.'
                     explanation = 'because it was the current victim to rescue'
