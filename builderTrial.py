@@ -12,7 +12,7 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from InstructionsDynamic import BlockWorldAgent
+from InstructionsTransparent import BlockWorldAgent
 from HumanBrain import HumanBrain
 from loggers.action_logger import ActionLogger
 from datetime import datetime
