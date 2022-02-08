@@ -13,7 +13,7 @@ from matrx.grid_world import GridWorld, DropObject, GrabObject, AgentBody
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from TransparentLow import BlockWorldAgent
+from ExplainableLow import BlockWorldAgent
 from HumanBrain import HumanBrain
 from loggers.action_logger import ActionLogger
 from datetime import datetime
@@ -220,15 +220,15 @@ def create_builder():
     builder.add_room((16,13),7,11,'area C3',door_locations=[(16,18)],doors_open=True,wall_visualize_colour=wall_color, 
     with_area_tiles=True, area_custom_properties={'doormat':(15,18)}, area_visualize_colour=room_colors[0], area_visualize_opacity=0.0)
 
-    builder.add_object(location=[4,4], is_traversable=True, name="area A1 sign", img_name="/images/area1_new.svg", visualize_depth=110, visualize_size=0.55)
-    builder.add_object(location=[8,4], is_traversable=True, name="area A2 sign", img_name="/images/areaA2.svg", visualize_depth=110, visualize_size=0.6)
-    builder.add_object(location=[12,4], is_traversable=True, name="area A3 sign", img_name="/images/areaA3.svg", visualize_depth=110, visualize_size=0.6)
-    builder.add_object(location=[17,5], is_traversable=True, name="area A4 sign", img_name="/images/areaA4.svg", visualize_depth=110, visualize_size=0.65)
-    builder.add_object(location=[2,11], is_traversable=True, name="area B1 sign", img_name="/images/areaB1.svg", visualize_depth=110, visualize_size=0.5)
-    builder.add_object(location=[9,12], is_traversable=True, name="area B2 sign", img_name="/images/areaB2.svg", visualize_depth=110, visualize_size=0.6)
-    builder.add_object(location=[3,17], is_traversable=True, name="area C1 sign", img_name="/images/areaC1.svg", visualize_depth=110, visualize_size=0.5)
-    builder.add_object(location=[9,17], is_traversable=True, name="area C2 sign", img_name="/images/areaC2.svg", visualize_depth=110, visualize_size=0.6)
-    builder.add_object(location=[16,18], is_traversable=True, name="area C3 sign", img_name="/images/areaC3.svg", visualize_depth=110, visualize_size=0.6)
+    builder.add_object(location=[4,4], is_traversable=True,is_movable=False, name="area A1 sign", img_name="/images/area1_new.svg", visualize_depth=110, visualize_size=0.55)
+    builder.add_object(location=[8,4], is_traversable=True, is_movable=False, name="area A2 sign", img_name="/images/areaA2.svg", visualize_depth=110, visualize_size=0.6)
+    builder.add_object(location=[12,4], is_traversable=True,is_movable=False, name="area A3 sign", img_name="/images/areaA3.svg", visualize_depth=110, visualize_size=0.6)
+    builder.add_object(location=[17,5], is_traversable=True,is_movable=False, name="area A4 sign", img_name="/images/areaA4.svg", visualize_depth=110, visualize_size=0.65)
+    builder.add_object(location=[2,11], is_traversable=True,is_movable=False, name="area B1 sign", img_name="/images/areaB1.svg", visualize_depth=110, visualize_size=0.5)
+    builder.add_object(location=[9,12], is_traversable=True,is_movable=False, name="area B2 sign", img_name="/images/areaB2.svg", visualize_depth=110, visualize_size=0.6)
+    builder.add_object(location=[3,17], is_traversable=True,is_movable=False, name="area C1 sign", img_name="/images/areaC1.svg", visualize_depth=110, visualize_size=0.5)
+    builder.add_object(location=[9,17], is_traversable=True,is_movable=False, name="area C2 sign", img_name="/images/areaC2.svg", visualize_depth=110, visualize_size=0.6)
+    builder.add_object(location=[16,18], is_traversable=True,is_movable=False, name="area C3 sign", img_name="/images/areaC3.svg", visualize_depth=110, visualize_size=0.6)
 
     #builder.add_object(location=[10,0], is_traversable=True, name="keyboard sign", img_name="/images/keyboard2.svg", visualize_depth=110, visualize_size=10)
     # Add the collectible objects, we do so probabilistically so each world will contain different blocks
