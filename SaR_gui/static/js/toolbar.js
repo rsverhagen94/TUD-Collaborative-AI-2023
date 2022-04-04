@@ -447,25 +447,15 @@ function add_message(chatroom_ID, mssg) {
     */
     
     
-    mssg_content = mssg_content.replaceAll("healthy girl", "<img src='http://aimanexp.ewi.tudelft.nl:3000/fetch_external_media/images/healthy%20girl.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy boy", "<img src='http://aimanexp.ewi.tudelft.nl:3000/fetch_external_media/images/healthy%20boy.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy man", "<img src='http://aimanexp.ewi.tudelft.nl:3000/fetch_external_media/images/healthy%20man.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy woman", "<img src='http://aimanexp.ewi.tudelft.nl:3000/fetch_external_media/images/healthy%20woman.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy dog", "<img src='http://aimanexp.ewi.tudelft.nl:3000/fetch_external_media/images/healthy%20dog.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy cat", "<img src='http://aimanexp.ewi.tudelft.nl:3000/fetch_external_media/images/healthy%20cat.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy elderly man", "<img src='http://aimanexp.ewi.tudelft.nl:3000/fetch_external_media/images/healthy%20elderly%20man.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy elderly woman", "<img src='http://aimanexp.ewi.tudelft.nl:3000/fetch_external_media/images/healthy%20elderly%20woman.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy girl", "<img src='/static/images/healthy%20girl.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy boy", "<img src='/static/images/healthy%20boy.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy man", "<img src='/static/images/healthy%20man.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy woman", "<img src='/static/images/healthy%20woman.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy dog", "<img src='/static/images/healthy%20dog.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy cat", "<img src='/static/images/healthy%20cat.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy elderly man", "<img src='/static/images/healthy%20elderly%20man.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy elderly woman", "<img src='/static/images/healthy%20elderly%20woman.svg' height= 30 width=30/>");
     
-    /*
-    mssg_content = mssg_content.replaceAll("healthy girl", "<img src='http://localhost:3000/fetch_external_media/images/healthy%20girl.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy boy", "<img src='http://localhost:3000/fetch_external_media/images/healthy%20boy.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy man", "<img src='http://localhost:3000/fetch_external_media/images/healthy%20man.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy woman", "<img src='http://localhost:3000/fetch_external_media/images/healthy%20woman.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy dog", "<img src='http://localhost:3000/fetch_external_media/images/healthy%20dog.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy cat", "<img src='http://localhost:3000/fetch_external_media/images/healthy%20cat.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy elderly man", "<img src='http://localhost:3000/fetch_external_media/images/healthy%20elderly%20man.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("healthy elderly woman", "<img src='http://localhost:3000/fetch_external_media/images/healthy%20elderly%20woman.svg' height= 30 width=30/>");
-    */
     mssg_content = mssg_content.replaceAll("critically injured girl", "<img src='/static/images/critically injured girl.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("critically injured boy", "<img src='/static/images/critically injured boy.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("critically injured man", "<img src='/static/images/critically injured man.svg' height= 30 width=30/>");
@@ -499,6 +489,15 @@ function add_message(chatroom_ID, mssg) {
     mssg_content = mssg_content.replaceAll("Mildly injured cat", "<img src='/static/images/mildly injured cat.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("Mildly injured elderly man", "<img src='/static/images/mildly injured elderly man.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("Mildly injured elderly woman", "<img src='/static/images/mildly injured elderly woman.svg' height= 30 width=30/>");
+
+    mssg_content = mssg_content.replaceAll("healthy girl", "<img src='/static/images/healthy girl.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy boy", "<img src='/static/images/healthy boy.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy man", "<img src='/static/images/healthy man.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy woman", "<img src='/static/images/healthy woman.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy dog", "<img src='/static/images/healthy dog.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy cat", "<img src='/static/images/healthy cat.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy elderly man", "<img src='/static/images/healthy elderly man.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("healthy elderly woman", "<img src='/static/images/healthy elderly woman.svg' height= 30 width=30/>");
 
 
 

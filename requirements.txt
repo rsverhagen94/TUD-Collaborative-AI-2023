@@ -1,4 +1,4 @@
-matrx          == 2.0.8
+matrx          == 2.2.0
 
 # all requirements below are 
 # additional libraries provided to do this assignment. 
