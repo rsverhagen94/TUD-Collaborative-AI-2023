@@ -11,7 +11,7 @@ from pathlib import Path
 if __name__ == "__main__":
     print("\nEnter one of the robot communication styles 'silent', 'transparent', 'adaptive', or 'explainable':")
     choice1=input()
-    print("\nEnter one of the interdependence conditions 'tutorial', 'low', or 'high':")
+    print("\nEnter one of the interdependence conditions 'trial', 'low', or 'high':")
     choice2=input()
 
     # Create our world builder
