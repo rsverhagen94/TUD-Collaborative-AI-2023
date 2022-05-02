@@ -10,6 +10,8 @@ import numpy as np
 
 from matrx.messages import Message
 
+from actions1.customActions import RemoveObjectTogether, Idle, CarryObject
+
 
 class HumanBrain(HumanAgentBrain):
     """ Creates an Human Agent which is an agent that can be controlled by a
@@ -259,7 +261,12 @@ class HumanBrain(HumanAgentBrain):
 
         # if the user chose a grab action, choose an object within a grab_range
         # of 1
-        if action == GrabObject.__name__:
+        obj_id = \
+                self.__select_random_obj_in_range(state,
+                                                  range_=self.__grab_range,
+                                                  property_to_check="is_movable")
+
+        if action == CarryObject.__name__ and obj_id!=None and 'tree' not in obj_id and 'rocks' not in obj_id:
             # Assign it to the arguments list
             # Set grab range
             action_kwargs['grab_range'] = self.__grab_range
@@ -280,7 +287,7 @@ class HumanBrain(HumanAgentBrain):
             action_kwargs['drop_range'] = self.__drop_range
 
         # If the user chose to remove an object
-        elif action == RemoveObject.__name__:
+        elif action == RemoveObjectTogether.__name__:
             # Assign it to the arguments list
             # Set drop range
             action_kwargs['remove_range'] = self.__remove_range
@@ -316,6 +323,18 @@ class HumanBrain(HumanAgentBrain):
             if len(doors_in_range) > 0:
                 action_kwargs['object_id'] = \
                     self.rnd_gen.choice(doors_in_range)
+
+        #print(state[{"name": "Human"}]['location'])
+        water_locs = []
+        for water in state[{"name": "water"}]:
+            if water['location'] not in water_locs:
+                water_locs.append(water['location'])
+        if state[{"name": "Human"}]['location'] in water_locs:
+            print("DROWNING")
+            #return Idle.__name__,{'duration_in_ticks':50}
+            action == Idle.__name__
+            action_kwargs['duration_in_ticks'] = 20
+
 
         return action, action_kwargs
 

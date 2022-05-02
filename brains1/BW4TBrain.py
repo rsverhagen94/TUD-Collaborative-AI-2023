@@ -31,7 +31,14 @@ class BW4TBrain(AgentBrain, ABC):
         # door_range=1 does not work, doors don't open
        # params['door_range']=1
         params['max_objects']=1
-        params['action_duration'] = self.__slowdown
+        water_locs = []
+        for water in state[{"name": "water"}]:
+            if water['location'] not in water_locs:
+                water_locs.append(water['location'])
+        if state[{"name": "RescueBot"}]['location'] in water_locs:
+            params['action_duration'] = 100
+        else:
+            params['action_duration'] = self.__slowdown
         return act,params
     
     #Override 

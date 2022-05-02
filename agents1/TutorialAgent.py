@@ -8,9 +8,10 @@ from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.navigator import Navigator
 from matrx.agents.agent_utils.state_tracker import StateTracker
 from matrx.actions.door_actions import OpenDoorAction
-from matrx.actions.object_actions import GrabObject, DropObject
+from matrx.actions.object_actions import GrabObject, DropObject, RemoveObject
 from matrx.messages.message import Message
 from matrx.messages.message_manager import MessageManager
+from actions1.customActions import RemoveObjectTogether
 
 class Phase(enum.Enum):
     INTRO0=0,
@@ -40,11 +41,13 @@ class Phase(enum.Enum):
     WAIT_FOR_HUMAN=24,
     WAIT_AT_ZONE=25,
     FIX_ORDER_GRAB=26,
-    FIX_ORDER_DROP=27
+    FIX_ORDER_DROP=27,
+    REMOVE_OBSTACLE=28
     
 class TutorialAgent(BW4TBrain):
     def __init__(self, condition, slowdown:int):
         super().__init__(condition, slowdown)
+        self._slowdown = slowdown
         self._phase=Phase.INTRO0
         self._roomVics = []
         self._searchedRooms = ['area C3', 'area C2']
@@ -64,11 +67,12 @@ class TutorialAgent(BW4TBrain):
 
     def filter_bw4t_observations(self, state):
         self._processMessages(state)
+        #for key in state.keys():
+        #    print(state[key])
         return state
 
     def decide_on_bw4t_action(self, state:State):
-        
-        while True: 
+        while True:           
             if Phase.INTRO0==self._phase:
                 self._sendMessage('Hello! My name is RescueBot. During this experiment we will collaborate and communicate with each other. \
                 It is our goal to search and rescue the victims on the drop zone on our left as quickly as possible.  \
@@ -262,18 +266,22 @@ class TutorialAgent(BW4TBrain):
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     if self._currentDoor==None:
-                        self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,agent_location))[0]
+                        #self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,agent_location))[0]
+                        self._door = state.get_room(self._getClosestRoom(state,unsearchedRooms,agent_location))[-1]['doormat']
                     if self._currentDoor!=None:
                         self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,self._currentDoor))[0]
+                        print(state.get_room(self._getClosestRoom(state,unsearchedRooms,agent_location)))
                     self._phase = Phase.PLAN_PATH_TO_ROOM
 
             if Phase.PLAN_PATH_TO_ROOM==self._phase:
                 self._navigator.reset_full()
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     self._door = state.get_room_doors(self._foundVictimLocs[self._goalVic]['room'])[0]
-                    doorLoc = self._door['location']
+                    #doorLoc = self._door['location']
+                    doorLoc = self._door
                 else:
-                    doorLoc = self._door['location']
+                    #doorLoc = self._door['location']
+                    doorLoc = self._door
                 self._navigator.add_waypoints([doorLoc])
                 self._phase=Phase.FOLLOW_PATH_TO_ROOM
 
@@ -281,32 +289,46 @@ class TutorialAgent(BW4TBrain):
                 if self._goalVic in self._collectedVictims:
                     self._currentDoor=None
                     self._phase=Phase.FIND_NEXT_GOAL
-                if self._goalVic in self._foundVictims and self._door['room_name']!=self._foundVictimLocs[self._goalVic]['room']:
-                    self._currentDoor=None
-                    self._phase=Phase.FIND_NEXT_GOAL
-                if self._door['room_name'] in self._searchedRooms and self._goalVic not in self._foundVictims:
-                    self._currentDoor=None
-                    self._phase=Phase.FIND_NEXT_GOAL
+                #if self._goalVic in self._foundVictims and self._door['room_name']!=self._foundVictimLocs[self._goalVic]['room']:
+                #    self._currentDoor=None
+                #    self._phase=Phase.FIND_NEXT_GOAL
+                #if self._door['room_name'] in self._searchedRooms and self._goalVic not in self._foundVictims:
+                #    self._currentDoor=None
+                #    self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     self._state_tracker.update(state)
-                    if self._condition!="silent" and self._condition!="transparent" and self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
-                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic+'.', 'RescueBot')                 
-                    if self._condition!="silent" and self._goalVic not in self._foundVictims:
-                        if self._condition=="explainable":
-                            self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.', 'RescueBot')
-                        if self._condition=="adaptive":
-                            msg1 = 'Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.'
-                            msg2 = 'Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic+'.'
-                            explanation = 'because it is the closest unsearched area'
-                            self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
-                    if self._condition=="transparent":
-                        self._sendMessage('Moving to ' + str(self._door['room_name'])+'.', 'RescueBot')
-                    self._currentDoor=self._door['location']
+                    #if self._condition!="silent" and self._condition!="transparent" and self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
+                    #    self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic+'.', 'RescueBot')                 
+                    #if self._condition!="silent" and self._goalVic not in self._foundVictims:
+                    #    if self._condition=="explainable":
+                    #        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.', 'RescueBot')
+                    #    if self._condition=="adaptive":
+                    #        msg1 = 'Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.'
+                    #        msg2 = 'Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic+'.'
+                    #        explanation = 'because it is the closest unsearched area'
+                    #        self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                    #if self._condition=="transparent":
+                    #    self._sendMessage('Moving to ' + str(self._door['room_name'])+'.', 'RescueBot')
+                    
+                    #self._currentDoor=self._door['location']
+                    self._currentDoor=self._door
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         return action,{}
-                    self._phase=Phase.PLAN_ROOM_SEARCH_PATH
-                    return Idle.__name__,{'duration_in_ticks':50}                        
+                    #self._phase=Phase.PLAN_ROOM_SEARCH_PATH
+                    self._phase=Phase.REMOVE_OBSTACLE
+                    return Idle.__name__,{'duration_in_ticks':50}         
+
+            if Phase.REMOVE_OBSTACLE==self._phase:
+                for info in state.values():
+                    if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rocks' in info['obj_id']:
+                        print(info['obj_id'])
+                        self._phase = Phase.FOLLOW_PATH_TO_ROOM
+                        return RemoveObjectTogether.__name__,{'object_id':info['obj_id']}
+                    if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id']:
+                        print(info['obj_id'])
+                        self._phase = Phase.FOLLOW_PATH_TO_ROOM
+                        return RemoveObject.__name__,{'object_id':info['obj_id']}
 
             if Phase.PLAN_ROOM_SEARCH_PATH==self._phase:
                 roomTiles = [info['location'] for info in state.values()
