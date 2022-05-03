@@ -9,8 +9,8 @@ from matrx.agents import HumanAgentBrain
 import numpy as np
 
 from matrx.messages import Message
-
-from actions1.customActions import RemoveObjectTogether, Idle, CarryObject
+from matrx.actions.move_actions import MoveNorth, MoveNorthEast, MoveEast, MoveSouthEast, MoveSouth, MoveSouthWest, MoveWest, MoveNorthWest
+from actions1.customActions import RemoveObjectTogether, Idle, CarryObject, CarryObjectTogether, DropObjectTogether, Drop
 
 
 class HumanBrain(HumanAgentBrain):
@@ -266,7 +266,27 @@ class HumanBrain(HumanAgentBrain):
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
 
-        if action == CarryObject.__name__ and obj_id!=None and 'tree' not in obj_id and 'rocks' not in obj_id:
+        # if the user chose a grab action, choose an object within grab_range
+        if action == CarryObjectTogether.__name__ and obj_id!=None and 'critical' in obj_id:
+            # Set grab range
+            action_kwargs['grab_range'] = self.__grab_range
+            # Set max amount of objects
+            action_kwargs['max_objects'] = self.__max_carry_objects
+
+            # grab the closest victim
+            #obj = state.get_closest_with_property(props={"name": "Victim"})
+            #obj_id = obj[0]['obj_id'] if obj is not None else None
+            obj_id = self.__select_random_obj_in_range(state,
+                                                  range_=self.__grab_range,
+                                                  property_to_check="is_movable")
+            action_kwargs['object_id'] = obj_id
+            
+
+        # If the user chose to drop an object in its inventory
+        elif action == DropObjectTogether.__name__ and obj_id!=None and 'critical' in obj_id:
+            pass 
+
+        if action == CarryObject.__name__ and obj_id!=None and 'tree' not in obj_id and 'rocks' not in obj_id and 'critical' not in obj_id and 'stone' not in obj_id:
             # Assign it to the arguments list
             # Set grab range
             action_kwargs['grab_range'] = self.__grab_range
@@ -281,7 +301,7 @@ class HumanBrain(HumanAgentBrain):
             action_kwargs['object_id'] = obj_id
 
         # If the user chose to drop an object in its inventory
-        elif action == DropObject.__name__:
+        elif action == Drop.__name__:
             # Assign it to the arguments list
             # Set drop range
             action_kwargs['drop_range'] = self.__drop_range
@@ -297,6 +317,24 @@ class HumanBrain(HumanAgentBrain):
                                                   range_=self.__remove_range,
                                                   property_to_check="is_movable")
             action_kwargs['object_id'] = obj_id
+            if 'stone' in obj_id:
+                action_kwargs['action_duration'] = 50
+        
+        # If the user chose to remove an object
+        elif action == RemoveObject.__name__ and obj_id!=None and 'stone' in obj_id:
+            # Assign it to the arguments list
+            # Set drop range
+            action_kwargs['remove_range'] = self.__remove_range
+
+            obj_id = \
+                self.__select_random_obj_in_range(state,
+                                                  range_=self.__remove_range,
+                                                  property_to_check="is_movable")
+                                            
+
+            action_kwargs['object_id'] = obj_id
+            #if 'stone' in obj_id:
+            action_kwargs['action_duration'] = 100
 
         # if the user chose to do an open or close door action, find a door to
         # open/close within range
@@ -324,16 +362,18 @@ class HumanBrain(HumanAgentBrain):
                 action_kwargs['object_id'] = \
                     self.rnd_gen.choice(doors_in_range)
 
-        #print(state[{"name": "Human"}]['location'])
-        water_locs = []
-        for water in state[{"name": "water"}]:
-            if water['location'] not in water_locs:
-                water_locs.append(water['location'])
-        if state[{"name": "Human"}]['location'] in water_locs:
-            print("DROWNING")
-            #return Idle.__name__,{'duration_in_ticks':50}
-            action == Idle.__name__
-            action_kwargs['duration_in_ticks'] = 20
+        elif action in [MoveNorth.__name__, MoveNorthEast.__name__, MoveEast.__name__, MoveSouthEast.__name__, MoveSouth.__name__, MoveSouthWest.__name__, MoveWest.__name__, MoveNorthWest.__name__]:
+
+            #print(state[{"name": "Human"}]['location'])
+            water_locs = []
+            for water in state[{"name": "water"}]:
+                if water['location'] not in water_locs:
+                    water_locs.append(water['location'])
+            if state[{"name": "Human"}]['location'] in water_locs:
+                print("DROWNING")
+                #return Idle.__name__,{'duration_in_ticks':50}
+                action == Idle.__name__
+                action_kwargs['duration_in_ticks'] = 20
 
 
         return action, action_kwargs

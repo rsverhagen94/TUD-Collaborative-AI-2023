@@ -124,7 +124,7 @@ class RemoveObjectTogether(Action):
         objects_in_range.pop(agent_id)
 
         for obj in objects_in_range:  # loop through all objects in range
-            if obj == object_id and get_distance(other_agent['location'], world_state[obj]['location'])<=remove_range and get_distance(other_human['location'], world_state[obj]['location'])<=remove_range and 'rocks' in obj:  # if object is in that list
+            if obj == object_id and get_distance(other_agent['location'], world_state[obj]['location'])<=remove_range and get_distance(other_human['location'], world_state[obj]['location'])<=remove_range and 'rock' in obj:  # if object is in that list
                 success = grid_world.remove_from_grid(object_id)  # remove it, success is whether GridWorld succeeded
                 if success:  # if we succeeded in removal return the appropriate ActionResult
                     return RemoveObjectResult(RemoveObjectResult.OBJECT_REMOVED.replace('object_id'.upper(),
@@ -268,11 +268,15 @@ class Drop(DropObject):
 
     def mutate(self, grid_world, agent_id, world_state, **kwargs):
         agent = grid_world.registered_agents[agent_id]
+        object_id = None if 'object_id' not in kwargs else kwargs['object_id']
+        if object_id and 'critical' not in object_id:
         # change the agent image back to default 
-        agent.change_property("img_name", "/images/rescue-man-final3.svg")
-
+            if 'human' in agent_id:
+                agent.change_property("img_name", "/images/rescue-man-final3.svg")
+            if 'rescuebot' in agent_id:
+                agent.change_property("img_name", "/images/robot-final4.svg")
         # drop the actual object like we would do with a normal drop action 
-        return super().mutate(grid_world, agent_id, world_state, **kwargs)
+            return super().mutate(grid_world, agent_id, world_state, **kwargs)
 
 class CarryObjectTogether(GrabObject):
     def __init__(self, duration_in_ticks=1):
@@ -284,7 +288,7 @@ class CarryObjectTogether(GrabObject):
         max_objects = np.inf if 'max_objects' not in kwargs else kwargs['max_objects']
 
         #grab_range = np.inf if 'grab_range' not in kwargs else kwargs['grab_range']
-        other_agent = world_state[{"name": "Robot"}]
+        other_agent = world_state[{"name": "RescueBot"}]
         if object_id in kwargs:
             obj_to_grab = world_state[kwargs["object_id"]]
         if object_id not in kwargs:
@@ -315,9 +319,9 @@ class CarryObjectTogether(GrabObject):
         object_id = None if 'object_id' not in kwargs else kwargs['object_id']
         if 'critical' in object_id and 'human' in agent_id:
             # change our image 
-            agent.change_property("img_name", "/images/carry-critical-human.svg")
+            agent.change_property("img_name", "/images/carry-critical-final.svg")
         if 'mild' in object_id and 'human' in agent_id:
-            agent.change_property("img_name", "/images/carry-mild-human.svg")
+            agent.change_property("img_name", "/images/carry-mild-final.svg")
 
         # pickup the object 
         return super().mutate(grid_world, agent_id, world_state, **kwargs)

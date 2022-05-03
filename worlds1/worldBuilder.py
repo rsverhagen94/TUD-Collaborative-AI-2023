@@ -9,7 +9,8 @@ from matrx.actions import MoveNorth, OpenDoorAction, CloseDoorAction, GrabObject
 from matrx.actions.move_actions import MoveEast, MoveSouth, MoveWest
 from matrx.agents import AgentBrain, HumanAgentBrain, SenseCapability
 from matrx.grid_world import GridWorld, AgentBody
-from actions1.customActions import RemoveObjectTogether, DropObject, Idle, CarryObject, Drop
+from actions1.customActions import RemoveObjectTogether, DropObject, Idle, CarryObject, Drop, CarryObjectTogether, DropObjectTogether
+from matrx.actions.object_actions import RemoveObject
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
@@ -38,15 +39,18 @@ key_action_map = {
         'e': DropObject.__name__,
         'b': CarryObject.__name__,
         'n': Drop.__name__,
-        'm': RemoveObjectTogether.__name__
+        'm': RemoveObjectTogether.__name__,
+        'k': CarryObjectTogether.__name__,
+        'l': DropObjectTogether.__name__,
+        'j': RemoveObject.__name__,
     }
 
 # Some BW4T settings
 nr_rooms = 9
 room_colors = ['#0008ff', '#ff1500', '#0dff00']
 wall_color = "#8a8a8a"
-drop_off_color = "#878787"
-block_size = 0.8
+drop_off_color = "#1F262A"
+block_size = 0.9
 #nr_drop_zones = 1
 nr_teams = 1
 agents_per_team = 2
@@ -113,7 +117,7 @@ def create_builder(exp_version, condition):
         goal = CollectionGoal(max_nr_ticks=11577)
     # Create our world builder
     builder = WorldBuilder(shape=[25,24], tick_duration=tick_duration, run_matrx_api=True,
-                           run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#C5D8A4')
+                           run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#9a9083')
     if exp_version=="low":
         current_exp_folder = datetime.now().strftime("exp_LOW_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
         logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
@@ -126,60 +130,64 @@ def create_builder(exp_version, condition):
         builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")
 
     # Add the world bounds (not needed, as agents cannot 'walk off' the grid, but for visual effects)
-    builder.add_room(top_left_location=(0, 0), width=25, height=24, name="world_bounds")
+    builder.add_room(top_left_location=(0, 0), width=25, height=24, name="world_bounds", wall_visualize_colour="#1F262A")
     # Create the rooms
    # room_locations = add_rooms(builder)
     builder.add_room(top_left_location=(1,1), width=5, height=4, name='area 1', door_locations=[(3,4)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0, door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0, door_open_colour='#9a9083')
     builder.add_room(top_left_location=(7,1), width=5, height=4, name='area 2', door_locations=[(9,4)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(13,1), width=5, height=4, name='area 3', door_locations=[(15,4)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(19,1), width=5, height=4, name='area 4', door_locations=[(21,4)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4', area_custom_properties={'doormat':(21,5)})
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(21,5)})
     builder.add_room(top_left_location=(1,7), width=5, height=4, name='area 5', door_locations=[(3,7)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(7,7), width=5, height=4, name='area 6', door_locations=[(9,7)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(13,7), width=5, height=4, name='area 7', door_locations=[(15,7)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(1,13), width=5, height=4, name='area 8', door_locations=[(3,16)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(7,13), width=5, height=4, name='area 9', door_locations=[(9,16)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(13,13), width=5, height=4, name='area 10', door_locations=[(15,16)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(1,19), width=5, height=4, name='area 11', door_locations=[(3,19)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(7,19), width=5, height=4, name='area 12', door_locations=[(9,19)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(13,19), width=5, height=4, name='area 13', door_locations=[(15,19)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
     builder.add_room(top_left_location=(19,19), width=5, height=4, name='area 14', door_locations=[(21,19)],doors_open=True, wall_visualize_colour=wall_color, 
-    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#C5D8A4')
+    with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083')
 
    
 
-    builder.add_object((3,4), 'tree1',ObstacleObject,visualize_shape='img',img_name="/images/tree.svg")
-    builder.add_object((9,4),'bush 2',CollectableBlock,visualize_shape='img',img_name="/images/tree.svg")
-    builder.add_object((9,16),'bush 9',CollectableBlock,visualize_shape='img',img_name="/images/tree.svg")
-    builder.add_object((15, 7),'bush 7',CollectableBlock,visualize_shape='img',img_name="/images/tree.svg")
-    builder.add_object((15,19),'bush 13',CollectableBlock,visualize_shape='img',img_name="/images/tree.svg")
-    builder.add_object((3,16),'rocks 4',CollectableBlock,visualize_shape='img',img_name="/images/rocks.svg")
-    builder.add_object((15,4),'rocks 3',CollectableBlock,visualize_shape='img',img_name="/images/rocks.svg")
-    builder.add_object((21,19),'rocks 14',CollectableBlock,visualize_shape='img',img_name="/images/rocks.svg")
-    builder.add_object((9,19),'rocks 12',CollectableBlock,visualize_shape='img',img_name="/images/rocks.svg")
-    builder.add_object((9,7),'rocks 6',CollectableBlock,visualize_shape='img',img_name="/images/rocks.svg")
+    builder.add_object((3,4), 'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
+    builder.add_object((9,4),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
+    builder.add_object((9,16),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
+    builder.add_object((15, 7),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
+    builder.add_object((15,19),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
+    builder.add_object((3,16),'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
+    builder.add_object((15,4),'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
+    builder.add_object((21,19),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+    builder.add_object((9,19),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+    builder.add_object((9,7),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
 
-    for loc in [(6,1),(6,2),(6,3),(6,4),(6,5),(6,12),(6,13),(6,14),(6,15),(6,16),(6,17),(11,12),(11,11),(18,12),(18,13),(18,14),(18,15),(18,16),(18,17),(9,17),(9,18),(21,17),(21,18),(21,16),(21,15),
-    (3,12),(3,11),(12,6),(12,7),(12,8),(12,9),(12,10),(12,11),(18,11),(18,10),(18,9),(19,9),(19,8),(19,7),(19,6),(19,5),(10,6),(10,5),(14,17),(14,18),(12,19),(12,20),(12,21),(12,18),(12,22)]:
-        builder.add_object(loc,'water',EnvObject,is_traversable=True, visualize_shape='img',img_name="/images/pool20.svg")
+
+    for loc in [(6,1),(6,2),(6,3),(6,4),(6,5),(6,12),(6,13),(6,14),(6,15),(6,16),(6,17),(11,12),(11,11),(18,12),(18,13),(18,14),(18,15),(18,16),(18,17),(9,17),(9,18),(21,17),(21,18),
+    (3,12),(3,11),(12,6),(12,7),(12,8),(12,9),(12,10),(12,11),(18,11),(18,10),(18,9),(19,9),(19,8),(19,7),(19,6),(19,5),(10,6),(10,5),(14,17),(14,18),(12,19),(12,20),(12,21),(12,18),(12,22),
+    (12,1),(12,2),(6,22),(18,20),(18,21),(18,22)]:
+        builder.add_object(loc,'water',EnvObject,is_traversable=True, is_movable=False, visualize_shape='img',img_name="/images/pool20.svg")
     #for loc in [(2,12),(3,12),(4,12),(5,12),(6,12)]:
     #    builder.add_object(loc,'water', EnvObject,is_traversable=True, visualize_shape=0, visualize_colour='#8CB4EB')
-    for loc in [(1,11),(2,11),(3,11),(3,12),(4,12),(5,12),(6,12),(7,12),(8,12),(9,12),(10,12),(11,12),(12,11),(13,11),(14,11),(15,11),(16,11),(17,11),(18,11),(6,17),(7,17),(8,17),(9,17),(9,18),(21,15),(22,15),(23,15),
+    for loc in [(1,11),(2,11),(3,11),(3,12),(4,12),(5,12),(6,12),(7,12),(8,12),(9,12),(10,12),(11,12),(12,11),(13,11),(14,11),(15,11),(16,11),(17,11),(18,11),(6,17),(7,17),(8,17),(9,17),(9,18),
     (18,9),(19,9),(19,5),(20,5),(21,5),(22,5),(23,5),(11,6),(12,6),(10,6),(10,5),(9,5),(8,5),(7,5),(6,5),(11,11),(18,17),(17,17),(16,17),(15,17),(14,17),(14,18),(13,18),(12,18),(10,18),(11,18),
-    (5,17),(4,17),(3,17),(2,17),(1,17),(19,17),(20,17),(21,17),(22,18),(23,18),(21,18)]:
-        builder.add_object(loc,'water', EnvObject,is_traversable=True, visualize_shape='img', img_name="/images/lake2.svg")
+    (5,17),(4,17),(3,17),(2,17),(1,17),(19,17),(20,17),(21,17)]:
+        builder.add_object(loc,'water', EnvObject,is_traversable=True, is_movable=False, visualize_shape='img', img_name="/images/lake2.svg")
+
+
     for loc in [(1,1),(2,1),(3,1),(4,1),(5,1),(1,2),(1,3),(1,4),(2,4),(4,4),(5,4),(5,3),(5,2),(7,1),(8,1),(9,1),(10,1),(11,1),(7,2),(7,3),(7,4),(8,4),(11,2),(11,3),(11,4),(10,4),
     (13,1),(14,1),(15,1),(16,1),(17,1),(13,1),(14,1),(15,1),(16,1),(17,1),(13,2),(13,3),(13,4),(14,4),(16,4),(17,4),(17,3),(17,2),
     (19,1),(20,1),(21,1),(22,1),(23,1),(19,2),(19,3),(19,4),(20,4),(22,4),(23,4),(23,3),(23,2),(23,1),
@@ -193,9 +201,24 @@ def create_builder(exp_version, condition):
     (7,19),(8,19),(4,19),(5,19),(7,20),(7,21),(7,22),(8,22),(9,22),(10,22),(11,22),(11,21),(11,20),(11,19),(10,19),
     (13,19),(14,19),(16,19),(17,19),(13,20),(13,21),(13,22),(14,22),(15,22),(16,22),(17,22),(17,21),(17,20),
     (19,19),(20,19),(22,19),(23,19),(19,20),(19,21),(19,22),(20,22),(21,22),(22,22),(23,22),(23,21),(23,20)]:
-        builder.add_object(loc,'roof', EnvObject,is_traversable=True, visualize_shape='img',img_name="/images/roof50.svg")
-    #for loc in [(1,12),(2,12),(4,11),(5,11),(11,11),(7,11),(8,11),(9,11),(10,11),(13,12),(6,11)]:
-    #    builder.add_object(loc,'tree',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/tree.svg") 
+        builder.add_object(loc,'roof', EnvObject,is_traversable=True, is_movable=False, visualize_shape='img',img_name="/images/roof-final5.svg")
+
+    for loc in [(12,3),(12,4),(18,1),(18,2),(18,3),(18,4),(6,19),(6,20),(6,21),(18,19)]:
+        builder.add_object(loc,'plant',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/tree.svg", visualize_size=1.25) 
+    for loc in [(1,12)]:
+        builder.add_object(loc,'plant',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/tree.svg", visualize_size=3)
+    for loc in [(22,7)]:
+        builder.add_object(loc,'heli',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/helicopter.svg", visualize_size=3) 
+    for loc in [(22,16)]:
+        builder.add_object(loc,'heli',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/ambulance.svg", visualize_size=2.3) 
+    for loc in [(11,5),(13,5),(14,5),(13,6),(14,6),(12,5),(15,5),(15,6),(16,5),(16,6),(17,5),(17,6),(18,5),(18,6),(9,6),(8,6),(7,6),(6,6),(5,6),(4,6),(3,6),(2,6),(1,6),(20,9),(21,9),(21,14),(20,14),
+    (1,5),(2,5),(3,5),(4,5),(5,5),(20,6),(22,11),(22,12),(20,18),(19,18),(18,18),(17,18),(16,18),(15,18),(13,17),(12,17),(11,17),(10,17),(8,18),(7,18),(6,18),(5,18),(4,18),(3,18),(2,18),(1,18)]:
+        builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final20.svg", visualize_size=1) 
+    for loc in [(20,7),(20,8),(21,10),(21,11),(21,12),(21,13),(20,15),(20,16)]:
+        builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final15.svg", visualize_size=1) 
+    for loc in [(6,11),(15,12),(12,16),(6,10),(6,9),(12,15),(16,12),(17,12)]:
+        builder.add_object(loc,'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+    
     if exp_version=="trial":
             #builder.add_object((1,16),'car',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/car (1).svg")
         builder.add_object((23,9),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
@@ -234,8 +257,8 @@ def create_builder(exp_version, condition):
         builder.add_object((16,20),'mildly injured woman in area A2', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/mildly injured woman.svg")
 
-        builder.add_object((22,8),'mildly injured boy in area B1', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured boy.svg")
+        #builder.add_object((20,2),'critically injured man in area B1', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/critically injured man.svg")
 
         #builder.add_object((21,16),'mildly injured cat in area C2', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/mildly injured cat.svg")
@@ -262,7 +285,7 @@ class ObstacleObject(EnvObject):
     def __init__(self, location, name, visualize_shape, img_name):
         super().__init__(location, name, is_traversable=False, is_movable=True,
                          visualize_shape=visualize_shape,img_name=img_name,
-                         visualize_size=block_size, class_callable=ObstacleObject,
+                         visualize_size=1.25, class_callable=ObstacleObject,
                          is_drop_zone=False, is_goal_block=False, is_collectable=False)
 
 

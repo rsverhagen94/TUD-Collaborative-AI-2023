@@ -11,7 +11,7 @@ from matrx.actions.door_actions import OpenDoorAction
 from matrx.actions.object_actions import GrabObject, DropObject, RemoveObject
 from matrx.messages.message import Message
 from matrx.messages.message_manager import MessageManager
-from actions1.customActions import RemoveObjectTogether
+from actions1.customActions import RemoveObjectTogether, CarryObjectTogether, DropObjectTogether, CarryObject, Drop
 
 class Phase(enum.Enum):
     INTRO0=0,
@@ -190,6 +190,7 @@ class TutorialAgent(BW4TBrain):
                         remainingZones.append(info)
                 if remainingZones:
                     self._goalVic = str(remainingZones[0]['img_name'])[8:-4]
+                    print(self._goalVic)
                     self._goalLoc = remainingZones[0]['location']
                     self._remainingZones = remainingZones
                 else:
@@ -266,8 +267,8 @@ class TutorialAgent(BW4TBrain):
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     if self._currentDoor==None:
-                        #self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,agent_location))[0]
-                        self._door = state.get_room(self._getClosestRoom(state,unsearchedRooms,agent_location))[-1]['doormat']
+                        self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,agent_location))[0]
+                        #self._door = state.get_room(self._getClosestRoom(state,unsearchedRooms,agent_location))[-1]['doormat']
                     if self._currentDoor!=None:
                         self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,self._currentDoor))[0]
                         print(state.get_room(self._getClosestRoom(state,unsearchedRooms,agent_location)))
@@ -277,11 +278,11 @@ class TutorialAgent(BW4TBrain):
                 self._navigator.reset_full()
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     self._door = state.get_room_doors(self._foundVictimLocs[self._goalVic]['room'])[0]
-                    #doorLoc = self._door['location']
-                    doorLoc = self._door
+                    doorLoc = self._door['location']
+                    #doorLoc = self._door
                 else:
-                    #doorLoc = self._door['location']
-                    doorLoc = self._door
+                    doorLoc = self._door['location']
+                    #doorLoc = self._door
                 self._navigator.add_waypoints([doorLoc])
                 self._phase=Phase.FOLLOW_PATH_TO_ROOM
 
@@ -289,12 +290,12 @@ class TutorialAgent(BW4TBrain):
                 if self._goalVic in self._collectedVictims:
                     self._currentDoor=None
                     self._phase=Phase.FIND_NEXT_GOAL
-                #if self._goalVic in self._foundVictims and self._door['room_name']!=self._foundVictimLocs[self._goalVic]['room']:
-                #    self._currentDoor=None
-                #    self._phase=Phase.FIND_NEXT_GOAL
-                #if self._door['room_name'] in self._searchedRooms and self._goalVic not in self._foundVictims:
-                #    self._currentDoor=None
-                #    self._phase=Phase.FIND_NEXT_GOAL
+                if self._goalVic in self._foundVictims and self._door['room_name']!=self._foundVictimLocs[self._goalVic]['room']:
+                    self._currentDoor=None
+                    self._phase=Phase.FIND_NEXT_GOAL
+                if self._door['room_name'] in self._searchedRooms and self._goalVic not in self._foundVictims:
+                    self._currentDoor=None
+                    self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     self._state_tracker.update(state)
                     #if self._condition!="silent" and self._condition!="transparent" and self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
@@ -310,13 +311,13 @@ class TutorialAgent(BW4TBrain):
                     #if self._condition=="transparent":
                     #    self._sendMessage('Moving to ' + str(self._door['room_name'])+'.', 'RescueBot')
                     
-                    #self._currentDoor=self._door['location']
-                    self._currentDoor=self._door
+                    self._currentDoor=self._door['location']
+                    #self._currentDoor=self._door
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         return action,{}
-                    #self._phase=Phase.PLAN_ROOM_SEARCH_PATH
-                    self._phase=Phase.REMOVE_OBSTACLE
+                    self._phase=Phase.PLAN_ROOM_SEARCH_PATH
+                    #self._phase=Phase.REMOVE_OBSTACLE
                     return Idle.__name__,{'duration_in_ticks':50}         
 
             if Phase.REMOVE_OBSTACLE==self._phase:
@@ -441,7 +442,15 @@ class TutorialAgent(BW4TBrain):
             if Phase.TAKE_VICTIM==self._phase:
                 self._phase=Phase.PLAN_PATH_TO_DROPPOINT
                 self._collectedVictims.append(self._goalVic)
-                return GrabObject.__name__,{'object_id':self._foundVictimLocs[self._goalVic]['obj_id']}
+
+                #if 'critical' in self._foundVictimLocs[self._goalVic]['obj_id'] and state[{'is_human_agent':True}] and not state[self._foundVictimLocs[self._goalVic]['obj_id']]:
+                #    self._phase=Phase.FIND_NEXT_GOAL
+                #    self._collectedVictims.append(self._goalVic)
+                #    return None, {}                
+                #else:
+                #    return None, {}
+
+                return CarryObject.__name__,{'object_id':self._foundVictimLocs[self._goalVic]['obj_id']}
 
             if Phase.PLAN_PATH_TO_DROPPOINT==self._phase:
                 self._navigator.reset_full()
@@ -487,7 +496,7 @@ class TutorialAgent(BW4TBrain):
                     self._phase=Phase.FIND_NEXT_GOAL
                     self._currentDoor = None
                     self._tick = state['World']['nr_ticks']
-                    return DropObject.__name__,{}
+                    return Drop.__name__,{}
                 #if state[{'img_name':self._nextVic, 'is_collectable':True}] and state[{'img_name':self._previousVic, 'is_collectable':True}]:
                 #    self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
                 #    self._phase=Phase.FIX_ORDER_GRAB
