@@ -240,7 +240,7 @@ def create_builder(exp_version, condition):
     visualize_shape='img',img_name="/images/critically injured man.svg")
         builder.add_object((2,14),'critically injured girl in area C3', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/critically injured girl.svg")
-        builder.add_object((9,2),'critically injured girl in area C3', callable_class=CollectableBlock, 
+        builder.add_object((10,2),'critically injured girl in area C3', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/critically injured girl.svg")
         #builder.add_object((21,10),'critically injured dog in area B2', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/critically injured dog.svg")
@@ -256,6 +256,36 @@ def create_builder(exp_version, condition):
     visualize_shape='img',img_name="/images/mildly injured woman.svg")
         builder.add_object((16,20),'mildly injured woman in area A2', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/mildly injured woman.svg")
+
+        builder.add_object((10,21),'healthy girl in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy girl.svg")
+        builder.add_object((16,9),'healthy girl in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy girl.svg")
+
+        builder.add_object((22,3),'healthy elderly woman in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy elderly woman.svg")
+        builder.add_object((2,21),'healthy elderly woman in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy elderly woman.svg")
+
+        builder.add_object((20,2),'healthy man in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy man.svg")
+        builder.add_object((20,21),'healthy man in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy man.svg")
+
+        builder.add_object((22,20),'healthy boy in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy boy.svg")
+        builder.add_object((8,15),'healthy boy in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy boy.svg")
+
+        builder.add_object((4,2),'healthy elderly man in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy elderly man.svg")
+        builder.add_object((14,3),'healthy elderly man in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy elderly man.svg")
+
+        builder.add_object((16,14),'healthy woman in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy woman.svg")
+        builder.add_object((8,3),'healthy woman in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy woman.svg")
 
         #builder.add_object((20,2),'critically injured man in area B1', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/critically injured man.svg")
