@@ -104,7 +104,7 @@ def add_agents(builder, condition, exp_version):
             brain = HumanBrain(max_carry_objects=1, grab_range=1, drop_range=0, remove_range=1, fov_occlusion=fov_occlusion)
             loc = (22,12)
             builder.add_human_agent(loc, brain, team=team_name, name="Human",
-                                    key_action_map=key_action_map, sense_capability=sense_capability, is_traversable=True, img_name="/images/rescue-man-final3.svg")
+                                    key_action_map=key_action_map, sense_capability=sense_capability, is_traversable=True, img_name="/images/rescue-man-final3.svg", visualize_when_busy=True)
 
 def create_builder(exp_version, condition):
     # Set numpy's random generator
@@ -175,6 +175,8 @@ def create_builder(exp_version, condition):
     builder.add_object((9,19),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
     builder.add_object((9,7),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
 
+    builder.add_object((18,11),'tree', ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
+
 
     for loc in [(6,1),(6,2),(6,3),(6,4),(6,5),(6,12),(6,13),(6,14),(6,15),(6,16),(6,17),(11,12),(11,11),(18,12),(18,13),(18,14),(18,15),(18,16),(18,17),(9,17),(9,18),(21,17),(21,18),
     (3,12),(3,11),(12,6),(12,7),(12,8),(12,9),(12,10),(12,11),(18,11),(18,10),(18,9),(19,9),(19,8),(19,7),(19,6),(19,5),(10,6),(10,5),(14,17),(14,18),(12,19),(12,20),(12,21),(12,18),(12,22),
@@ -219,15 +221,55 @@ def create_builder(exp_version, condition):
     for loc in [(6,11),(15,12),(12,16),(6,10),(6,9),(12,15),(16,12),(17,12)]:
         builder.add_object(loc,'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
     
+    
+
     if exp_version=="trial":
+
+
+        builder.add_object((23,9),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
+        builder.add_object((23,10),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured elderly woman.svg",drop_zone_nr=0)
+        builder.add_object((23,11),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured man.svg",drop_zone_nr=0)
+        #builder.add_object((23,10),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured dog.svg",drop_zone_nr=0)
+        builder.add_object((23,12),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured boy.svg",drop_zone_nr=0)
+        builder.add_object((23,13),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured elderly man.svg",drop_zone_nr=0)
+        builder.add_object((23,14),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured woman.svg",drop_zone_nr=0)
+        #builder.add_object((23,16),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured cat.svg",drop_zone_nr=1)
+
+        builder.add_object((22,10),'critically injured elderly woman in area C2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
+        builder.add_object((19,11),'critically injured elderly woman in area C2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
+        builder.add_object((20,12),'critically injured man in area C1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured man.svg")
+        builder.add_object((20,12),'critically injured man in area C1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured man.svg")
+        builder.add_object((20,10),'critically injured girl in area C3', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured girl.svg")
+        builder.add_object((19,10),'critically injured girl in area C3', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured girl.svg")
+        #builder.add_object((21,10),'critically injured dog in area B2', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/critically injured dog.svg")
+        builder.add_object((20,13),'mildly injured boy in area B1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured boy.svg")
+        builder.add_object((19,13),'mildly injured boy in area B1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured boy.svg")
+        builder.add_object((20,14),'mildly injured elderly man in area A1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
+        builder.add_object((19,14),'mildly injured elderly man in area A1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
+        builder.add_object((19,15),'mildly injured woman in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured woman.svg")
+        builder.add_object((20,15),'mildly injured woman in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured woman.svg")
+
             #builder.add_object((1,16),'car',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/car (1).svg")
         builder.add_object((23,9),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
         builder.add_object((23,10),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured elderly woman.svg",drop_zone_nr=0)
         builder.add_object((23,11),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured man.svg",drop_zone_nr=0)
         #builder.add_object((23,10),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured dog.svg",drop_zone_nr=0)
-        builder.add_object((23,12),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured boy.svg",drop_zone_nr=1)
-        builder.add_object((23,13),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured elderly man.svg",drop_zone_nr=1)
-        builder.add_object((23,14),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured woman.svg",drop_zone_nr=1)
+        builder.add_object((23,12),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured boy.svg",drop_zone_nr=0)
+        builder.add_object((23,13),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured elderly man.svg",drop_zone_nr=0)
+        builder.add_object((23,14),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured woman.svg",drop_zone_nr=0)
         #builder.add_object((23,16),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured cat.svg",drop_zone_nr=1)
 
         builder.add_object((10,14),'critically injured elderly woman in area C2', callable_class=CollectableBlock, 

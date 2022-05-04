@@ -87,95 +87,8 @@ class TutorialAgent(BW4TBrain):
                 and a cat (critically injured cat/mildly injured cat/healthy cat). In the toolbar above you can find the keyboard controls, for moving you can simply use the arrow keys. Your sense range is limited to 1, so it is important to search the areas well.\
                 We will now practice and familiarize you with everything mentioned above, until you are comfortable enough to start the real experiment. \
                 If you read the text, press the "Ready!" button.', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!':
-                    self._phase=Phase.INTRO1
-                    self.received_messages=[]
-                else:
-                    return None,{}
-
-            if Phase.INTRO1==self._phase:
-                self._sendMessage('Lets try out the controls first. You can move with the arrow keys. If you move up twice, you will notice that you can now no longer see me in your field of view. \
-                So you can only see as far as 1 grid cell. Therefore, it is important to search the areas well. If you moved up twice, press the "Ready!" button.','RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!':
-                    self._phase=Phase.INTRO2
-                    self.received_messages=[]
-                else:
-                    return None,{}
-
-            if Phase.INTRO2==self._phase:
-                self._sendMessage('Lets move to area C3 now, and search it completely. In this area you should find 4 victims. One of them is our first goal victim on the drop zone: critically injured girl, the other three are healthy. \
-                If you searched the whole area and found the 4 victims, press the "Ready!" button.', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!':
-                    self._phase=Phase.INTRO3
-                    self.received_messages=[]
-                else:
-                    return None,{}
-
-            if Phase.INTRO3==self._phase:
-                self._sendMessage('Lets pick up our first goal victim critically injured girl now. To pick up a victim, move yourself on the victim first. \
-                Now, you can press "B" or "Q" on your keyboard to grab the victim. If you now move left, right, up, or down once, you can see the victim is no longer there. \
-                You can only carry one victim at a time. \
-                If you finished this step, press the "Ready!" button.', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!':
-                    self._phase=Phase.INTRO4
-                    self.received_messages=[]
-                else:
-                    return None,{}
-
-            if Phase.INTRO4==self._phase:
-                self._sendMessage('Lets drop our first goal victim critically injured girl at the drop zone now. The drop zone is located at the lower left of the environment, next to where you started. \
-                You can move to the drop zone using the arrow keys. If you reach the drop zone, move on top of the image of the first goal victim you are currently carrying (critically injured girl). \
-                This is the most left image on the drop zone, because it is the first victim to rescue. If you are located on top of this image, press "N" or "E" on your keyboard to drop the victim. \
-                If you now move right once, you can see that you dropped critically injured girl in the right place. If you finished this step, press the "Ready!" button.', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!':
-                    self._phase=Phase.INTRO5
-                    self.received_messages=[]
-                else:
-                    return None,{}
-
-            if Phase.INTRO5==self._phase:
-                self._sendMessage('You just dropped the first victim, nice! Time for the next step and goal victim critically injured elderly woman. Lets move to and search through area C2 for this victim. But this time, let me know in the chat that you are going to search in area C2. \
-                You can do this using the button "C2". By doing so, you will make sure that I will not also search for critically injured elderly woman in this area. This way, we can collaborate more efficiently! \
-                If you pressed the button "C2" and moved to the entrance of the area, press the "Ready!" button.', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!':
-                    self._phase=Phase.INTRO6
-                    self.received_messages=[]
-                else:
-                    return None,{}
-
-            if Phase.INTRO6==self._phase:
-                self._sendMessage('You should now be present in area C2. If you search this area you should find critically injured elderly woman and mildly injured cat. \
-                When you find one of our goal victims in an area, it is important to communicate this with me in the chat. You can do so using the buttons below "I have found:". \
-                For example, in this area you should press the button "critically injured elderly woman in C2" and "mildly injured cat in C2". You can select the correct room using the dropdown menu. \
-                Communicating this information with me can improve efficiency, so it is highly recommended! If you searched the whole area, found the 2 victims, and communicated this using the "found" buttons, press the "Ready!" button.', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!':
-                    self._foundVictimLocs['mildly injured cat'] = {'room':'area C2'}
-                    self._phase=Phase.INTRO7
-                    self.received_messages=[]
-                else:
-                    return None,{}
-
-            if Phase.INTRO7==self._phase:
-                self._sendMessage('Lets pick up the next goal victim to drop off at the drop zone: critically injured elderly woman in area C2. But this time, let me know you will pick up this victim using the corresponding button. \
-                Similar to when you found this victim, select the button "critically injured elderly woman in C2" below "I will pick up:" in the chat window. \
-                This way, I will know that I no longer have to search this goal victim, and can start searching for the next goal victim to rescue: critically injured man. \
-                After sending the message to me, pick up/grab critically injured elderly woman, move to the drop zone, and drop critically injured elderly woman in the right place. \
-                If you did so, press the "Ready!" button.', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!':
-                    self._phase=Phase.INTRO8
-                    self.received_messages=[]
-                else:
-                    return None,{}
-
-            if Phase.INTRO8==self._phase:
-                self._sendMessage('You just rescued the second goal victim critically injured elderly woman, great work! You should now have a good understanding of the controls and messaging system. \
-                The next step is a small trial of how the real experiment will be. So now I will also be moving to and searching through areas, picking up and dropping off victims, and communicating this relevant info with you during the mission. \
-                We still have to rescue the following victims in this order: critically injured man, critically injured dog, mildly injured boy, mildly injured elderly man, mildly injured woman, mildly injured cat. \
-                Once we delivered the last victim mildly injured cat, the game will end automatically. If you are ready to start searching for critically injured man, press the "Ready!" button.' , 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!':
-                    self._currentTick = state['World']['nr_ticks']
+                if self.received_messages and self.received_messages[-1]=='Ready!' or not state[{'is_human_agent':True}]:
                     self._phase=Phase.FIND_NEXT_GOAL
-                    self.received_messages=[]
                 else:
                     return None,{}
 
@@ -190,7 +103,6 @@ class TutorialAgent(BW4TBrain):
                         remainingZones.append(info)
                 if remainingZones:
                     self._goalVic = str(remainingZones[0]['img_name'])[8:-4]
-                    print(self._goalVic)
                     self._goalLoc = remainingZones[0]['location']
                     self._remainingZones = remainingZones
                 else:

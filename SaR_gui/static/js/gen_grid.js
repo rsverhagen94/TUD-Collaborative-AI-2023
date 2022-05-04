@@ -106,7 +106,7 @@ function draw(state, world_settings, new_messages, accessible_chatrooms, new_tic
             obj_img = fix_img_url(obj['img_name']);
         }
 
-        var show_busy_condition =  (obj.hasOwnProperty("is_blocked_by_action") &&
+        var show_busy_condition =  (obj.hasOwnProperty("is_blocked_by_action") &&                               
                                     obj['visualization'].hasOwnProperty('show_busy') &&
                                     obj['visualization']['show_busy']);
 

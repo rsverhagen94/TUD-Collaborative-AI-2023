@@ -10,7 +10,7 @@ import numpy as np
 
 from matrx.messages import Message
 from matrx.actions.move_actions import MoveNorth, MoveNorthEast, MoveEast, MoveSouthEast, MoveSouth, MoveSouthWest, MoveWest, MoveNorthWest
-from actions1.customActions import RemoveObjectTogether, Idle, CarryObject, CarryObjectTogether, DropObjectTogether, Drop
+from actions1.customActions import RemoveObjectTogether, Idle, CarryObject, CarryObjectTogether, DropObjectTogether, Drop, RemoveObject
 
 
 class HumanBrain(HumanAgentBrain):
@@ -261,13 +261,13 @@ class HumanBrain(HumanAgentBrain):
 
         # if the user chose a grab action, choose an object within a grab_range
         # of 1
-        obj_id = \
-                self.__select_random_obj_in_range(state,
-                                                  range_=self.__grab_range,
-                                                  property_to_check="is_movable")
+        #obj_id = \
+        #        self.__select_random_obj_in_range(state,
+        #                                          range_=self.__grab_range,
+        #                                          property_to_check="is_movable")
 
         # if the user chose a grab action, choose an object within grab_range
-        if action == CarryObjectTogether.__name__ and obj_id!=None and 'critical' in obj_id:
+        if action == CarryObjectTogether.__name__:
             # Set grab range
             action_kwargs['grab_range'] = self.__grab_range
             # Set max amount of objects
@@ -279,14 +279,16 @@ class HumanBrain(HumanAgentBrain):
             obj_id = self.__select_random_obj_in_range(state,
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
-            action_kwargs['object_id'] = obj_id
+            if 'critical' in obj_id:
+                action_kwargs['object_id'] = obj_id
             
 
         # If the user chose to drop an object in its inventory
-        elif action == DropObjectTogether.__name__ and obj_id!=None and 'critical' in obj_id:
-            pass 
+        elif action == DropObjectTogether.__name__:
+            action_kwargs['drop_range'] = self.__drop_range
+            pass            
 
-        if action == CarryObject.__name__ and obj_id!=None and 'tree' not in obj_id and 'rocks' not in obj_id and 'critical' not in obj_id and 'stone' not in obj_id:
+        if action == CarryObject.__name__:
             # Assign it to the arguments list
             # Set grab range
             action_kwargs['grab_range'] = self.__grab_range
@@ -298,13 +300,16 @@ class HumanBrain(HumanAgentBrain):
                 self.__select_random_obj_in_range(state,
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
-            action_kwargs['object_id'] = obj_id
+            if 'tree' not in obj_id and 'rocks' not in obj_id and 'mild' in obj_id and 'stone' not in obj_id:
+                action_kwargs['object_id'] = obj_id
 
         # If the user chose to drop an object in its inventory
         elif action == Drop.__name__:
             # Assign it to the arguments list
             # Set drop range
+
             action_kwargs['drop_range'] = self.__drop_range
+            pass
 
         # If the user chose to remove an object
         elif action == RemoveObjectTogether.__name__:
@@ -321,7 +326,7 @@ class HumanBrain(HumanAgentBrain):
                 action_kwargs['action_duration'] = 50
         
         # If the user chose to remove an object
-        elif action == RemoveObject.__name__ and obj_id!=None and 'stone' in obj_id:
+        elif action == RemoveObject.__name__:
             # Assign it to the arguments list
             # Set drop range
             action_kwargs['remove_range'] = self.__remove_range
@@ -330,11 +335,11 @@ class HumanBrain(HumanAgentBrain):
                 self.__select_random_obj_in_range(state,
                                                   range_=self.__remove_range,
                                                   property_to_check="is_movable")
-                                            
+            if 'stone' in obj_id:                           
 
-            action_kwargs['object_id'] = obj_id
+                action_kwargs['object_id'] = obj_id
             #if 'stone' in obj_id:
-            action_kwargs['action_duration'] = 100
+                action_kwargs['action_duration'] = 100
 
         # if the user chose to do an open or close door action, find a door to
         # open/close within range
