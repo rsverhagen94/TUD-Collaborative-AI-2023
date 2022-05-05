@@ -42,7 +42,8 @@ class Phase(enum.Enum):
     WAIT_AT_ZONE=25,
     FIX_ORDER_GRAB=26,
     FIX_ORDER_DROP=27,
-    REMOVE_OBSTACLE=28
+    REMOVE_OBSTACLE_IF_NEEDED=28,
+    ENTER_ROOM=29
     
 class TutorialAgent(BW4TBrain):
     def __init__(self, condition, slowdown:int):
@@ -114,16 +115,7 @@ class TutorialAgent(BW4TBrain):
 
                 if self._goalVic in self._foundVictims and 'location' in self._foundVictimLocs[self._goalVic].keys():                      
                     if self._condition!="silent" and self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
-                        if self._condition == "explainable":
-                            self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')
-                        if self._condition == "transparent":
-                            self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')
-                        if self._condition == "adaptive":
-                            msg1 = 'I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".'
-                            msg2 = 'I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. If you agree press the "Yes" button, if you do not agree press "No".'
-                            explanation = 'because it is located far away and you can move faster'
-                            self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
-                        
+                        self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')                     
                         if self.received_messages and self.received_messages[-1]=='Yes' or self._goalVic in self._collectedVictims:
                             self._collectedVictims.append(self._goalVic)
                             self._phase=Phase.FIND_NEXT_GOAL
@@ -136,16 +128,7 @@ class TutorialAgent(BW4TBrain):
                         
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     if self._condition!="silent" and self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
-                        if self._condition=="explainable":
-                            self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')
-                        if self._condition=="transparent":
-                            self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')
-                        if self._condition=="adaptive":
-                            msg1 = 'I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".'
-                            msg2 = 'I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '. If you agree press the "Yes" button, if you do not agree press "No".'
-                            explanation = 'because it is located far away and you can move faster'
-                            self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
-                        
+                        self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')
                         if self.received_messages and self.received_messages[-1]=='Yes' or self._goalVic in self._collectedVictims:
                             self._collectedVictims.append(self._goalVic)
                             self._phase=Phase.FIND_NEXT_GOAL
@@ -167,34 +150,26 @@ class TutorialAgent(BW4TBrain):
                     self._sendMessages = []
                     self.received_messages = []
                     self._searchedRooms.append(self._door['room_name'])
-                    if self._condition=="explainable":
-                        self._sendMessage('Going to re-search areas to find ' + self._goalVic +' because we searched all areas but did not find ' + self._goalVic,'RescueBot')
-                    if self._condition=="transparent":
-                        self._sendMessage('Going to re-search areas','RescueBot')
-                    if self._condition=="adaptive":
-                        msg1 = 'Going to re-search areas to find ' + self._goalVic +' because we searched all areas but did not find ' + self._goalVic
-                        msg2 = 'Going to re-search areas'
-                        explanation = 'because we searched all areas'
-                        self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                    self._sendMessage('Going to re-search areas to find ' + self._goalVic +' because we searched all areas but did not find ' + self._goalVic,'RescueBot')
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     if self._currentDoor==None:
                         self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,agent_location))[0]
-                        #self._door = state.get_room(self._getClosestRoom(state,unsearchedRooms,agent_location))[-1]['doormat']
+                        self._doormat = state.get_room(self._getClosestRoom(state,unsearchedRooms,agent_location))[-1]['doormat']
                     if self._currentDoor!=None:
                         self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,self._currentDoor))[0]
-                        print(state.get_room(self._getClosestRoom(state,unsearchedRooms,agent_location)))
+                        self._doormat = state.get_room(self._getClosestRoom(state, unsearchedRooms,self._currentDoor))[-1]['doormat']
                     self._phase = Phase.PLAN_PATH_TO_ROOM
 
             if Phase.PLAN_PATH_TO_ROOM==self._phase:
                 self._navigator.reset_full()
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     self._door = state.get_room_doors(self._foundVictimLocs[self._goalVic]['room'])[0]
-                    doorLoc = self._door['location']
-                    #doorLoc = self._door
+                    #doorLoc = self._door['location']
+                    doorLoc = self._doormat
                 else:
-                    doorLoc = self._door['location']
-                    #doorLoc = self._door
+                    #doorLoc = self._door['location']
+                    doorLoc = self._doormat
                 self._navigator.add_waypoints([doorLoc])
                 self._phase=Phase.FOLLOW_PATH_TO_ROOM
 
@@ -210,38 +185,74 @@ class TutorialAgent(BW4TBrain):
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     self._state_tracker.update(state)
-                    #if self._condition!="silent" and self._condition!="transparent" and self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
-                    #    self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic+'.', 'RescueBot')                 
-                    #if self._condition!="silent" and self._goalVic not in self._foundVictims:
-                    #    if self._condition=="explainable":
-                    #        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.', 'RescueBot')
-                    #    if self._condition=="adaptive":
-                    #        msg1 = 'Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.'
-                    #        msg2 = 'Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic+'.'
-                    #        explanation = 'because it is the closest unsearched area'
-                    #        self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
-                    #if self._condition=="transparent":
-                    #    self._sendMessage('Moving to ' + str(self._door['room_name'])+'.', 'RescueBot')
+                    if self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
+                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic+'.', 'RescueBot')                 
+                    if self._goalVic not in self._foundVictims:
+                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.', 'RescueBot')                   
+                    self._currentDoor=self._door['location']
+                    #self._currentDoor=self._doormat
+                    action = self._navigator.get_move_action(self._state_tracker)
+                    if action!=None:
+                        return action,{}
+                    #self._phase=Phase.PLAN_ROOM_SEARCH_PATH
+                    self._phase=Phase.REMOVE_OBSTACLE_IF_NEEDED
+                    return Idle.__name__,{'duration_in_ticks':50}         
+
+            
+
+            if Phase.REMOVE_OBSTACLE_IF_NEEDED==self._phase:
+                objects = []
+                agent_location = state[self.agent_id]['location']
+                #print(agent_location)
+                for info in state.values():
+                    print(info)
+                    if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
+                        objects.append(info)
+                        self._sendMessage('Please come here and help remove this rock','RescueBot')
+                        if not 'Human' in info['name']:
+                        #if not state[{'is_human_agent':True}]:
+                            self._sendMessage('Waiting..','RescueBot')
+                            return None, {} 
+                        if 'Human' in info['name'] and info['location']==self._doormat:
+                            self._sendMessage('Lets remove together', 'RescueBot')
+                            #if state[{'is_human_agent':True}]['location'] == agent_location:
+                            self._phase = Phase.ENTER_ROOM
+                            return RemoveObjectTogether.__name__, {'object_id':info['obj_id']}
+                    if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id']:
+                        objects.append(info)
+                        self._sendMessage('Removing tree blocking entrance', 'RescueBot')
+                        self._phase = Phase.ENTER_ROOM
+                        return RemoveObject.__name__,{'object_id':info['obj_id']}
+                    if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
+                        objects.append(info)
+                        self._sendMessage('Removing stones blocking entrance, will be faster if you help me', 'RescueBot')
+                        self._phase = Phase.ENTER_ROOM
+                        return RemoveObject.__name__,{'object_id':info['obj_id']}
+                if len(objects)==0:                    
+                    self._sendMessage('Entrance not blocked','RescueBot')
+                    self._phase = Phase.ENTER_ROOM
                     
+            if Phase.ENTER_ROOM==self._phase:
+                if self._goalVic in self._collectedVictims:
+                    self._currentDoor=None
+                    self._phase=Phase.FIND_NEXT_GOAL
+                if self._goalVic in self._foundVictims and self._door['room_name']!=self._foundVictimLocs[self._goalVic]['room']:
+                    self._currentDoor=None
+                    self._phase=Phase.FIND_NEXT_GOAL
+                if self._door['room_name'] in self._searchedRooms and self._goalVic not in self._foundVictims:
+                    self._currentDoor=None
+                    self._phase=Phase.FIND_NEXT_GOAL
+                else:
+                    self._state_tracker.update(state)                 
                     self._currentDoor=self._door['location']
                     #self._currentDoor=self._door
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         return action,{}
                     self._phase=Phase.PLAN_ROOM_SEARCH_PATH
-                    #self._phase=Phase.REMOVE_OBSTACLE
-                    return Idle.__name__,{'duration_in_ticks':50}         
+                    #self._phase=Phase.REMOVE_OBSTACLE_IF_NEEDED
+                    return Idle.__name__,{'duration_in_ticks':50} 
 
-            if Phase.REMOVE_OBSTACLE==self._phase:
-                for info in state.values():
-                    if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rocks' in info['obj_id']:
-                        print(info['obj_id'])
-                        self._phase = Phase.FOLLOW_PATH_TO_ROOM
-                        return RemoveObjectTogether.__name__,{'object_id':info['obj_id']}
-                    if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id']:
-                        print(info['obj_id'])
-                        self._phase = Phase.FOLLOW_PATH_TO_ROOM
-                        return RemoveObject.__name__,{'object_id':info['obj_id']}
 
             if Phase.PLAN_ROOM_SEARCH_PATH==self._phase:
                 roomTiles = [info['location'] for info in state.values()
@@ -253,15 +264,7 @@ class TutorialAgent(BW4TBrain):
                 self._roomtiles=roomTiles               
                 self._navigator.reset_full()
                 self._navigator.add_waypoints(self._efficientSearch(roomTiles))
-                if self._condition=="explainable":
-                    self._sendMessage('Searching through whole ' + str(self._door['room_name']) + ' because my sense range is limited and to find ' + self._goalVic+'.', 'RescueBot')
-                if self._condition=="transparent":
-                    self._sendMessage('Searching through whole ' + str(self._door['room_name']) + '.', 'RescueBot')
-                if self._condition=="adaptive":
-                    msg1 = 'Searching through whole ' + str(self._door['room_name']) + ' because my sense range is limited and to find ' + self._goalVic+'.'
-                    msg2 = 'Searching through whole ' + str(self._door['room_name'])+'.'
-                    explanation = 'because my sense range is limited'
-                    self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                self._sendMessage('Searching through whole ' + str(self._door['room_name']) + ' because my sense range is limited and to find ' + self._goalVic+'.', 'RescueBot')
                 #self._currentDoor = self._door['location']
                 self._roomVics=[]
                 self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
@@ -281,43 +284,19 @@ class TutorialAgent(BW4TBrain):
                             if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys():
                                 self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
                                 if vic == self._goalVic:
-                                    if self._condition=="explainable":
-                                        self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ' because you told me '+vic+ ' was located here.', 'RescueBot')
-                                    if self._condition=="transparent":
-                                        self._sendMessage('Found '+ vic + ' in ' + self._door['room_name']+'.', 'RescueBot')
-                                    if self._condition=="adaptive":
-                                        msg1 = 'Found '+ vic + ' in ' + self._door['room_name'] + ' because you told me '+vic+ ' was located here.'
-                                        msg2 = 'Found '+ vic + ' in ' + self._door['room_name']+'.'
-                                        explanation = 'because you told me it was located here'
-                                        self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                                    self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ' because you told me '+vic+ ' was located here.', 'RescueBot')
                                     self._searchedRooms.append(self._door['room_name'])
                                     self._phase=Phase.FIND_NEXT_GOAL
 
                             if 'healthy' not in vic and vic not in self._foundVictims:
-                                if self._condition=="explainable":
-                                    self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ' because I am traversing the whole area.', 'RescueBot')
-                                if self._condition=="transparent":
-                                    self._sendMessage('Found '+ vic + ' in ' + self._door['room_name']+'.', 'RescueBot')
-                                if self._condition=="adaptive":
-                                    msg1 = 'Found '+ vic + ' in ' + self._door['room_name'] + ' because I am traversing the whole area.'
-                                    msg2 = 'Found '+ vic + ' in ' + self._door['room_name']+'.'
-                                    explanation = 'because I am traversing the whole area'
-                                    self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                                self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ' because I am traversing the whole area.', 'RescueBot')
                                 self._foundVictims.append(vic)
                                 self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
                     return action,{}
                 #if self._goalVic not in self._foundVictims:
                 #    self._sendMessage(self._goalVic + ' not present in ' + str(self._door['room_name']) + ' because I searched the whole area without finding ' + self._goalVic, 'RescueBot')
                 if self._goalVic in self._foundVictims and self._goalVic not in self._roomVics and self._foundVictimLocs[self._goalVic]['room']==self._door['room_name']:
-                    if self._condition=="explainable":
-                        self._sendMessage(self._goalVic + ' not present in ' + str(self._door['room_name']) + ' because I searched the whole area without finding ' + self._goalVic+'.', 'RescueBot')
-                    if self._condition=="transparent":
-                        self._sendMessage(self._goalVic + ' not present in ' + str(self._door['room_name'])+'.', 'RescueBot')
-                    if self._condition=="adaptive":
-                        msg1 = self._goalVic + ' not present in ' + str(self._door['room_name']) + ' because I searched the whole area without finding ' + self._goalVic+'.'
-                        msg2 = self._goalVic + ' not present in ' + str(self._door['room_name'])+'.'
-                        explanation = 'because I searched the whole area'
-                        self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                    self._sendMessage(self._goalVic + ' not present in ' + str(self._door['room_name']) + ' because I searched the whole area without finding ' + self._goalVic+'.', 'RescueBot')
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
                     self._roomVics = []
@@ -327,15 +306,7 @@ class TutorialAgent(BW4TBrain):
                 return Idle.__name__,{'duration_in_ticks':50}
                 
             if Phase.PLAN_PATH_TO_VICTIM==self._phase:
-                if self._condition=="explainable":
-                    self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._goalVic + ' should be transported to the drop zone.', 'RescueBot')
-                if self._condition=="transparent":
-                    self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room']+'.', 'RescueBot')
-                if self._condition=="adaptive":
-                    msg1 = 'Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._goalVic + ' should be transported to the drop zone.'
-                    msg2 = 'Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room']+'.'
-                    explanation = 'because it should be transported to the drop zone'
-                    self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._goalVic + ' should be transported to the drop zone.', 'RescueBot')
                 self._navigator.reset_full()
                 self._navigator.add_waypoints([self._foundVictimLocs[self._goalVic]['location']])
                 self._phase=Phase.FOLLOW_PATH_TO_VICTIM
@@ -370,15 +341,7 @@ class TutorialAgent(BW4TBrain):
                 self._phase=Phase.FOLLOW_PATH_TO_DROPPOINT
 
             if Phase.FOLLOW_PATH_TO_DROPPOINT==self._phase:
-                if self._condition=="explainable":
-                    self._sendMessage('Transporting '+ self._goalVic + ' to the drop zone because ' + self._goalVic + ' should be delivered there for further treatment.', 'RescueBot')
-                if self._condition=="transparent":
-                    self._sendMessage('Transporting '+ self._goalVic + ' to the drop zone.', 'RescueBot')
-                if self._condition=="adaptive":
-                    msg1 = 'Transporting '+ self._goalVic + ' to the drop zone because ' + self._goalVic + ' should be delivered there for further treatment.'
-                    msg2 = 'Transporting '+ self._goalVic + ' to the drop zone.'
-                    explanation = 'because it should be delivered there for further treatment'
-                    self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                self._sendMessage('Transporting '+ self._goalVic + ' to the drop zone because ' + self._goalVic + ' should be delivered there for further treatment.', 'RescueBot')
                 self._state_tracker.update(state)
                 action=self._navigator.get_move_action(self._state_tracker)
                 if action!=None:
@@ -396,15 +359,7 @@ class TutorialAgent(BW4TBrain):
                             self._nextVic = zones[i+1]['img_name']
 
                 if self._goalVic==self._firstVictim or state[{'img_name':self._previousVic,'is_collectable':True}] and self._goalVic==self._lastVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}]:
-                    if self._condition=="explainable":
-                        self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
-                    if self._condition=="transparent":
-                        self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone.', 'RescueBot')
-                    if self._condition=="adaptive":
-                        msg1 = 'Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.'
-                        msg2 = 'Delivered '+ self._goalVic + ' at the drop zone.'
-                        explanation = 'because it was the current victim to rescue'
-                        self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                    self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
                     self._phase=Phase.FIND_NEXT_GOAL
                     self._currentDoor = None
                     self._tick = state['World']['nr_ticks']
@@ -414,15 +369,7 @@ class TutorialAgent(BW4TBrain):
                 #    self._phase=Phase.FIX_ORDER_GRAB
                 #    return DropObject.__name__,{}
                 else:
-                    if self._condition=="explainable":
-                        self._sendMessage('Waiting for human operator at drop zone because previous victim should be collected first.', 'RescueBot')
-                    if self._condition=="transparent":
-                        self._sendMessage('Waiting for human operator at drop zone.', 'RescueBot')
-                    if self._condition=="adaptive":
-                        msg1 = 'Waiting for human operator at drop zone because previous victim should be collected first.'
-                        msg2 = 'Waiting for human operator at drop zone.'
-                        explanation = 'because previous victim should be collected first'
-                        self._dynamicMessage(msg1,msg2,explanation,'RescueBot')
+                    self._sendMessage('Waiting for human operator at drop zone because previous victim should be collected first.', 'RescueBot')
                     return None,{} 
 
             #if Phase.FIX_ORDER_GRAB == self._phase:
@@ -447,7 +394,7 @@ class TutorialAgent(BW4TBrain):
         the place that requires the first drop)
         '''
         places=state[{'is_goal_block':True}]
-        places.sort(key=lambda info:info['location'][1], reverse=True)
+        places.sort(key=lambda info:info['location'][1])
         zones = []
         for place in places:
             if place['drop_zone_nr']==0:

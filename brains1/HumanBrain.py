@@ -300,8 +300,8 @@ class HumanBrain(HumanAgentBrain):
                 self.__select_random_obj_in_range(state,
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
-            if 'tree' not in obj_id and 'rocks' not in obj_id and 'mild' in obj_id and 'stone' not in obj_id:
-                action_kwargs['object_id'] = obj_id
+            #if 'tree' not in obj_id and 'rocks' not in obj_id and 'mild' in obj_id and 'stone' not in obj_id:
+            action_kwargs['object_id'] = obj_id
 
         # If the user chose to drop an object in its inventory
         elif action == Drop.__name__:
@@ -322,8 +322,8 @@ class HumanBrain(HumanAgentBrain):
                                                   range_=self.__remove_range,
                                                   property_to_check="is_movable")
             action_kwargs['object_id'] = obj_id
-            if 'stone' in obj_id:
-                action_kwargs['action_duration'] = 50
+            if obj_id and 'stone' in obj_id:
+                action_kwargs['action_duration'] = 10
         
         # If the user chose to remove an object
         elif action == RemoveObject.__name__:
@@ -335,7 +335,7 @@ class HumanBrain(HumanAgentBrain):
                 self.__select_random_obj_in_range(state,
                                                   range_=self.__remove_range,
                                                   property_to_check="is_movable")
-            if 'stone' in obj_id:                           
+            if obj_id and 'stone' in obj_id:                           
 
                 action_kwargs['object_id'] = obj_id
             #if 'stone' in obj_id:

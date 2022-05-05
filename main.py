@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     # Create our world builder
     #builder = create_builder(exp_version=choice2, condition=choice1)
-    builder = create_builder(exp_version='trial',condition='silent')
+    builder = create_builder(exp_version='trial',condition='explainable')
 
     # Start overarching MATRX scripts and threads, such as the api and/or visualizer if requested. Here we also link our
     # own media resource folder with MATRX.

@@ -124,7 +124,8 @@ class RemoveObjectTogether(Action):
         objects_in_range.pop(agent_id)
 
         for obj in objects_in_range:  # loop through all objects in range
-            if obj == object_id and get_distance(other_agent['location'], world_state[obj]['location'])<=remove_range and get_distance(other_human['location'], world_state[obj]['location'])<=remove_range and 'rock' in obj:  # if object is in that list
+            if obj == object_id and get_distance(other_agent['location'], world_state[obj]['location'])<=remove_range and get_distance(other_human['location'], world_state[obj]['location'])<=remove_range and 'rock' in obj or \
+            obj == object_id and get_distance(other_agent['location'], world_state[obj]['location'])<=remove_range and get_distance(other_human['location'], world_state[obj]['location'])<=remove_range and 'stone' in obj:  # if object is in that list
                 success = grid_world.remove_from_grid(object_id)  # remove it, success is whether GridWorld succeeded
                 if success:  # if we succeeded in removal return the appropriate ActionResult
                     return RemoveObjectResult(RemoveObjectResult.OBJECT_REMOVED.replace('object_id'.upper(),
@@ -303,9 +304,13 @@ class CarryObject(Action):
         object_id = None if 'object_id' not in kwargs else kwargs['object_id']
         grab_range = np.inf if 'grab_range' not in kwargs else kwargs['grab_range']
         max_objects = np.inf if 'max_objects' not in kwargs else kwargs['max_objects']
-
-        return _is_possible_grab(grid_world, agent_id=agent_id, object_id=object_id, grab_range=grab_range,
-                                 max_objects=max_objects)
+        if object_id and 'critical' in object_id:
+            return GrabObjectResult(GrabObjectResult.RESULT_OBJECT_UNMOVABLE, False)
+        if 'stone' in object_id or 'rock' in object_id or 'tree' in object_id:
+            return GrabObjectResult(GrabObjectResult.RESULT_OBJECT_UNMOVABLE, False)
+        else:
+            return _is_possible_grab(grid_world, agent_id=agent_id, object_id=object_id, grab_range=grab_range,
+                                    max_objects=max_objects) 
 
     def mutate(self, grid_world, agent_id, world_state, **kwargs):
         """ Grabs an object.
