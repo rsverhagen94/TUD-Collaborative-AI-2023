@@ -1,8 +1,8 @@
 from abc import  ABC, abstractmethod
 from matrx.agents.agent_utils.state import State
-from matrx.agents import AgentBrain
+from brains1.BW4TAgentBrain import BW4TAgentBrain
 
-class BW4TBrain(AgentBrain, ABC):
+class BW4TBrain(BW4TAgentBrain, ABC):
     """
     This class is the obligatory base class for BW4T agents.
     BW4T agents must implement decide_on_bw4t_action

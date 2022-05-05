@@ -51,15 +51,16 @@ class TutorialAgent(BW4TBrain):
         self._slowdown = slowdown
         self._phase=Phase.INTRO0
         self._roomVics = []
-        self._searchedRooms = ['area C3', 'area C2']
+        self._searchedRooms = []
         self._foundVictims = []
-        self._collectedVictims = ['critically injured girl']
+        self._collectedVictims = []
         self._foundVictimLocs = {}
         self._maxTicks = 100000
         self._sendMessages = []
         self._currentDoor=None 
         self._condition = condition
         self._providedExplanations = []   
+        self._teamMembers = []
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -67,15 +68,24 @@ class TutorialAgent(BW4TBrain):
             action_set=self.action_set, algorithm=Navigator.A_STAR_ALGORITHM)
 
     def filter_bw4t_observations(self, state):
-        self._processMessages(state)
+        #self._processMessages(state)
         #for key in state.keys():
         #    print(state[key])
         return state
 
     def decide_on_bw4t_action(self, state:State):
+        agent_name = state[self.agent_id]['obj_id']
+        # Add team members
+        for member in state['World']['team_members']:
+            if member!=agent_name and member not in self._teamMembers:
+                self._teamMembers.append(member)       
+        # Process messages from team members
+        self._processMessages(self._teamMembers)
+        # Update trust beliefs for team members
+        #self._trustBlief(self._teamMembers, receivedMessages)
         while True:           
             if Phase.INTRO0==self._phase:
-                self._sendMessage('Hello! My name is RescueBot. During this experiment we will collaborate and communicate with each other. \
+                self._sendMessage('Hello! My name is RescueB. During this experiment we will collaborate and communicate with each other. \
                 It is our goal to search and rescue the victims on the drop zone on our left as quickly as possible.  \
                 We have to rescue the victims in order from left to right, so it is important to only drop a victim when the previous one already has been dropped. \
                 You will receive and send messages in the chatbox. You can send your messages using the buttons. It is recommended to send messages \
@@ -88,7 +98,7 @@ class TutorialAgent(BW4TBrain):
                 and a cat (critically injured cat/mildly injured cat/healthy cat). In the toolbar above you can find the keyboard controls, for moving you can simply use the arrow keys. Your sense range is limited to 1, so it is important to search the areas well.\
                 We will now practice and familiarize you with everything mentioned above, until you are comfortable enough to start the real experiment. \
                 If you read the text, press the "Ready!" button.', 'RescueBot')
-                if self.received_messages and self.received_messages[-1]=='Ready!' or not state[{'is_human_agent':True}]:
+                if self.received_messages_content and self.received_messages_content[-1]=='Ready!' or not state[{'is_human_agent':True}]:
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     return None,{}
@@ -114,12 +124,12 @@ class TutorialAgent(BW4TBrain):
                     return Idle.__name__,{'duration_in_ticks':25}
 
                 if self._goalVic in self._foundVictims and 'location' in self._foundVictimLocs[self._goalVic].keys():                      
-                    if self._condition!="silent" and self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
+                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
                         self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')                     
-                        if self.received_messages and self.received_messages[-1]=='Yes' or self._goalVic in self._collectedVictims:
+                        if self.received_messages_content and self.received_messages_content[-1]=='Yes' or self._goalVic in self._collectedVictims:
                             self._collectedVictims.append(self._goalVic)
                             self._phase=Phase.FIND_NEXT_GOAL
-                        if self.received_messages and self.received_messages[-1]=='No' or state['World']['nr_ticks'] > self._tick + 579:
+                        if self.received_messages_content and self.received_messages_content[-1]=='No' or state['World']['nr_ticks'] > self._tick + 579:
                             self._phase=Phase.PLAN_PATH_TO_VICTIM
                         return Idle.__name__,{'duration_in_ticks':50}
                     else:
@@ -127,12 +137,12 @@ class TutorialAgent(BW4TBrain):
                         return Idle.__name__,{'duration_in_ticks':50}
                         
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
-                    if self._condition!="silent" and self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
+                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
                         self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')
-                        if self.received_messages and self.received_messages[-1]=='Yes' or self._goalVic in self._collectedVictims:
+                        if self.received_messages_content and self.received_messages_content[-1]=='Yes' or self._goalVic in self._collectedVictims:
                             self._collectedVictims.append(self._goalVic)
                             self._phase=Phase.FIND_NEXT_GOAL
-                        if self.received_messages and self.received_messages[-1]=='No' or state['World']['nr_ticks'] > self._tick + 579:
+                        if self.received_messages_content and self.received_messages_content[-1]=='No' or state['World']['nr_ticks'] > self._tick + 579:
                             self._phase=Phase.PLAN_PATH_TO_ROOM
                         return Idle.__name__,{'duration_in_ticks':50}
                     else:
@@ -149,6 +159,7 @@ class TutorialAgent(BW4TBrain):
                     self._searchedRooms = []
                     self._sendMessages = []
                     self.received_messages = []
+                    self.received_messages_content = []
                     self._searchedRooms.append(self._door['room_name'])
                     self._sendMessage('Going to re-search areas to find ' + self._goalVic +' because we searched all areas but did not find ' + self._goalVic,'RescueBot')
                     self._phase = Phase.FIND_NEXT_GOAL
@@ -203,9 +214,7 @@ class TutorialAgent(BW4TBrain):
             if Phase.REMOVE_OBSTACLE_IF_NEEDED==self._phase:
                 objects = []
                 agent_location = state[self.agent_id]['location']
-                #print(agent_location)
                 for info in state.values():
-                    print(info)
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
                         objects.append(info)
                         self._sendMessage('Please come here and help remove this rock','RescueBot')
@@ -213,11 +222,6 @@ class TutorialAgent(BW4TBrain):
                         #if not state[{'is_human_agent':True}]:
                             self._sendMessage('Waiting..','RescueBot')
                             return None, {} 
-                        if 'Human' in info['name'] and info['location']==self._doormat:
-                            self._sendMessage('Lets remove together', 'RescueBot')
-                            #if state[{'is_human_agent':True}]['location'] == agent_location:
-                            self._phase = Phase.ENTER_ROOM
-                            return RemoveObjectTogether.__name__, {'object_id':info['obj_id']}
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id']:
                         objects.append(info)
                         self._sendMessage('Removing tree blocking entrance', 'RescueBot')
@@ -278,6 +282,7 @@ class TutorialAgent(BW4TBrain):
                     for info in state.values():
                         if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance']:
                             vic = str(info['img_name'][8:-4])
+                            print(vic)
                             if vic not in self._roomVics:
                                 self._roomVics.append(vic)
 
@@ -301,6 +306,7 @@ class TutorialAgent(BW4TBrain):
                     self._foundVictims.remove(self._goalVic)
                     self._roomVics = []
                     self.received_messages = []
+                    self.received_messages_content = []
                 self._searchedRooms.append(self._door['room_name'])
                 self._phase=Phase.FIND_NEXT_GOAL
                 return Idle.__name__,{'duration_in_ticks':50}
@@ -321,19 +327,38 @@ class TutorialAgent(BW4TBrain):
                     if action!=None:
                         return action,{}
                     self._phase=Phase.TAKE_VICTIM
+    
+    
 
             if Phase.TAKE_VICTIM==self._phase:
-                self._phase=Phase.PLAN_PATH_TO_DROPPOINT
-                self._collectedVictims.append(self._goalVic)
+                objects=[]
+                for info in state.values():
+                    if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id']:
+                        objects.append(info)
+                        self._sendMessage('Please come here and help carry this victim','RescueBot')
+                        if not 'Human' in info['name']:
+                        #if not state[{'is_human_agent':True}]:
+                            self._sendMessage('Waiting..','RescueBot')
+                            return None, {} 
+                if len(objects)==0:                    
+                    self._phase = Phase.FIND_NEXT_GOAL
+                    self._collectedVictims.append(self._goalVic)
+                #print(state[self._foundVictimLocs[self._goalVic]['obj_id']]['carried_by'])
+                #if 'critical' in self._goalVic and self._goalVic not in self._collectedVictims:
+                #    self._sendMessage('We should carry this one together', 'RescueBot')
+                #    if not state[{'is_human_agent':True}]:
+                #        return None, {}
+                #    if state[{'is_human_agent':True}]:
+                #        if len(state[self._foundVictimLocs[self._goalVic]['obj_id']]['carried_by'])>0:
+                #            self._phase=Phase.FIND_NEXT_GOAL
+                #            self._collectedVictims.append(self._goalVic)
+                #            return None, {}
 
-                #if 'critical' in self._foundVictimLocs[self._goalVic]['obj_id'] and state[{'is_human_agent':True}] and not state[self._foundVictimLocs[self._goalVic]['obj_id']]:
-                #    self._phase=Phase.FIND_NEXT_GOAL
+
+                #if 'mild' in self._goalVic:
+                #    self._phase=Phase.PLAN_PATH_TO_DROPPOINT
                 #    self._collectedVictims.append(self._goalVic)
-                #    return None, {}                
-                #else:
-                #    return None, {}
-
-                return CarryObject.__name__,{'object_id':self._foundVictimLocs[self._goalVic]['obj_id']}
+                #    return CarryObject.__name__,{'object_id':self._foundVictimLocs[self._goalVic]['obj_id']}                
 
             if Phase.PLAN_PATH_TO_DROPPOINT==self._phase:
                 self._navigator.reset_full()
@@ -401,61 +426,84 @@ class TutorialAgent(BW4TBrain):
                 zones.append(place)
         return zones
 
-    def _processMessages(self, state):
+    def _processMessages(self, teamMembers):
         '''
         process incoming messages. 
         Reported blocks are added to self._blocks
         '''
+        receivedMessages = {}
+        for member in teamMembers:
+            receivedMessages[member] = []
+        for mssg in self.received_messages:
+            for member in teamMembers:
+                if mssg.from_id == member:
+                    receivedMessages[member].append(mssg.content) 
         #areas = ['area A1','area A2','area A3','area A4','area B1','area B2','area C1','area C2','area C3']
-        for msg in self.received_messages:
-            if msg.startswith("Search:"):
-                area = 'area '+ msg.split()[-1]
-                if area not in self._searchedRooms:
-                    self._searchedRooms.append(area)
-            if msg.startswith("Found:"):
-                if len(msg.split()) == 6:
-                    foundVic = ' '.join(msg.split()[1:4])
-                else:
-                    foundVic = ' '.join(msg.split()[1:5]) 
-                loc = 'area '+ msg.split()[-1]
-                if loc not in self._searchedRooms:
-                    self._searchedRooms.append(loc)
-                if foundVic not in self._foundVictims:
-                    self._foundVictims.append(foundVic)
-                    self._foundVictimLocs[foundVic] = {'room':loc}
-                if foundVic in self._foundVictims and self._foundVictimLocs[foundVic]['room'] != loc:
-                    self._foundVictimLocs[foundVic] = {'room':loc}
-            if msg.startswith('Collect:'):
-                if len(msg.split()) == 6:
-                    collectVic = ' '.join(msg.split()[1:4])
-                else:
-                    collectVic = ' '.join(msg.split()[1:5]) 
-                loc = 'area ' + msg.split()[-1]
-                if loc not in self._searchedRooms:
-                    self._searchedRooms.append(loc)
-                if collectVic not in self._foundVictims:
-                    self._foundVictims.append(collectVic)
-                    self._foundVictimLocs[collectVic] = {'room':loc}
-                if collectVic in self._foundVictims and self._foundVictimLocs[collectVic]['room'] != loc:
-                    self._foundVictimLocs[collectVic] = {'room':loc}
-                if collectVic not in self._collectedVictims:
-                    self._collectedVictims.append(collectVic)
+        for mssgs in receivedMessages.values():
+            for msg in mssgs:
+                if msg.startswith("Search:"):
+                    area = 'area '+ msg.split()[-1]
+                    if area not in self._searchedRooms:
+                        self._searchedRooms.append(area)
+                if msg.startswith("Found:"):
+                    if len(msg.split()) == 6:
+                        foundVic = ' '.join(msg.split()[1:4])
+                    else:
+                        foundVic = ' '.join(msg.split()[1:5]) 
+                    loc = 'area '+ msg.split()[-1]
+                    if loc not in self._searchedRooms:
+                        self._searchedRooms.append(loc)
+                    if foundVic not in self._foundVictims:
+                        self._foundVictims.append(foundVic)
+                        self._foundVictimLocs[foundVic] = {'room':loc}
+                    if foundVic in self._foundVictims and self._foundVictimLocs[foundVic]['room'] != loc:
+                        self._foundVictimLocs[foundVic] = {'room':loc}
+                if msg.startswith('Collect:'):
+                    if len(msg.split()) == 6:
+                        collectVic = ' '.join(msg.split()[1:4])
+                    else:
+                        collectVic = ' '.join(msg.split()[1:5]) 
+                    loc = 'area ' + msg.split()[-1]
+                    if loc not in self._searchedRooms:
+                        self._searchedRooms.append(loc)
+                    if collectVic not in self._foundVictims:
+                        self._foundVictims.append(collectVic)
+                        self._foundVictimLocs[collectVic] = {'room':loc}
+                    if collectVic in self._foundVictims and self._foundVictimLocs[collectVic]['room'] != loc:
+                        self._foundVictimLocs[collectVic] = {'room':loc}
+                    if collectVic not in self._collectedVictims:
+                        self._collectedVictims.append(collectVic)
             #if msg.startswith('Mission'):
             #    self._sendMessage('Unsearched areas: '  + ', '.join([i.split()[1] for i in areas if i not in self._searchedRooms]) + '. Collected victims: ' + ', '.join(self._collectedVictims) +
             #    '. Found victims: ' +  ', '.join([i + ' in ' + self._foundVictimLocs[i]['room'] for i in self._foundVictimLocs]) ,'RescueBot')
             #    self.received_messages=[]
 
+    def _trustBlief(self, member, received):
+        '''
+        Baseline implementation of a trust belief. Creates a dictionary with trust belief scores for each team member, for example based on the received messages.
+        '''
+        default = 0.5
+        trustBeliefs = {}
+        for member in received.keys():
+            trustBeliefs[member] = default
+        for member in received.keys():
+            for message in received[member]:
+                if 'Found' in message and 'colour' not in message:
+                    trustBeliefs[member]-=0.1
+                    break
+        return trustBeliefs
+
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)
-        if msg.content not in self.received_messages:
+        if msg.content not in self.received_messages_content:
             self.send_message(msg)
             self._sendMessages.append(msg.content)
 
-        if self.received_messages and self._sendMessages:
-            self._last_mssg = self._sendMessages[-1]
-            if self._last_mssg.startswith('Searching') or self._last_mssg.startswith('Moving'):
-                self.received_messages=[]
-                self.received_messages.append(self._last_mssg)
+        #if self.received_messages and self._sendMessages:
+        #    self._last_mssg = self._sendMessages[-1]
+        #    if self._last_mssg.startswith('Searching') or self._last_mssg.startswith('Moving'):
+        #        self.received_messages=[]
+        #        self.received_messages.append(self._last_mssg)
 
     def _getClosestRoom(self, state, objs, currentDoor):
         agent_location = state[self.agent_id]['location']
