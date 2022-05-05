@@ -738,6 +738,7 @@ class CarryObjectTogether(Action):
         grab_range = np.inf if 'grab_range' not in kwargs else kwargs['grab_range']
         max_objects = np.inf if 'max_objects' not in kwargs else kwargs['max_objects']
         other_agent = world_state[{"name": "RescueBot"}]
+        
         if object_id and get_distance(other_agent['location'], world_state[object_id]['location']) > grab_range:
             return GrabObjectResult(GrabObjectResult.NOT_IN_RANGE, False)
         else:

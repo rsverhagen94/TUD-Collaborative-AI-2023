@@ -132,7 +132,7 @@ def create_builder(exp_version, condition):
     # Add the world bounds (not needed, as agents cannot 'walk off' the grid, but for visual effects)
     builder.add_room(top_left_location=(0, 0), width=25, height=24, name="world_bounds", wall_visualize_colour="#1F262A")
     # Create the rooms
-   # room_locations = add_rooms(builder)
+
     builder.add_room(top_left_location=(1,1), width=5, height=4, name='area 1', door_locations=[(3,4)],doors_open=True, wall_visualize_colour=wall_color, 
     with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0, door_open_colour='#9a9083', area_custom_properties={'doormat':(3,5)})
     builder.add_room(top_left_location=(7,1), width=5, height=4, name='area 2', door_locations=[(9,4)],doors_open=True, wall_visualize_colour=wall_color, 
@@ -307,8 +307,8 @@ def create_builder(exp_version, condition):
         builder.add_object((16,9),'healthy girl in area 7', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy girl.svg")
 
-        builder.add_object((22,3),'critically injured girl in area 4', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/critically injured girl.svg")
+        builder.add_object((22,3),'healthy girl in area 4', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy girl.svg")
         builder.add_object((2,20),'healthy elderly woman in area 11', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy elderly woman.svg")
 

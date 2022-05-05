@@ -167,15 +167,21 @@ class TutorialAgent(BW4TBrain):
                     if self._currentDoor==None:
                         self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,agent_location))[0]
                         self._doormat = state.get_room(self._getClosestRoom(state,unsearchedRooms,agent_location))[-1]['doormat']
+                        if self._door['room_name'] == 'area 1':
+                            self._doormat = (3,5)
+                        self._phase = Phase.PLAN_PATH_TO_ROOM
                     if self._currentDoor!=None:
                         self._door = state.get_room_doors(self._getClosestRoom(state,unsearchedRooms,self._currentDoor))[0]
                         self._doormat = state.get_room(self._getClosestRoom(state, unsearchedRooms,self._currentDoor))[-1]['doormat']
-                    self._phase = Phase.PLAN_PATH_TO_ROOM
+                        if self._door['room_name'] == 'area 1':
+                            self._doormat = (3,5)
+                        self._phase = Phase.PLAN_PATH_TO_ROOM
 
             if Phase.PLAN_PATH_TO_ROOM==self._phase:
                 self._navigator.reset_full()
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     self._door = state.get_room_doors(self._foundVictimLocs[self._goalVic]['room'])[0]
+                    self._doormat = state.get_room(self._foundVictimLocs[self._goalVic]['room'])[-1]['doormat']
                     #doorLoc = self._door['location']
                     doorLoc = self._doormat
                 else:
@@ -248,7 +254,7 @@ class TutorialAgent(BW4TBrain):
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     self._state_tracker.update(state)                 
-                    self._currentDoor=self._door['location']
+                    #self._currentDoor=self._door['location']
                     #self._currentDoor=self._door
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
@@ -282,7 +288,6 @@ class TutorialAgent(BW4TBrain):
                     for info in state.values():
                         if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance']:
                             vic = str(info['img_name'][8:-4])
-                            print(vic)
                             if vic not in self._roomVics:
                                 self._roomVics.append(vic)
 
@@ -340,25 +345,13 @@ class TutorialAgent(BW4TBrain):
                         #if not state[{'is_human_agent':True}]:
                             self._sendMessage('Waiting..','RescueBot')
                             return None, {} 
-                if len(objects)==0:                    
-                    self._phase = Phase.FIND_NEXT_GOAL
+                if len(objects)==0:
+                    self._phase = Phase.PLAN_PATH_TO_DROPPOINT
                     self._collectedVictims.append(self._goalVic)
-                #print(state[self._foundVictimLocs[self._goalVic]['obj_id']]['carried_by'])
-                #if 'critical' in self._goalVic and self._goalVic not in self._collectedVictims:
-                #    self._sendMessage('We should carry this one together', 'RescueBot')
-                #    if not state[{'is_human_agent':True}]:
-                #        return None, {}
-                #    if state[{'is_human_agent':True}]:
-                #        if len(state[self._foundVictimLocs[self._goalVic]['obj_id']]['carried_by'])>0:
-                #            self._phase=Phase.FIND_NEXT_GOAL
-                #            self._collectedVictims.append(self._goalVic)
-                #            return None, {}
-
-
-                #if 'mild' in self._goalVic:
-                #    self._phase=Phase.PLAN_PATH_TO_DROPPOINT
-                #    self._collectedVictims.append(self._goalVic)
-                #    return CarryObject.__name__,{'object_id':self._foundVictimLocs[self._goalVic]['obj_id']}                
+                if 'mild' in self._goalVic:
+                    self._phase=Phase.PLAN_PATH_TO_DROPPOINT
+                    self._collectedVictims.append(self._goalVic)
+                    return CarryObject.__name__,{'object_id':self._foundVictimLocs[self._goalVic]['obj_id']}                
 
             if Phase.PLAN_PATH_TO_DROPPOINT==self._phase:
                 self._navigator.reset_full()
@@ -366,7 +359,7 @@ class TutorialAgent(BW4TBrain):
                 self._phase=Phase.FOLLOW_PATH_TO_DROPPOINT
 
             if Phase.FOLLOW_PATH_TO_DROPPOINT==self._phase:
-                self._sendMessage('Transporting '+ self._goalVic + ' to the drop zone because ' + self._goalVic + ' should be delivered there for further treatment.', 'RescueBot')
+                #self._sendMessage('Transporting '+ self._goalVic + ' to the drop zone because ' + self._goalVic + ' should be delivered there for further treatment.', 'RescueBot')
                 self._state_tracker.update(state)
                 action=self._navigator.get_move_action(self._state_tracker)
                 if action!=None:
@@ -384,7 +377,8 @@ class TutorialAgent(BW4TBrain):
                             self._nextVic = zones[i+1]['img_name']
 
                 if self._goalVic==self._firstVictim or state[{'img_name':self._previousVic,'is_collectable':True}] and self._goalVic==self._lastVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}]:
-                    self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
+                    if 'mild' in self._goalVic:
+                        self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
                     self._phase=Phase.FIND_NEXT_GOAL
                     self._currentDoor = None
                     self._tick = state['World']['nr_ticks']
@@ -451,6 +445,7 @@ class TutorialAgent(BW4TBrain):
                     else:
                         foundVic = ' '.join(msg.split()[1:5]) 
                     loc = 'area '+ msg.split()[-1]
+                    print(loc)
                     if loc not in self._searchedRooms:
                         self._searchedRooms.append(loc)
                     if foundVic not in self._foundVictims:
