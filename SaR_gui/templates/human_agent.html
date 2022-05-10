@@ -26,7 +26,7 @@
 
     <!-- Toolbar -->
     <div id="matrx-toolbar" class="row toolbar bg-dark">
-      <div class="col-sm">
+      <div class="col-sm" align="left">
           <img src="/static/images/matrx_logo_light.svg" alt="MATRX" id="matrx_logo">
           <button type="button" class="btn btn-dark" id="start_button" style="display:none;"><i class="fas fa-play text-light"></i></button>
           <button type="button" class="btn btn-dark hidden" id="pause_button" style="display:none;"><i class="fas fa-pause text-light"></i></button>
@@ -36,9 +36,7 @@
               <div id="agent_dropdown" class="dropdown-menu">
               </div>
           </div>
-          
-          <b style="color:white" >B / Q - Grab Object | N / E - Drop Object</b>
-          <div id="elapsedTime" class="btn btn-dark" align="center"></div>
+          <div id="elapsedTime" class="btn btn-dark"></div>
       </div>
       <div class="col-sm" align="right">
           <button type="button" class="btn btn-dark" id="chat_button" onclick="chatToggle()" data-toggle="collapse" data-target="#chat" aria-expanded="false" aria-controls="chat"><i class="fas fa-comments text-light"></i></button>

@@ -27,22 +27,16 @@ tick_duration = 0.05
 random_seed = 1
 verbose = False
 key_action_map = {
-        'w': MoveNorth.__name__,
-        'd': MoveEast.__name__,
-        's': MoveSouth.__name__,
-        'a': MoveWest.__name__,
         'ArrowUp': MoveNorth.__name__,
         'ArrowRight': MoveEast.__name__,
         'ArrowDown': MoveSouth.__name__,
         'ArrowLeft': MoveWest.__name__,
-        'q': GrabObject.__name__,
-        'e': DropObject.__name__,
-        'b': CarryObject.__name__,
-        'n': Drop.__name__,
-        'm': RemoveObjectTogether.__name__,
-        'k': CarryObjectTogether.__name__,
-        'l': DropObjectTogether.__name__,
-        'j': RemoveObject.__name__,
+        'q': CarryObject.__name__,
+        'w': Drop.__name__,
+        'd': RemoveObjectTogether.__name__,
+        'a': CarryObjectTogether.__name__,
+        's': DropObjectTogether.__name__,
+        'e': RemoveObject.__name__,
     }
 
 # Some BW4T settings
@@ -218,7 +212,7 @@ def create_builder(exp_version, condition):
         builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final20.svg", visualize_size=1) 
     for loc in [(21,10),(21,11),(21,12),(21,13),(19,15),(19,16)]:
         builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final15.svg", visualize_size=1) 
-    for loc in [(6,11),(15,12),(12,16),(6,10),(6,9),(12,15),(16,12),(17,12)]:
+    for loc in [(6,11),(15,12),(12,16),(6,10),(6,9),(12,15),(16,12),(17,12),(18,5),(18,6),(21,2),(21,3)]:
         builder.add_object(loc,'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
     
     
@@ -352,7 +346,7 @@ def create_builder(exp_version, condition):
 
         #builder.add_object((21,16),'mildly injured cat in area C2', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/mildly injured cat.svg")
-    #builder.add_object(location=[10,0], is_traversable=True, name="keyboard sign", img_name="/images/keyboard2.svg", visualize_depth=110, visualize_size=10)
+    builder.add_object(location=[12,0], is_traversable=True, name="keyboard sign", img_name="/images/keyboard-final.svg", visualize_depth=110, visualize_size=20)
     # Add the collectible objects, we do so probabilistically so each world will contain different blocks
     #add_blocks(builder, room_locations)
     # Create the drop-off zones, this includes generating the random colour/shape combinations to collect.

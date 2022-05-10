@@ -90,7 +90,7 @@ class TutorialAgent(BW4TBrain):
                 We have to rescue the 8 victims in order from top to bottom (critically injured girl, critically injured elderly woman, critically injured man, critically injured dog, mildly injured boy, mildly injured elderly man, mildly injured woman, mildly injured cat), so it is important to only drop a victim when the previous one already has been dropped. \
                 We have 10 minutes to successfully collect all 8 victims in the correct order. \
                 If you understood everything I just told you, please press the "Ready!" button. We will then start our mission!', 'RescueBot')
-                if self.received_messages_content and self.received_messages_content[-1]=='Ready!' or not state[{'is_human_agent':True}]:
+                if self.received_messages_content and self.received_messages_content[-1]=='Ready!':# or not state[{'is_human_agent':True}]:
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     return None,{}
@@ -180,6 +180,7 @@ class TutorialAgent(BW4TBrain):
                     #doorLoc = self._door['location']
                     doorLoc = self._doormat
                 self._navigator.add_waypoints([doorLoc])
+                self._tick = state['World']['nr_ticks']
                 self._phase=Phase.FOLLOW_PATH_TO_ROOM
 
             if Phase.FOLLOW_PATH_TO_ROOM==self._phase:
@@ -202,6 +203,15 @@ class TutorialAgent(BW4TBrain):
                     #self._currentDoor=self._doormat
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
+                        for info in state.values():
+                            if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
+                                self._sendMessage('Found stones blocking my path to ' + str(self._door['room_name']) + '. We can remove them faster if you help me. If you will come here press the "Yes" button, if not press "No".', 'RescueBot')
+                                if self.received_messages_content and self.received_messages_content[-1]=='Yes':
+                                    return None, {}
+                                if self.received_messages_content and self.received_messages_content[-1]=='No' or state['World']['nr_ticks'] > self._tick + 579:
+                                    self._sendMessage('Removing the stones blocking the path to ' + str(self._door['room_name']) + ' because I want to search this area. We can remove them faster if you help me', 'RescueBot')
+                                    return RemoveObject.__name__,{'object_id':info['obj_id']}
+
                         return action,{}
                     #self._phase=Phase.PLAN_ROOM_SEARCH_PATH
                     self._phase=Phase.REMOVE_OBSTACLE_IF_NEEDED
@@ -275,9 +285,19 @@ class TutorialAgent(BW4TBrain):
             if Phase.FOLLOW_ROOM_SEARCH_PATH==self._phase:
                 self._state_tracker.update(state)
                 action = self._navigator.get_move_action(self._state_tracker)
-                if action!=None:
-                    
+                if action!=None:                   
                     for info in state.values():
+                        if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
+                            self._sendMessage('Removing the stones blocking the path to ' + str(self._door['room_name']) + ' because I want to search this area. We can remove them faster if you help me', 'RescueBot')
+                            return RemoveObject.__name__,{'object_id':info['obj_id']}
+
+                        if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
+                            self._sendMessage('Please come to the entrance of ' + str(self._door['room_name']) + ' because I am unable to remove this rock alone.', 'RescueBot')
+                            if not 'Human' in info['name']:
+                        #if not state[{'is_human_agent':True}]:
+                            #self._sendMessage('Waiting..','RescueBot')
+                                return None, {}
+
                         if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance']:
                             vic = str(info['img_name'][8:-4])
                             if vic not in self._roomVics:
