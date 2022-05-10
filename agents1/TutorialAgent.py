@@ -9,6 +9,7 @@ from matrx.agents.agent_utils.navigator import Navigator
 from matrx.agents.agent_utils.state_tracker import StateTracker
 from matrx.actions.door_actions import OpenDoorAction
 from matrx.actions.object_actions import GrabObject, DropObject, RemoveObject
+from matrx.actions.move_actions import MoveNorth
 from matrx.messages.message import Message
 from matrx.messages.message_manager import MessageManager
 from actions1.customActions import RemoveObjectTogether, CarryObjectTogether, DropObjectTogether, CarryObject, Drop
@@ -85,19 +86,10 @@ class TutorialAgent(BW4TBrain):
         #self._trustBlief(self._teamMembers, receivedMessages)
         while True:           
             if Phase.INTRO0==self._phase:
-                self._sendMessage('Hello! My name is RescueB. During this experiment we will collaborate and communicate with each other. \
-                It is our goal to search and rescue the victims on the drop zone on our left as quickly as possible.  \
-                We have to rescue the victims in order from left to right, so it is important to only drop a victim when the previous one already has been dropped. \
-                You will receive and send messages in the chatbox. You can send your messages using the buttons. It is recommended to send messages \
-                when you will search in an area, when you find one of the victims, and when you are going to pick up a victim.  \
-                There are 8 victim and 3 injury types. The red color refers to critically injured victims, yellow to mildly injured victims, and green to healthy victims. \
-                The 8 victims are a girl (critically injured girl/mildly injured girl/healthy girl), boy (critically injured boy/mildly injured boy/healthy boy), \
-                woman (critically injured woman/mildly injured woman/healthy woman), man (critically injured man/mildly injured man/healthy man), \
-                elderly woman (critically injured elderly woman/mildly injured elderly woman/healthy elderly woman), \
-                elderly man (critically injured elderly man/mildly injured elderly man/healthy elderly man), dog (critically injured dog/mildly injured dog/healthy dog), \
-                and a cat (critically injured cat/mildly injured cat/healthy cat). In the toolbar above you can find the keyboard controls, for moving you can simply use the arrow keys. Your sense range is limited to 1, so it is important to search the areas well.\
-                We will now practice and familiarize you with everything mentioned above, until you are comfortable enough to start the real experiment. \
-                If you read the text, press the "Ready!" button.', 'RescueBot')
+                self._sendMessage('Hello! My name is RescueBot. Together we will collaborate and try to search and rescue the 8 victims on our right as quickly as possible. \
+                We have to rescue the 8 victims in order from top to bottom (critically injured girl, critically injured elderly woman, critically injured man, critically injured dog, mildly injured boy, mildly injured elderly man, mildly injured woman, mildly injured cat), so it is important to only drop a victim when the previous one already has been dropped. \
+                We have 10 minutes to successfully collect all 8 victims in the correct order. \
+                If you understood everything I just told you, please press the "Ready!" button. We will then start our mission!', 'RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Ready!' or not state[{'is_human_agent':True}]:
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
@@ -161,7 +153,7 @@ class TutorialAgent(BW4TBrain):
                     self.received_messages = []
                     self.received_messages_content = []
                     self._searchedRooms.append(self._door['room_name'])
-                    self._sendMessage('Going to re-search areas to find ' + self._goalVic +' because we searched all areas but did not find ' + self._goalVic,'RescueBot')
+                    self._sendMessage('Going to re-search all areas because we searched all areas but did not find ' + self._goalVic,'RescueBot')
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     if self._currentDoor==None:
@@ -223,23 +215,23 @@ class TutorialAgent(BW4TBrain):
                 for info in state.values():
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
                         objects.append(info)
-                        self._sendMessage('Please come here and help remove this rock','RescueBot')
+                        self._sendMessage('Please come to the entrance of ' + str(self._door['room_name']) + ' because I am unable to remove this rock alone.', 'RescueBot')
                         if not 'Human' in info['name']:
                         #if not state[{'is_human_agent':True}]:
-                            self._sendMessage('Waiting..','RescueBot')
+                            #self._sendMessage('Waiting..','RescueBot')
                             return None, {} 
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id']:
                         objects.append(info)
-                        self._sendMessage('Removing tree blocking entrance', 'RescueBot')
+                        self._sendMessage('Removing the tree blocking the entrance of ' + str(self._door['room_name']) + ' because I want to search this area.', 'RescueBot')
                         self._phase = Phase.ENTER_ROOM
                         return RemoveObject.__name__,{'object_id':info['obj_id']}
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
                         objects.append(info)
-                        self._sendMessage('Removing stones blocking entrance, will be faster if you help me', 'RescueBot')
+                        self._sendMessage('Removing the stones blocking the entrance of ' + str(self._door['room_name']) + ' because I want to search this area. We can remove them faster if you help me', 'RescueBot')
                         self._phase = Phase.ENTER_ROOM
                         return RemoveObject.__name__,{'object_id':info['obj_id']}
                 if len(objects)==0:                    
-                    self._sendMessage('Entrance not blocked','RescueBot')
+                    #self._sendMessage('No need to clear the entrance of ' + str(self._door['room_name']) + ' because it is not blocked by obstacles.','RescueBot')
                     self._phase = Phase.ENTER_ROOM
                     
             if Phase.ENTER_ROOM==self._phase:
@@ -317,11 +309,12 @@ class TutorialAgent(BW4TBrain):
                 return Idle.__name__,{'duration_in_ticks':50}
                 
             if Phase.PLAN_PATH_TO_VICTIM==self._phase:
-                self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._goalVic + ' should be transported to the drop zone.', 'RescueBot')
+                if 'mild' in self._goalVic:
+                    self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._goalVic + ' should be transported to the drop zone.', 'RescueBot')
                 self._navigator.reset_full()
                 self._navigator.add_waypoints([self._foundVictimLocs[self._goalVic]['location']])
                 self._phase=Phase.FOLLOW_PATH_TO_VICTIM
-                return Idle.__name__,{'duration_in_ticks':50} 
+                return Idle.__name__,{'duration_in_ticks':50}
                     
             if Phase.FOLLOW_PATH_TO_VICTIM==self._phase:
                 if self._goalVic in self._collectedVictims:
@@ -331,19 +324,19 @@ class TutorialAgent(BW4TBrain):
                     action=self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         return action,{}
-                    self._phase=Phase.TAKE_VICTIM
-    
-    
-
+                    if action==None and 'critical' in self._goalVic:
+                        self._phase=Phase.TAKE_VICTIM
+                        return MoveNorth.__name__, {}
+                    
             if Phase.TAKE_VICTIM==self._phase:
                 objects=[]
                 for info in state.values():
                     if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id']:
                         objects.append(info)
-                        self._sendMessage('Please come here and help carry this victim','RescueBot')
+                        self._sendMessage('Please come to ' + str(self._door['room_name']) + ' because we need to carry ' + str(self._goalVic) + ' together.', 'RescueBot')
                         if not 'Human' in info['name']:
                         #if not state[{'is_human_agent':True}]:
-                            self._sendMessage('Waiting..','RescueBot')
+                            #self._sendMessage('Waiting..','RescueBot')
                             return None, {} 
                 if len(objects)==0:
                     self._phase = Phase.PLAN_PATH_TO_DROPPOINT

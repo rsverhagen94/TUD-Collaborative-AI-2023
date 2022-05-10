@@ -292,11 +292,11 @@ def create_builder(exp_version, condition):
     visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
         builder.add_object((14,8),'healthy elderly man in area 7', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy elderly man.svg")
-        builder.add_object((10,9),'mildly injured woman in area 6', callable_class=CollectableBlock, 
+        builder.add_object((10,8),'mildly injured woman in area 6', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/mildly injured woman.svg")
         builder.add_object((16,21),'healthy woman in area 13', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy woman.svg")
-        builder.add_object((8,8),'critically injured dog in area 6', callable_class=CollectableBlock, 
+        builder.add_object((8,9),'critically injured dog in area 6', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/critically injured dog.svg")
         builder.add_object((4,21),'mildly injured cat in area 11', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/mildly injured cat.svg")

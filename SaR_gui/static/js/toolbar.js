@@ -499,6 +499,9 @@ function add_message(chatroom_ID, mssg) {
     mssg_content = mssg_content.replaceAll("healthy elderly man", "<img src='/static/images/healthy elderly man.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("healthy elderly woman", "<img src='/static/images/healthy elderly woman.svg' height= 30 width=30/>");
 
+    if (mssg_content == "Ready!") {
+        startTimerNow(100);
+    }
 
 
     var div = document.createElement("div");
@@ -815,3 +818,77 @@ function startEraseDrag() {
         tiles[i].setAttribute("onmouseenter", "eraseTile(id)");
     }
 }
+
+/*
+* Timer
+*/
+var timeInSecs;
+function startTimerNow  (secs) {
+    var endTime, timeNow, nextTickIn;
+    if(localStorage["timerEnd"] === undefined){ // has the time been started
+        // if not started get the time and set end time in 1000th seconds 
+        endTime = new Date().valueOf()+(secs*1000);  // get end time
+        localStorage["timerEnd"] = endTime;  // save the end time in local storage
+        timeInSecs = secs;
+        setTimeout(tickTime,1000);   // do first tick
+    } else {
+        // timer has started so get the time till end
+        timeNow = new Date().valueOf(); // get time now
+        endTime = parseInt(localStorage["timerEnd"]); // get time to end
+        nextTickIn = (endTime-timeNow)%1000; // calc when next tick is due
+        timeInSecs = Math.ceil((endTime-timeNow)/1000);  // get time remaining
+        if(timeInSecs > 0){  // is there time left
+            document.getElementById("countdown").innerHTML = timeInSecs;  // display the time
+            setTimeout(tickTime,nextTickIn);   // resume countdown
+        } else {  // time has run out.
+            document.getElementById("countdown").innerHTML = 0;  // display timer over
+            delete localStorage["timerEnd"];   // delete the localstorage in-case the timer ended during the refresh
+        }
+    }
+}
+
+function tickTime () {
+    timeInSecs -= 1;
+    if (timeInSecs>0) {
+        setTimeout(tickTime,1000);  // set up next tick;
+    } else {
+       delete localStorage["timerEnd"];  // remove the end time from local storage
+    }
+    document.getElementById("countdown").innerHTML = timeInSecs;
+}
+// start the timer
+
+var limit = 61
+var timeStamp = Date.now(),
+		sessionStamp = localStorage.getItem('ts'),
+    elapsedTime;
+if (!sessionStamp) {
+	localStorage.setItem('ts', timeStamp.toString());
+  sessionStamp = timeStamp;
+}
+else {
+  sessionStamp = parseInt(sessionStamp);
+}
+
+
+function increment() {
+	elapsedTime = Date.now() - sessionStamp;
+    d = elapsedTime/1000
+    m = Math.floor(d % 3600 / 60);
+    s = Math.floor(d % 3600 % 60);
+    m = checkTime(m); // add a leading zero if it's single digit
+    s = checkTime(s);
+  document.getElementById('elapsedTime').innerHTML = m + ":" + s;
+  if (elapsedTime/1000>limit) {
+    document.getElementById('elapsedTime').innerHTML = 'Time up!'
+    localStorage.removeItem('ts');
+}
+
+}
+
+function checkTime(i) {
+    if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+    return i;
+}
+
+setInterval(increment, 1000);
