@@ -372,6 +372,9 @@ class CarryObject(Action):
         env_obj.carried_by.append(agent_id)
         reg_ag.is_carrying.append(env_obj)  # we add the entire object!
 
+        if 'healthy' in object_id and 'human' in agent_id:
+            reg_ag.change_property("img_name", "/images/carry-healthy-human.svg")
+
         if 'mild' in object_id and 'human' in agent_id:
             reg_ag.change_property("img_name", "/images/carry-mild-human.svg")
         #if 'critical' in object_id and 'bot' in agent_id:
@@ -972,7 +975,7 @@ class DropObjectTogether(Action):
         else:
             return DropObjectResult(DropObjectResult.RESULT_NO_OBJECT, False)
 
-        if 'mild' in obj_id:
+        if 'mild' or 'healthy' in obj_id:
             return DropObjectResult(DropObjectResult.RESULT_UNKNOWN_OBJECT_TYPE, False)            
         else:
             return _possible_drop(grid_world, agent_id=agent_id, obj_id=obj_id, drop_range=drop_range)
