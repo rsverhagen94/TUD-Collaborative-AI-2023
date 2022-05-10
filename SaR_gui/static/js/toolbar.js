@@ -500,7 +500,7 @@ function add_message(chatroom_ID, mssg) {
     mssg_content = mssg_content.replaceAll("healthy elderly woman", "<img src='/static/images/healthy elderly woman.svg' height= 30 width=30/>");
 
     if (mssg_content == "Ready!") {
-        startTimerNow(100);
+        setInterval(increment, 1000);
     }
 
 
@@ -890,5 +890,3 @@ function checkTime(i) {
     if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
     return i;
 }
-
-setInterval(increment, 1000);
