@@ -63,6 +63,7 @@ class TutorialAgent(BW4TBrain):
         self._providedExplanations = []   
         self._teamMembers = []
         self._carryingTogether = False
+        self._remove = False
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -89,7 +90,7 @@ class TutorialAgent(BW4TBrain):
             if member!=agent_name and member not in self._teamMembers:
                 self._teamMembers.append(member)       
         # Process messages from team members
-        self._processMessages(self._teamMembers)
+        self._processMessages(state, self._teamMembers)
         # Update trust beliefs for team members
         #self._trustBlief(self._teamMembers, receivedMessages)
         while True:           
@@ -207,9 +208,9 @@ class TutorialAgent(BW4TBrain):
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     self._state_tracker.update(state)
-                    if self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room']:
+                    if self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room'] and not self._remove:
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic+'.', 'RescueBot')                 
-                    if self._goalVic not in self._foundVictims:
+                    if self._goalVic not in self._foundVictims and not self._remove:
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.', 'RescueBot')                   
                     self._currentDoor=self._door['location']
                     #self._currentDoor=self._doormat
@@ -244,14 +245,17 @@ class TutorialAgent(BW4TBrain):
                         objects.append(info)
                         self._sendMessage('Removing the tree blocking the entrance of ' + str(self._door['room_name']) + ' because I want to search this area.', 'RescueBot')
                         self._phase = Phase.ENTER_ROOM
+                        self._remove = False
                         return RemoveObject.__name__,{'object_id':info['obj_id']}
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
                         objects.append(info)
                         self._sendMessage('Removing the stones blocking the entrance of ' + str(self._door['room_name']) + ' because I want to search this area. We can remove them faster if you help me', 'RescueBot')
                         self._phase = Phase.ENTER_ROOM
+                        self._remove = False
                         return RemoveObject.__name__,{'object_id':info['obj_id']}
                 if len(objects)==0:                    
                     #self._sendMessage('No need to clear the entrance of ' + str(self._door['room_name']) + ' because it is not blocked by obstacles.','RescueBot')
+                    self._remove = False
                     self._phase = Phase.ENTER_ROOM
                     
             if Phase.ENTER_ROOM==self._phase:
@@ -443,7 +447,7 @@ class TutorialAgent(BW4TBrain):
                 zones.append(place)
         return zones
 
-    def _processMessages(self, teamMembers):
+    def _processMessages(self, state, teamMembers):
         '''
         process incoming messages. 
         Reported blocks are added to self._blocks
@@ -490,6 +494,18 @@ class TutorialAgent(BW4TBrain):
                         self._foundVictimLocs[collectVic] = {'room':loc}
                     if collectVic not in self._collectedVictims:
                         self._collectedVictims.append(collectVic)
+                if msg.startswith('Remove:'):
+                    # add sending messages about it
+                    area = 'area ' + msg.split()[-1]
+                    self._door = state.get_room_doors(area)[0]
+                    self._doormat = state.get_room(area)[-1]['doormat']
+                    self.received_messages = []
+                    self.received_messages_content = []
+                    self._remove = True
+                    self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.', 'RescueBot')  
+                    self._phase = Phase.PLAN_PATH_TO_ROOM
+                    
+
             #if msg.startswith('Mission'):
             #    self._sendMessage('Unsearched areas: '  + ', '.join([i.split()[1] for i in areas if i not in self._searchedRooms]) + '. Collected victims: ' + ', '.join(self._collectedVictims) +
             #    '. Found victims: ' +  ', '.join([i + ' in ' + self._foundVictimLocs[i]['room'] for i in self._foundVictimLocs]) ,'RescueBot')
