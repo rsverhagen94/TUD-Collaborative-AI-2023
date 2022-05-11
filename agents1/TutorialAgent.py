@@ -62,6 +62,7 @@ class TutorialAgent(BW4TBrain):
         self._condition = condition
         self._providedExplanations = []   
         self._teamMembers = []
+        self._carryingTogether = False
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -75,6 +76,13 @@ class TutorialAgent(BW4TBrain):
         return state
 
     def decide_on_bw4t_action(self, state:State):
+        for info in state.values():
+            if 'is_human_agent' in info and 'Human' in info['name'] and len(info['is_carrying'])>0 and 'critical' in info['is_carrying'][0]['obj_id']:
+                self._carryingTogether = True
+            if 'is_human_agent' in info and 'Human' in info['name'] and len(info['is_carrying'])==0:
+                self._carryingTogether = False
+        if self._carryingTogether == True:
+            return None, {}
         agent_name = state[self.agent_id]['obj_id']
         # Add team members
         for member in state['World']['team_members']:
@@ -221,8 +229,6 @@ class TutorialAgent(BW4TBrain):
                     self._phase=Phase.REMOVE_OBSTACLE_IF_NEEDED
                     return Idle.__name__,{'duration_in_ticks':50}         
 
-            
-
             if Phase.REMOVE_OBSTACLE_IF_NEEDED==self._phase:
                 objects = []
                 agent_location = state[self.agent_id]['location']
@@ -355,7 +361,7 @@ class TutorialAgent(BW4TBrain):
             if Phase.TAKE_VICTIM==self._phase:
                 objects=[]
                 for info in state.values():
-                    if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id']:
+                    if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id'] and info['location'] in self._roomtiles:
                         objects.append(info)
                         self._sendMessage('Please come to ' + str(self._door['room_name']) + ' because we need to carry ' + str(self._goalVic) + ' together.', 'RescueBot')
                         if not 'Human' in info['name']:
@@ -363,8 +369,8 @@ class TutorialAgent(BW4TBrain):
                             #self._sendMessage('Waiting..','RescueBot')
                             return None, {} 
                 if len(objects)==0:
-                    self._phase = Phase.PLAN_PATH_TO_DROPPOINT
                     self._collectedVictims.append(self._goalVic)
+                    self._phase = Phase.PLAN_PATH_TO_DROPPOINT
                 if 'mild' in self._goalVic:
                     self._phase=Phase.PLAN_PATH_TO_DROPPOINT
                     self._collectedVictims.append(self._goalVic)
@@ -462,7 +468,6 @@ class TutorialAgent(BW4TBrain):
                     else:
                         foundVic = ' '.join(msg.split()[1:5]) 
                     loc = 'area '+ msg.split()[-1]
-                    print(loc)
                     if loc not in self._searchedRooms:
                         self._searchedRooms.append(loc)
                     if foundVic not in self._foundVictims:
