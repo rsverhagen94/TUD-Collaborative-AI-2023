@@ -279,7 +279,7 @@ class HumanBrain(HumanAgentBrain):
             obj_id = self.__select_random_obj_in_range(state,
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
-            if 'critical' in obj_id:
+            if obj_id and 'critical' in obj_id:
                 action_kwargs['object_id'] = obj_id
             
 

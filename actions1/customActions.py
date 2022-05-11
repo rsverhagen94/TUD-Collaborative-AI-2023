@@ -975,7 +975,7 @@ class DropObjectTogether(Action):
         else:
             return DropObjectResult(DropObjectResult.RESULT_NO_OBJECT, False)
 
-        if 'mild' or 'healthy' in obj_id:
+        if 'mild' in obj_id or 'healthy' in obj_id:
             return DropObjectResult(DropObjectResult.RESULT_UNKNOWN_OBJECT_TYPE, False)            
         else:
             return _possible_drop(grid_world, agent_id=agent_id, obj_id=obj_id, drop_range=drop_range)

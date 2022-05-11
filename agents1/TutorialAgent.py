@@ -174,10 +174,14 @@ class TutorialAgent(BW4TBrain):
                 if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     self._door = state.get_room_doors(self._foundVictimLocs[self._goalVic]['room'])[0]
                     self._doormat = state.get_room(self._foundVictimLocs[self._goalVic]['room'])[-1]['doormat']
+                    if self._door['room_name'] == 'area 1':
+                        self._doormat = (3,5)
                     #doorLoc = self._door['location']
                     doorLoc = self._doormat
                 else:
                     #doorLoc = self._door['location']
+                    if self._door['room_name'] == 'area 1':
+                        self._doormat = (3,5)
                     doorLoc = self._doormat
                 self._navigator.add_waypoints([doorLoc])
                 self._tick = state['World']['nr_ticks']
