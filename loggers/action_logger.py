@@ -11,6 +11,7 @@ class ActionLogger(GridWorldLogger):
     def log(self, grid_world, agent_data):
         log_data = {}
         log_data['done'] = grid_world.simulation_goal.isBlocksPlaced(grid_world)
+        log_data['score'] = grid_world.simulation_goal.score(grid_world)
         for agent_id, agent_body in grid_world.registered_agents.items():
             if 'human_agent' or 'robot_partner' in agent_id:
                 log_data[agent_id + '_action'] = agent_body.current_action

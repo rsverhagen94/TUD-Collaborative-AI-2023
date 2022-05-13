@@ -90,7 +90,7 @@ def add_agents(builder, condition, exp_version):
             if exp_version=="high":
                 brain = HighInterdependenceAgent(condition, slowdown=25)
             loc = (22,11)
-            builder.add_agent(loc, brain, team=team_name, name="RescueBot",
+            builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score'], score=0,
                               sense_capability=sense_capability, is_traversable=True, img_name="/images/robot-final4.svg")
 
         # Add human agents
@@ -231,30 +231,30 @@ def create_builder(exp_version, condition):
 
         #builder.add_object((22,10),'rock', callable_class=ObstacleObject, 
     #visualize_shape='img',img_name="/images/stone.svg")
-    #    builder.add_object((19,11),'critically injured elderly woman in area C2', callable_class=CollectableBlock, 
-    #visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
+        builder.add_object((19,11),'critically injured elderly woman in area C2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
+        builder.add_object((20,12),'critically injured man in area C1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured man.svg")
     #    builder.add_object((20,12),'critically injured man in area C1', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/critically injured man.svg")
-    #    builder.add_object((20,12),'critically injured man in area C1', callable_class=CollectableBlock, 
-    #visualize_shape='img',img_name="/images/critically injured man.svg")
-    #    builder.add_object((20,10),'critically injured girl in area C3', callable_class=CollectableBlock, 
-    #visualize_shape='img',img_name="/images/critically injured girl.svg")
+        builder.add_object((20,10),'critically injured girl in area C3', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured girl.svg")
     #    builder.add_object((19,10),'critically injured girl in area C3', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/critically injured girl.svg")
-        #builder.add_object((21,10),'critically injured dog in area B2', callable_class=CollectableBlock, 
-    #visualize_shape='img',img_name="/images/critically injured dog.svg")
-    #    builder.add_object((20,13),'mildly injured boy in area B1', callable_class=CollectableBlock, 
-    #visualize_shape='img',img_name="/images/mildly injured boy.svg")
+        builder.add_object((21,10),'critically injured dog in area B2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured dog.svg")
+        builder.add_object((20,13),'mildly injured boy in area B1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured boy.svg")
     #    builder.add_object((19,13),'mildly injured boy in area B1', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/mildly injured boy.svg")
-    #    builder.add_object((20,14),'mildly injured elderly man in area A1', callable_class=CollectableBlock, 
-    ##visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
+        builder.add_object((20,14),'mildly injured elderly man in area A1', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
     #    builder.add_object((19,14),'mildly injured elderly man in area A1', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
-    #    builder.add_object((19,15),'mildly injured woman in area A2', callable_class=CollectableBlock, 
-    #visualize_shape='img',img_name="/images/mildly injured woman.svg")
-    #    builder.add_object((20,15),'mildly injured woman in area A2', callable_class=CollectableBlock, 
-    #visualize_shape='img',img_name="/images/mildly injured woman.svg")
+        builder.add_object((19,15),'mildly injured woman in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured woman.svg")
+        builder.add_object((20,15),'mildly injured cat in area A2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured cat.svg")
 
             #builder.add_object((1,16),'car',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/car (1).svg")
         #builder.add_object((23,9),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
@@ -404,6 +404,10 @@ class CollectionGoal(WorldGoal):
 
         # We also track the progress
         self.__progress = 0
+        self.__score = 0
+    
+    def score(self, grid_world: GridWorld):
+        return self.__score
 
     def goal_reached(self, grid_world: GridWorld):
         if grid_world.current_nr_ticks >= self.max_nr_ticks:
@@ -425,6 +429,10 @@ class CollectionGoal(WorldGoal):
         self.__progress = progress / sum([len(goal_blocks)\
             for goal_blocks in self.__drop_off.values()])
         #print(self.__progress) 
+        #human = grid_world.registered_agents['human']
+        #if is_satisfied:
+        #    self.__score+=10
+        #    human.change_property('score',self.__score)
         return is_satisfied
 
     def __find_drop_off_locations(self, grid_world):
@@ -466,8 +474,9 @@ class CollectionGoal(WorldGoal):
                 # find the block at that location
                 for block in blocks:
                     if block.location == loc:
+                        #print(block.properties['img_name'])
                         # Add to self.drop_off
-                        self.__drop_off_zone[zone_nr][rank] = [loc, block.visualize_shape, block.visualize_colour, [None,None]]
+                        self.__drop_off_zone[zone_nr][rank] = [loc, block.properties['img_name'][8:-4], None]
                         for i in self.__drop_off_zone.keys():
                             self.__drop_off[i] = {}
                             vals = list(self.__drop_off_zone[i].values())
@@ -484,9 +493,8 @@ class CollectionGoal(WorldGoal):
             # Go through all ranks of this drop off zone
             for rank, block_data in goal_blocks.items():
                 loc = block_data[0]  # the location, needed to find blocks here
-                shape = block_data[1]  # the desired shape
-                colour = block_data[2]  # the desired colour
-                tick = block_data[3]
+                shape = block_data[1]  # the desired colour
+                tick = block_data[2]
 
                 # Retrieve all objects, the object ids at the location and obtain all BW4T Blocks from it
                 all_objs = grid_world.environment_objects
@@ -497,38 +505,47 @@ class CollectionGoal(WorldGoal):
 
                 # Check if there is a block, and if so if it is the right one and the tick is not yet set, then set the
                 # current tick.
-                if len(blocks) == 1 and blocks[0].visualize_shape == shape and blocks[0].visualize_colour == colour and \
-                        tick[0] is None:
-                    self.__drop_off[zone_nr][rank][3][0] = curr_tick
-                if len(blocks) > 1 and blocks[0].visualize_shape == shape and blocks[0].visualize_colour == colour and \
-                        tick[1] is None:
-                    self.__drop_off[zone_nr][rank][3][1] = curr_tick
+                if len(blocks) > 0 and blocks[0].properties['img_name'][8:-4] == shape and \
+                        tick is None:
+                    self.__drop_off[zone_nr][rank][2] = curr_tick
+                    if 'critical' in blocks[0].properties['img_name'][8:-4]:
+                        self.__score+=5
+                    if 'mild' in blocks[0].properties['img_name'][8:-4]:
+                        self.__score+=1
                 # if there is no block, reset its tick to None
-                elif len(blocks) == 1:
-                    self.__drop_off[zone_nr][rank][3][1] = None
+
                 elif len(blocks) == 0:
-                    self.__drop_off[zone_nr][rank][3] = [None,None]
-
-
+                    if self.__drop_off[zone_nr][rank][2] != None:
+                        self.__drop_off[zone_nr][rank][2] = None
+                        if rank in [0,1,2,3]:
+                            self.__score-=5
+                        if rank in [4,5,6,7]:
+                            self.__score-=1
+                    #self.__score
 
         # Now check if all blocks are collected in the right order
         is_satisfied = True
         progress = 0
         for zone_nr, goal_blocks in self.__drop_off.items():
             zone_satisfied = True
-            ticks = [goal_blocks[r][3] for r in range(len(goal_blocks))]  # list of ticks in rank order
+            ticks = [goal_blocks[r][2] for r in range(len(goal_blocks))]  # list of ticks in rank order
 
             # check if all ticks are increasing
             for idx, tick in enumerate(ticks[:-1]):
-                if tick[1] is None or ticks[idx+1][1] is None or not tick[1] < ticks[idx+1][0] or not tick[1] < ticks[idx+1][1]:
-                    progress += (idx+1) if tick[1] is not None and ticks[idx+1][0] is not None and tick[1]<ticks[idx+1][0] else idx  # increment progress
+                if tick is None or ticks[idx+1] is None:
+                    progress += (idx+1) if tick is not None else idx  # increment progress
                     zone_satisfied = False  # zone is not complete or ordered
                     break  # break this loop
 
             # if all ticks were increasing, check if the last tick is set and set progress to full for this zone
-            if zone_satisfied and ticks[-1][1] is not None:
+            if zone_satisfied and ticks[-1] is not None:
                 progress += len(goal_blocks)
+
             # update our satisfied boolean
             is_satisfied = is_satisfied and zone_satisfied
-
+        #print(ticks)
+        agent = grid_world.registered_agents['rescuebot']
+        agent.change_property('score',self.__score)
+        #print(self.__score)
         return is_satisfied, progress
+

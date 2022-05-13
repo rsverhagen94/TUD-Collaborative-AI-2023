@@ -72,11 +72,10 @@ class TutorialAgent(BW4TBrain):
 
     def filter_bw4t_observations(self, state):
         #self._processMessages(state)
-        #for key in state.keys():
-        #    print(state[key])
         return state
 
     def decide_on_bw4t_action(self, state:State):
+        second = state['World']['tick_duration'] * state['World']['nr_ticks']
         for info in state.values():
             if 'is_human_agent' in info and 'Human' in info['name'] and len(info['is_carrying'])>0 and 'critical' in info['is_carrying'][0]['obj_id']:
                 self._carryingTogether = True
@@ -93,6 +92,7 @@ class TutorialAgent(BW4TBrain):
         self._processMessages(state, self._teamMembers)
         # Update trust beliefs for team members
         #self._trustBlief(self._teamMembers, receivedMessages)
+        self._sendMessage('Our score is ' + str(state['rescuebot']['score']) +'.', 'RescueBot')
         while True:           
             if Phase.INTRO0==self._phase:
                 self._sendMessage('Hello! My name is RescueBot. Together we will collaborate and try to search and rescue the 8 victims on our right as quickly as possible. \
@@ -528,9 +528,11 @@ class TutorialAgent(BW4TBrain):
 
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)
-        if msg.content not in self.received_messages_content:
+        if msg.content not in self.received_messages_content and 'score' not in msg.content:
             self.send_message(msg)
             self._sendMessages.append(msg.content)
+        if 'score' in msg.content:
+            self.send_message(msg)
 
         #if self.received_messages and self._sendMessages:
         #    self._last_mssg = self._sendMessages[-1]

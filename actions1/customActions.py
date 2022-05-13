@@ -304,8 +304,8 @@ class CarryObject(Action):
         object_id = None if 'object_id' not in kwargs else kwargs['object_id']
         grab_range = np.inf if 'grab_range' not in kwargs else kwargs['grab_range']
         max_objects = np.inf if 'max_objects' not in kwargs else kwargs['max_objects']
-        if object_id and 'critical' in object_id:
-            return GrabObjectResult(GrabObjectResult.RESULT_OBJECT_UNMOVABLE, False)
+        #if object_id and 'critical' in object_id:
+        #    return GrabObjectResult(GrabObjectResult.RESULT_OBJECT_UNMOVABLE, False)
         if 'stone' in object_id or 'rock' in object_id or 'tree' in object_id:
             return GrabObjectResult(GrabObjectResult.RESULT_OBJECT_UNMOVABLE, False)
         else:

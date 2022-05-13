@@ -25,14 +25,15 @@ if __name__ == "__main__":
     builder.startup(media_folder=media_folder)
     print("Starting custom visualizer")
     vis_thread = visualization_server.run_matrx_visualizer(verbose=False, media_folder=media_folder)
-    #world = builder.get_world()
+    world = builder.get_world()
     print("Started world...")
-    for world in builder.worlds():
-        world.run(builder.api_info)
+    #for world in builder.worlds():
+    world.run(builder.api_info)
     print("DONE!")
     print("Shutting down custom visualizer")
     r = requests.get("http://localhost:" + str(visualization_server.port) + "/shutdown_visualizer")
     vis_thread.join()
+    builder.stop()
 
 
    
@@ -91,4 +92,4 @@ if __name__ == "__main__":
     #        csv_writer.writerow(['completed', 'no_ticks', 'moves_agent', 'moves_human', 'no_messages_agent', 'no_messages_human', 'message_length_agent', 'message_length_human','victims_dropped_agent','victims_dropped_human'])
     #        csv_writer.writerow([success,no_ticks,len(unique_agent_moves),len(unique_human_moves),no_messages_agent,no_messages_human,mssg_len_agent,mssg_len_human,len(dropped_agent),len(dropped_human)])
   
-    builder.stop()
+    

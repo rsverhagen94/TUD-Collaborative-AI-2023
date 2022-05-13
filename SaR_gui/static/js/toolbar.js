@@ -499,6 +499,15 @@ function add_message(chatroom_ID, mssg) {
     mssg_content = mssg_content.replaceAll("healthy elderly man", "<img src='/static/images/healthy elderly man.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("healthy elderly woman", "<img src='/static/images/healthy elderly woman.svg' height= 30 width=30/>");
 
+    if (mssg_content.includes("score")) {
+        function score() {
+            const text = mssg_content.split(".").join("").split(" ").at(-1);
+
+            document.getElementById('score').innerHTML = 'Score: ' + text;
+        }
+        score()
+    }
+
     if (mssg_content == "Ready!") {
 
 var limit = 61
@@ -553,6 +562,7 @@ function checkTime(i) {
     }
 
     // add the message text to the message div
+    if (!mssg_content.includes("score")) {
     var content = document.createElement('span');
     content.className = "chat-content";
     content.innerHTML = mssg_content;
@@ -566,7 +576,7 @@ function checkTime(i) {
 //    scrollSmoothToBottom(mssgs_container)
     scrollToBottom(mssgs_container);
 }
-
+}
 
 /**
  * Scroll smoothly to the end of a div
