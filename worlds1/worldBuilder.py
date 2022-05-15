@@ -231,30 +231,30 @@ def create_builder(exp_version, condition):
 
         #builder.add_object((22,10),'rock', callable_class=ObstacleObject, 
     #visualize_shape='img',img_name="/images/stone.svg")
-        builder.add_object((19,11),'critically injured elderly woman in area C2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
-        builder.add_object((20,12),'critically injured man in area C1', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/critically injured man.svg")
+        #builder.add_object((19,11),'critically injured elderly woman in area C2', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
     #    builder.add_object((20,12),'critically injured man in area C1', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/critically injured man.svg")
-        builder.add_object((20,10),'critically injured girl in area C3', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/critically injured girl.svg")
+    #    builder.add_object((20,12),'critically injured man in area C1', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/critically injured man.svg")
+    #    builder.add_object((20,10),'critically injured girl in area C3', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/critically injured girl.svg")
     #    builder.add_object((19,10),'critically injured girl in area C3', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/critically injured girl.svg")
-        builder.add_object((21,10),'critically injured dog in area B2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/critically injured dog.svg")
-        builder.add_object((20,13),'mildly injured boy in area B1', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured boy.svg")
+    #    builder.add_object((21,10),'critically injured dog in area B2', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/critically injured dog.svg")
+    #    builder.add_object((20,13),'mildly injured boy in area B1', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/mildly injured boy.svg")
     #    builder.add_object((19,13),'mildly injured boy in area B1', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/mildly injured boy.svg")
-        builder.add_object((20,14),'mildly injured elderly man in area A1', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
+    #    builder.add_object((20,14),'mildly injured elderly man in area A1', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
     #    builder.add_object((19,14),'mildly injured elderly man in area A1', callable_class=CollectableBlock, 
     #visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
-        builder.add_object((19,15),'mildly injured woman in area A2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured woman.svg")
-        builder.add_object((20,15),'mildly injured cat in area A2', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured cat.svg")
+    #    builder.add_object((19,15),'mildly injured woman in area A2', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/mildly injured woman.svg")
+    #    builder.add_object((20,15),'mildly injured cat in area A2', callable_class=CollectableBlock, 
+    #visualize_shape='img',img_name="/images/mildly injured cat.svg")
 
             #builder.add_object((1,16),'car',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/car (1).svg")
         #builder.add_object((23,9),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
