@@ -212,7 +212,8 @@ def create_builder(exp_version, condition):
         builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final20.svg", visualize_size=1) 
     for loc in [(21,10),(21,11),(21,12),(21,13),(19,15),(19,16)]:
         builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final15.svg", visualize_size=1) 
-    for loc in [(6,11),(15,12),(12,16),(6,10),(6,9),(12,15),(16,12),(17,12),(18,5),(18,6),(21,2),(21,3)]:
+    #for loc in [(6,11),(15,12),(12,16),(6,10),(6,9),(12,15),(16,12),(17,12),(18,5),(18,6),(21,2),(21,3)]:
+    for loc in [(12,16),(6,10),(6,9),(12,15),(21,2),(21,3)]:
         builder.add_object(loc,'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
     
     

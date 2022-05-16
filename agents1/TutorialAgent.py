@@ -64,6 +64,8 @@ class TutorialAgent(BW4TBrain):
         self._teamMembers = []
         self._carryingTogether = False
         self._remove = False
+        self._goalVic = None
+        self._goalLoc = None
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -105,50 +107,41 @@ class TutorialAgent(BW4TBrain):
                     return None,{}
 
             if Phase.FIND_NEXT_GOAL==self._phase:
+                self._goalVic = None
+                self._goalLoc = None
                 zones = self._getDropZones(state)
-                locs = [zone['location'] for zone in zones]
-                self._firstVictim = str(zones[0]['img_name'])[8:-4]
-                self._lastVictim = str(zones[-1]['img_name'])[8:-4]
                 remainingZones = []
+                remainingVics = []
+                remaining = {}
                 for info in zones:
                     if str(info['img_name'])[8:-4] not in self._collectedVictims:
                         remainingZones.append(info)
+                        remainingVics.append(str(info['img_name'])[8:-4])
+                        remaining[str(info['img_name'])[8:-4]] = info['location']
                 if remainingZones:
-                    self._goalVic = str(remainingZones[0]['img_name'])[8:-4]
-                    self._goalLoc = remainingZones[0]['location']
+                    #self._goalVic = str(remainingZones[0]['img_name'])[8:-4]
+                    #self._goalLoc = remainingZones[0]['location']
                     self._remainingZones = remainingZones
-                else:
+                    self._remaining = remaining
+                if not remainingZones:
                     return None,{}
 
-                if self._goalVic not in self._foundVictims:
-                    self._phase=Phase.PICK_UNSEARCHED_ROOM
-                    return Idle.__name__,{'duration_in_ticks':25}
-
-                if self._goalVic in self._foundVictims and 'location' in self._foundVictimLocs[self._goalVic].keys():                      
-                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
-                        self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')                     
-                        if self.received_messages_content and self.received_messages_content[-1]=='Yes' or self._goalVic in self._collectedVictims:
-                            self._collectedVictims.append(self._goalVic)
-                            self._phase=Phase.FIND_NEXT_GOAL
-                        if self.received_messages_content and self.received_messages_content[-1]=='No' or state['World']['nr_ticks'] > self._tick + 579:
-                            self._phase=Phase.PLAN_PATH_TO_VICTIM
-                        return Idle.__name__,{'duration_in_ticks':50}
-                    else:
+                for vic in remainingVics:
+                    if vic in self._foundVictims and 'location' in self._foundVictimLocs[vic].keys():
+                        self._goalVic = vic
+                        self._goalLoc = remaining[vic]
                         self._phase=Phase.PLAN_PATH_TO_VICTIM
                         return Idle.__name__,{'duration_in_ticks':50}
-                        
-                if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
-                    if self._foundVictimLocs[self._goalVic]['room'] in ['area A1', 'area A2', 'area A3', 'area A4'] and state[self.agent_id]['location'] in locs and self._collectedVictims:
-                        self._sendMessage('I suggest you pick up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because ' + self._foundVictimLocs[self._goalVic]['room'] + ' is far away and you can move faster. If you agree press the "Yes" button, if you do not agree press "No".', 'RescueBot')
-                        if self.received_messages_content and self.received_messages_content[-1]=='Yes' or self._goalVic in self._collectedVictims:
-                            self._collectedVictims.append(self._goalVic)
-                            self._phase=Phase.FIND_NEXT_GOAL
-                        if self.received_messages_content and self.received_messages_content[-1]=='No' or state['World']['nr_ticks'] > self._tick + 579:
-                            self._phase=Phase.PLAN_PATH_TO_ROOM
-                        return Idle.__name__,{'duration_in_ticks':50}
-                    else:
+                    if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys():
+                        self._goalVic = vic
+                        self._goalLoc = remaining[vic]
                         self._phase=Phase.PLAN_PATH_TO_ROOM
-                        return Idle.__name__,{'duration_in_ticks':50}                    
+                        return Idle.__name__,{'duration_in_ticks':50}  
+
+                self._phase=Phase.PICK_UNSEARCHED_ROOM
+                return Idle.__name__,{'duration_in_ticks':25}
+
+                                  
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
                 agent_location = state[self.agent_id]['location']
@@ -180,7 +173,7 @@ class TutorialAgent(BW4TBrain):
 
             if Phase.PLAN_PATH_TO_ROOM==self._phase:
                 self._navigator.reset_full()
-                if self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
+                if self._goalVic and self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
                     self._door = state.get_room_doors(self._foundVictimLocs[self._goalVic]['room'])[0]
                     self._doormat = state.get_room(self._foundVictimLocs[self._goalVic]['room'])[-1]['doormat']
                     if self._door['room_name'] == 'area 1':
@@ -197,12 +190,13 @@ class TutorialAgent(BW4TBrain):
                 self._phase=Phase.FOLLOW_PATH_TO_ROOM
 
             if Phase.FOLLOW_PATH_TO_ROOM==self._phase:
-                if self._goalVic in self._collectedVictims:
+                if self._goalVic and self._goalVic in self._collectedVictims:
                     self._currentDoor=None
                     self._phase=Phase.FIND_NEXT_GOAL
-                if self._goalVic in self._foundVictims and self._door['room_name']!=self._foundVictimLocs[self._goalVic]['room']:
+                if self._goalVic and self._goalVic in self._foundVictims and self._door['room_name']!=self._foundVictimLocs[self._goalVic]['room']:
                     self._currentDoor=None
                     self._phase=Phase.FIND_NEXT_GOAL
+                # check below
                 if self._door['room_name'] in self._searchedRooms and self._goalVic not in self._foundVictims:
                     self._currentDoor=None
                     self._phase=Phase.FIND_NEXT_GOAL
@@ -210,8 +204,8 @@ class TutorialAgent(BW4TBrain):
                     self._state_tracker.update(state)
                     if self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room'] and not self._remove:
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic+'.', 'RescueBot')                 
-                    if self._goalVic not in self._foundVictims and not self._remove:
-                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to search for ' + self._goalVic + ' and because it is the closest unsearched area.', 'RescueBot')                   
+                    if self._goalVic not in self._foundVictims and not self._remove or not self._goalVic and not self._remove:
+                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to search for victims and because it is the closest unsearched area.', 'RescueBot')                   
                     self._currentDoor=self._door['location']
                     #self._currentDoor=self._doormat
                     action = self._navigator.get_move_action(self._state_tracker)
@@ -290,7 +284,7 @@ class TutorialAgent(BW4TBrain):
                 self._roomtiles=roomTiles               
                 self._navigator.reset_full()
                 self._navigator.add_waypoints(self._efficientSearch(roomTiles))
-                self._sendMessage('Searching through whole ' + str(self._door['room_name']) + ' because my sense range is limited and to find ' + self._goalVic+'.', 'RescueBot')
+                self._sendMessage('Searching through whole ' + str(self._door['room_name']) + ' because my sense range is limited and to find victims.', 'RescueBot')
                 #self._currentDoor = self._door['location']
                 self._roomVics=[]
                 self._phase=Phase.FOLLOW_ROOM_SEARCH_PATH
@@ -351,7 +345,7 @@ class TutorialAgent(BW4TBrain):
                 return Idle.__name__,{'duration_in_ticks':50}
                     
             if Phase.FOLLOW_PATH_TO_VICTIM==self._phase:
-                if self._goalVic in self._collectedVictims:
+                if self._goalVic and self._goalVic in self._collectedVictims:
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     self._state_tracker.update(state)
@@ -359,8 +353,8 @@ class TutorialAgent(BW4TBrain):
                     if action!=None:
                         return action,{}
                     if action==None and 'critical' in self._goalVic:
-                        self._phase=Phase.TAKE_VICTIM
                         return MoveNorth.__name__, {}
+                    self._phase=Phase.TAKE_VICTIM
                     
             if Phase.TAKE_VICTIM==self._phase:
                 objects=[]
@@ -372,7 +366,7 @@ class TutorialAgent(BW4TBrain):
                         #if not state[{'is_human_agent':True}]:
                             #self._sendMessage('Waiting..','RescueBot')
                             return None, {} 
-                if len(objects)==0:
+                if len(objects)==0 and 'critical' in self._goalVic:
                     self._collectedVictims.append(self._goalVic)
                     self._phase = Phase.PLAN_PATH_TO_DROPPOINT
                 if 'mild' in self._goalVic:
@@ -395,28 +389,16 @@ class TutorialAgent(BW4TBrain):
                 #return Idle.__name__,{'duration_in_ticks':50}  
 
             if Phase.DROP_VICTIM == self._phase:
-                zones = self._getDropZones(state)
-                for i in range(len(zones)):
-                    if zones[i]['img_name'][8:-4]==self._goalVic:
-                        if self._goalVic!=self._firstVictim:
-                            self._previousVic = zones[i-1]['img_name']
-                        if self._goalVic!=self._lastVictim:
-                            self._nextVic = zones[i+1]['img_name']
-
-                if self._goalVic==self._firstVictim or state[{'img_name':self._previousVic,'is_collectable':True}] and self._goalVic==self._lastVictim or state[{'img_name':self._previousVic, 'is_collectable':True}] and not state[{'img_name':self._nextVic, 'is_collectable':True}]:
-                    if 'mild' in self._goalVic:
-                        self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
-                    self._phase=Phase.FIND_NEXT_GOAL
-                    self._currentDoor = None
-                    self._tick = state['World']['nr_ticks']
-                    return Drop.__name__,{}
+                if 'mild' in self._goalVic:
+                    self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
+                self._phase=Phase.FIND_NEXT_GOAL
+                self._currentDoor = None
+                self._tick = state['World']['nr_ticks']
+                return Drop.__name__,{}
                 #if state[{'img_name':self._nextVic, 'is_collectable':True}] and state[{'img_name':self._previousVic, 'is_collectable':True}]:
                 #    self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because ' + self._goalVic + ' was the current victim to rescue.', 'RescueBot')
                 #    self._phase=Phase.FIX_ORDER_GRAB
                 #    return DropObject.__name__,{}
-                else:
-                    self._sendMessage('Waiting for human operator at drop zone because previous victim should be collected first.', 'RescueBot')
-                    return None,{} 
 
             #if Phase.FIX_ORDER_GRAB == self._phase:
             #    self._navigator.reset_full()
