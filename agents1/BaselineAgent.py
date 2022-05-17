@@ -591,7 +591,7 @@ class TutorialAgent(BW4TBrain):
                 
             if Phase.PLAN_PATH_TO_VICTIM==self._phase:
                 if 'mild' in self._goalVic:
-                    self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + ' because you decided to rescue ' + self._goalVic + ' immediately.', 'RescueBot')
+                    self._sendMessage('Picking up ' + self._goalVic + ' in ' + self._foundVictimLocs[self._goalVic]['room'] + '.', 'RescueBot')
                 self._navigator.reset_full()
                 self._navigator.add_waypoints([self._foundVictimLocs[self._goalVic]['location']])
                 self._phase=Phase.FOLLOW_PATH_TO_VICTIM
@@ -642,7 +642,7 @@ class TutorialAgent(BW4TBrain):
 
             if Phase.DROP_VICTIM == self._phase:
                 if 'mild' in self._goalVic:
-                    self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone because you decided to rescue ' + self._goalVic + ' immediately.', 'RescueBot')
+                    self._sendMessage('Delivered '+ self._goalVic + ' at the drop zone.', 'RescueBot')
                 self._phase=Phase.FIND_NEXT_GOAL
                 self._currentDoor = None
                 self._tick = state['World']['nr_ticks']
