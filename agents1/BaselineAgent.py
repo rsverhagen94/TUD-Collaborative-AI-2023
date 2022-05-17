@@ -126,6 +126,8 @@ class TutorialAgent(BW4TBrain):
         self._processMessages(state, self._teamMembers)
         # Update trust beliefs for team members
         #self._trustBlief(self._teamMembers, receivedMessages)
+
+        # CRUCIAL TO NOT REMOVE LINE BELOW!
         self._sendMessage('Our score is ' + str(state['rescuebot']['score']) +'.', 'RescueBot')
         while True:           
             if Phase.INTRO0==self._phase:
@@ -134,6 +136,9 @@ class TutorialAgent(BW4TBrain):
                 We have 10 minutes to successfully collect all 8 victims in the correct order. \
                 If you understood everything I just told you, please press the "Ready!" button. We will then start our mission!', 'RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Ready!':# or not state[{'is_human_agent':True}]:
+                    self._phase=Phase.FIND_NEXT_GOAL
+                if not state[{'is_human_agent':True}]:
+                    self._sendMessage('Ready!','RescueBot')
                     self._phase=Phase.FIND_NEXT_GOAL
                 else:
                     return None,{}

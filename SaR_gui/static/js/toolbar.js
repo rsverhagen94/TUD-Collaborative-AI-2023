@@ -534,6 +534,7 @@ function increment() {
   if (elapsedTime/1000>limit) {
     document.getElementById('elapsedTime').innerHTML = 'Time up!'
     localStorage.removeItem('ts');
+    toggle_stop();
 }
 
 }
