@@ -37,7 +37,7 @@ class BW4TBrain(BW4TAgentBrain, ABC):
             if water['location'] not in water_locs:
                 water_locs.append(water['location'])
         # remove doormat from water_locs
-        if state[{"name": "RescueBot"}]['location'] in water_locs:
+        if state[{"name": "RescueBot"}]['location'] in water_locs and state[{"name": "RescueBot"}]['location'] not in [(3,5),(9,5),(15,5),(21,5),(3,6),(9,6),(15,6),(3,17),(9,17),(15,17),(3,18),(9,18),(15,18),(21,18)]:
             params['action_duration'] = 25
         else:
             params['action_duration'] = self.__slowdown
