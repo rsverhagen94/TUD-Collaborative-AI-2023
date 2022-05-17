@@ -67,8 +67,8 @@
                         <input class="form-control" id="chat_form_input" placeholder="Open a chatroom first..">
                         <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="send_message(event)" disabled>Send</button>
                         <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Ready!')">Ready!</button>
-                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Yes')">Yes</button>
-                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('No')">No</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Rescue')">Rescue</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Continue')">Continue</button>
                         <div class="dropdown">
                           <button  id="chat_form_submit" class="btn btn-primary">Help Remove</button>
                           <div class="dropdown-content" >
@@ -94,6 +94,12 @@
                           </div>
                         </div>
                     </br>
+                    <div>
+                      <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-top: .2em" onclick="my_send_message_function('Remove')">Remove</button>
+                      <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-top: .2em" onclick="my_send_message_function('Remove alone')">Remove alone</button>
+                      <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-top: .2em" onclick="my_send_message_function('Remove together')">Remove together</button>
+                    </div>
+                    
                 
                     I will search in area:
                     <div>
@@ -317,106 +323,6 @@
                     
                     I will pick up: 
                     <div>
-                      <div class="dropdown">
-                        <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/critically injured girl.svg' height=25 width=25/></button>
-                        <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 1')">in 01</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 2')">in 02</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 3')">in 03</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 4')">in 04</a>
-                        </br>
-                          
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 5')">in 05</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 6')">in 06</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 7')">in 07</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 8')">in 08</a>
-                        </br>
-                          
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 9')">in 09</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 10')">in 10</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 11')">in 11</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 12')">in 12</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 13')">in 13</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in 14')">in 14</a>
-                        </div>
-                      </div> 
-
-                      <div class="dropdown">
-                        <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/critically injured elderly woman.svg' height=25 width=25/></button>
-                        <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 1')">in 01</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 2')">in 02</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 3')">in 03</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 4')">in 04</a>
-                        </br>
-                          
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 5')">in 05</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 6')">in 06</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 7')">in 07</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 8')">in 08</a>
-                        </br>
-                          
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 9')">in 09</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 10')">in 10</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 11')">in 11</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 12')">in 12</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 13')">in 13</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 14')">in 14</a>
-                        </div>
-                      </div> 
-
-                      <div class="dropdown">
-                        <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/critically injured man.svg' height=25 width=25/></button>
-                        <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: critically injured man in 1')">in 01</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 2')">in 02</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 3')">in 03</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 4')">in 04</a>
-                        </br>
-                          
-                          <a onclick="my_send_message_function('Collect: critically injured man in 5')">in 05</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 6')">in 06</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 7')">in 07</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 8')">in 08</a>
-                        </br>
-                          
-                          <a onclick="my_send_message_function('Collect: critically injured man in 9')">in 09</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 10')">in 10</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 11')">in 11</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 12')">in 12</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 13')">in 13</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in 14')">in 14</a>
-                        </div>
-                      </div> 
-
-                      <div class="dropdown">
-                        <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/critically injured dog.svg' height=25 width=25/></button>
-                        <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 1')">in 01</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 2')">in 02</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 3')">in 03</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 4')">in 04</a>
-                        </br>
-                          
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 5')">in 05</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 6')">in 06</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 7')">in 07</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 8')">in 08</a>
-                        </br>
-                          
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 9')">in 09</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 10')">in 10</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 11')">in 11</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 12')">in 12</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 13')">in 13</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in 14')">in 14</a>
-                        </div>
-                      </div>
-                    
                       <div class="dropdown">
                         <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/mildly injured boy.svg' height=25 width=25/></button>
                         <div class="dropdown-content" >

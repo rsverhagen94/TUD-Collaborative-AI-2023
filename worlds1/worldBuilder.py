@@ -14,9 +14,7 @@ from matrx.actions.object_actions import RemoveObject
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from agents1.TutorialAgent import TutorialAgent
-from agents1.LowInterdependenceAgent import LowInterdependenceAgent
-from agents1.HighInterdependenceAgent import HighInterdependenceAgent
+from agents1.BaselineAgent import TutorialAgent
 from actions1.customActions import RemoveObjectTogether
 from brains1.HumanBrain import HumanBrain
 from loggers.action_logger import ActionLogger
@@ -106,7 +104,7 @@ def create_builder(exp_version, condition):
 
     # Create the goal
     if exp_version == "trial":
-        goal = CollectionGoal(max_nr_ticks=10000000000000000000)
+        goal = CollectionGoal(max_nr_ticks=9600)
     if exp_version == "low" or exp_version == "high":
         goal = CollectionGoal(max_nr_ticks=11577)
     # Create our world builder
@@ -285,9 +283,9 @@ def create_builder(exp_version, condition):
     visualize_shape='img',img_name="/images/healthy boy.svg")
         builder.add_object((14,20),'mildly injured elderly man in area 13', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
-        builder.add_object((14,8),'healthy elderly man in area 7', callable_class=CollectableBlock, 
+        builder.add_object((10,8),'healthy elderly man in area 6', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy elderly man.svg")
-        builder.add_object((10,8),'mildly injured woman in area 6', callable_class=CollectableBlock, 
+        builder.add_object((14,8),'mildly injured woman in area 7', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/mildly injured woman.svg")
         builder.add_object((16,21),'healthy woman in area 13', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy woman.svg")
@@ -302,8 +300,8 @@ def create_builder(exp_version, condition):
         builder.add_object((16,9),'healthy girl in area 7', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy girl.svg")
 
-        builder.add_object((22,3),'healthy girl in area 4', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/healthy girl.svg")
+        builder.add_object((22,3),'mildly injured boy in area 4', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured boy.svg")
         builder.add_object((2,20),'healthy elderly woman in area 11', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy elderly woman.svg")
 
@@ -409,6 +407,9 @@ class CollectionGoal(WorldGoal):
     
     def score(self, grid_world: GridWorld):
         return self.__score
+
+    def progress(self, grid_world:GridWorld):
+        return self.__progress
 
     def goal_reached(self, grid_world: GridWorld):
         if grid_world.current_nr_ticks >= self.max_nr_ticks:

@@ -510,7 +510,7 @@ function add_message(chatroom_ID, mssg) {
 
     if (mssg_content == "Ready!") {
 
-var limit = 61
+var limit = 480
 var timeStamp = Date.now(),
 		sessionStamp = localStorage.getItem('ts'),
     elapsedTime;
