@@ -138,6 +138,7 @@ class TutorialAgent(BW4TBrain):
                     return None,{}
 
             if Phase.FIND_NEXT_GOAL==self._phase:
+                self._answered = False
                 self._advice = False
                 self._goalVic = None
                 self._goalLoc = None
@@ -416,6 +417,7 @@ class TutorialAgent(BW4TBrain):
                     self._phase = Phase.ENTER_ROOM
                     
             if Phase.ENTER_ROOM==self._phase:
+                self._answered = False
                 if self._goalVic in self._collectedVictims:
                     self._currentDoor=None
                     self._phase=Phase.FIND_NEXT_GOAL
