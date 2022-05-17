@@ -590,9 +590,9 @@ class TutorialAgent(BW4TBrain):
                     action=self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         return action,{}
-                    if action==None and 'critical' in self._goalVic:
-                        return MoveNorth.__name__, {}
-                self._phase=Phase.TAKE_VICTIM
+                    #if action==None and 'critical' in self._goalVic:
+                    #    return MoveNorth.__name__, {}
+                    self._phase=Phase.TAKE_VICTIM
                     
             if Phase.TAKE_VICTIM==self._phase:
                 objects=[]
