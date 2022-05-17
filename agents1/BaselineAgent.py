@@ -73,6 +73,7 @@ class TutorialAgent(BW4TBrain):
         self._distanceDrop = None
         self._agentLoc = None
         self._todo = []
+        self._answered = False
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -261,51 +262,53 @@ class TutorialAgent(BW4TBrain):
                 for info in state.values():
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
                         objects.append(info)
-                        if self._distanceHuman == 'close' and self._second < 240 and self._criticalFound < 2:
+                        if self._distanceHuman == 'close' and self._second < 240 and self._criticalFound < 2 and self._answered == False:
                             self._sendMessage('Found a rock blocking the entrance of ' + str(self._door['room_name']) + '. This rock can only be removed together, which takes around 10 seconds. \
                                 I suggest to continue searching instead of removing this rock: 5 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The number of critically injured victims still to find contributed the most to this advice.', 'RescueBot')
-                        if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound < 2:
+                        if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound < 2 and self._answered == False:
                             self._sendMessage('Found a rock blocking the entrance of ' + str(self._door['room_name']) + '. This rock can only be removed together, which takes around 10 seconds. \
                                 I suggest to continue searching instead of removing this rock: 7 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The number of critically injured victims still to find contributed the most to this advice.','RescueBot')
-                        if self._distanceHuman == 'close' and self._second < 240 and self._criticalFound > 1:
+                        if self._distanceHuman == 'close' and self._second < 240 and self._criticalFound > 1 and self._answered == False:
                             self._sendMessage('Found a rock blocking the entrance of ' + str(self._door['room_name']) + '. This rock can only be removed together, which takes around 10 seconds. \
                                 I suggest to remove the rock instead of continue searching: 7 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The time left to finish the task and number of critically injured victims still to find contributed the most to this advice.','RescueBot')
-                        if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound > 1:
+                        if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound > 1 and self._answered == False:
                             self._sendMessage('Found a rock blocking the entrance of ' + str(self._door['room_name']) + '. This rock can only be removed together, which takes around 10 seconds. \
                                 I suggest to remove the rock instead of continue searching: 5 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The number of critically injured victims still to find contributed the most to this advice.', 'RescueBot')
-                        if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound < 2:
+                        if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound < 2 and self._answered == False:
                             self._sendMessage('Found a rock blocking the entrance of ' + str(self._door['room_name']) + '. This rock can only be removed together, which takes around 10 seconds. \
                                 I suggest to continue searching instead of removing this rock: 8 out 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The number of critically injured victims still to find contributed the most to this advice.','RescueBot')
-                        if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound < 2:
+                        if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound < 2 and self._answered == False:
                             self._sendMessage('Found a rock blocking the entrance of ' + str(self._door['room_name']) + '. This rock can only be removed together, which takes around 10 seconds. \
                                 I suggest to continue searching instead of removing this rock: 8 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The estimated waiting time for you to arrive here contributed the most to this advice.', 'RescueBot')
-                        if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound > 1:
+                        if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound > 1 and self._answered == False:
                             self._sendMessage('Found a rock blocking the entrance of ' + str(self._door['room_name']) + '. This rock can only be removed together, which takes around 10 seconds. \
                                 I suggest to remove the rock instead of continue searching: 6 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The number of critically injured victims still to find contributed the most to this advice.','RescueBot')
-                        if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound > 1:
+                        if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound > 1 and self._answered == False:
                             self._sendMessage('Found a rock blocking the entrance of ' + str(self._door['room_name']) + '. This rock can only be removed together, which takes around 10 seconds. \
                                 I suggest to remove the rock instead of continue searching: 5 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The time left to finish the task contributed the most to this advice.', 'RescueBot')
 
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
+                            self._answered = True
                             self._searchedRooms.append(self._door['room_name'])
                             self._phase = Phase.FIND_NEXT_GOAL
                         if self.received_messages_content and self.received_messages_content[-1] == 'Remove':
+                            self._answered = True
                             self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove the rock.', 'RescueBot')
                             if not 'Human' in info['name']:
                                 return None, {} 
@@ -314,31 +317,33 @@ class TutorialAgent(BW4TBrain):
 
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id']:
                         objects.append(info)
-                        if self._second < 240 and self._criticalFound < 2:
+                        if self._second < 240 and self._criticalFound < 2 and self._answered == False:
                             self._sendMessage('Found a tree blocking the entrance of ' + str(self._door['room_name']) + '. This tree can only be removed by me, which takes around 15 seconds. \
                                 I suggest to remove the tree instead of continue searching: 5 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The estimated removal time contributed the most to this advice.', 'RescueBot')
-                        if self._second < 240 and self._criticalFound > 1:
+                        if self._second < 240 and self._criticalFound > 1 and self._answered == False:
                             self._sendMessage('Found a tree blocking the entrance of ' + str(self._door['room_name']) + '. This tree can only be removed by me, which takes around 15 seconds. \
                                 I suggest to remove the tree instead of continue searching: 8 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The estimated removal time contributed the most to this advice.','RescueBot')
-                        if self._second > 240 and self._criticalFound < 2:
+                        if self._second > 240 and self._criticalFound < 2 and self._answered == False:
                             self._sendMessage('Found a tree blocking the entrance of ' + str(self._door['room_name']) + '. This tree can only be removed by me, which takes around 15 seconds. \
                                 I suggest to continue searching instead of removing this tree: 8 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The number of critically injured victims still to find contributed the most to this advice.', 'RescueBot')
-                        if self._second > 240 and self._criticalFound > 1:
+                        if self._second > 240 and self._criticalFound > 1 and self._answered == False:
                             self._sendMessage('Found a tree blocking the entrance of ' + str(self._door['room_name']) + '. This tree can only be removed by me, which takes around 15 seconds. \
                                 I suggest to continue searching instead of removing this tree: 7 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             # The time left to finish the task contributed the most to this advice.', 'RescueBot')
 
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
+                            self._answered = True
                             self._searchedRooms.append(self._door['room_name'])
                             self._phase=Phase.FIND_NEXT_GOAL
                         if self.received_messages_content and self.received_messages_content[-1] == 'Remove':
+                            self._answered = True
                             self._phase = Phase.ENTER_ROOM
                             self._remove = False
                             return RemoveObject.__name__,{'object_id':info['obj_id']}
@@ -346,56 +351,58 @@ class TutorialAgent(BW4TBrain):
                             return None, {}
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
                         objects.append(info)
-
-                        if self._distanceHuman == 'far' and self._criticalFound < 2 and self._second < 240:
+                        if self._distanceHuman == 'far' and self._criticalFound < 2 and self._second < 240 and self._answered == False:
                             self._sendMessage('Found stones blocking the entrance of ' + str(self._door['room_name']) + '. These stones can be removed alone or together. Removing alone takes around 25 seconds, together around 5 seconds. \
                                 I suggest to continue searching instead of removing these stones: 5 out 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             # The time left to finish the task contributed the most to this advice.','RescueBot')
-                        if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second < 240:
+                        if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second < 240 and self._answered == False:
                             self._sendMessage('Found stones blocking the entrance of ' + str(self._door['room_name']) + '. These stones can be removed alone or together. Removing alone takes around 25 seconds, together around 5 seconds. \
                                 I suggest to remove the stones alone instead of continue searching or removing together: 8 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             # The number of critically injured victims still to find contributed the most to this advice.', 'RescueBot')
-                        if self._distanceHuman == 'far' and self._criticalFound < 2 and self._second > 240:
+                        if self._distanceHuman == 'far' and self._criticalFound < 2 and self._second > 240 and self._answered == False:
                             self._sendMessage('Found stones blocking the entrance of ' + str(self._door['room_name']) + '. These stones can be removed alone or together. Removing alone takes around 25 seconds, together around 5 seconds. \
                                 I suggest to continue searching instead of removing these stones: 7 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             # The number of critically injured victims still to find contributed the most to this advice.','RescueBot')
-                        if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second > 240:
+                        if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second > 240 and self._answered == False:
                             self._sendMessage('Found stones blocking the entrance of ' + str(self._door['room_name']) + '. These stones can be removed alone or together. Removing alone takes around 25 seconds, together around 5 seconds. \
                                 I suggest to remove the stones alone instead of continue searching or removing together: 5 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             # The time left to finish the task and estimated waiting time for you to arrive here contributed the most to this advice.','RescueBot')
-                        if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second < 240:
+                        if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second < 240 and self._answered == False:
                             self._sendMessage('Found stones blocking the entrance of ' + str(self._door['room_name']) + '. These stones can be removed alone or together. Removing alone takes around 25 seconds, together around 5 seconds. \
                                 I suggest to remove the stones together or to continue searching: 8 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             #The number of critically injured victims still to find contributed the most to this advice.','RescueBot')
-                        if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second < 240:
+                        if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second < 240 and self._answered == False:
                             self._sendMessage('Found stones blocking the entrance of ' + str(self._door['room_name']) + '. These stones can be removed alone or together. Removing alone takes around 25 seconds, together around 5 seconds. \
                                 I suggest to remove the stones blocking ' + str(self._door['room_name']) + ' together instead of continue searching or removing alone: 6 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Continue", "Remove alone" or "Remove together".', 'RescueBot')
                             #The estimates waiting time for you to arrive here and estimated removal time contributed the most to this advice,','RescueBot)
-                        if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second > 240:
+                        if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second > 240 and self._answered == False:
                             self._sendMessage('Found stones blocking the entrance of ' + str(self._door['room_name']) + '. These stones can be removed alone or together. Removing alone takes around 25 seconds, together around 5 seconds. \
                                 I suggest to continue searching instead of removing these stones: 5 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             # The number of critically injured victims still to find contributed the most to this advice.','RescueBot')
-                        if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second > 240:
+                        if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second > 240 and self._answered == False:
                             self._sendMessage('Found stones blocking the entrance of ' + str(self._door['room_name']) + '. These stones can be removed alone or together. Removing alone takes around 25 seconds, together around 5 seconds. \
                                 I suggest to remove the stones together instead of continue searching or removing alone: 7 out of 9 rescuers would decide the same in a similar situation. \
                                 Please select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             # The estimated waiting time for you to arrive here contributed the most to this advice.', 'RescueBot')
                         
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
+                            self._answered = True
                             self._searchedRooms.append(self._door['room_name'])
                             self._phase=Phase.FIND_NEXT_GOAL
                         if self.received_messages_content and self.received_messages_content[-1] == 'Remove alone':
+                            self._answered = True
                             self._phase = Phase.ENTER_ROOM
                             self._remove = False
                             return RemoveObject.__name__,{'object_id':info['obj_id']}
                         if self.received_messages_content and self.received_messages_content[-1] == 'Remove together':
+                            self._answered = True
                             self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove the stones together.', 'RescueBot')
                             if not 'Human' in info['name']:
                                 return None, {} 
@@ -404,6 +411,7 @@ class TutorialAgent(BW4TBrain):
 
                 if len(objects)==0:                    
                     #self._sendMessage('No need to clear the entrance of ' + str(self._door['room_name']) + ' because it is not blocked by obstacles.','RescueBot')
+                    self._answered = False
                     self._remove = False
                     self._phase = Phase.ENTER_ROOM
                     
@@ -468,83 +476,83 @@ class TutorialAgent(BW4TBrain):
                                 self._recentVic = vic
                                 self._foundVictims.append(vic)
                                 self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
-                                if 'mild' in vic and self._second < 240 and self._criticalRescued < 2 and self._distanceDrop == 'close':
+                                if 'mild' in vic and self._second < 240 and self._criticalRescued < 2 and self._distanceDrop == 'close' and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
                                         I suggest to continue searching instead of rescuing ' + vic + ': 5 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')
                                     #The number of critically injured victims left to rescue contributed the most to this advice.', 'RescueBot')
-                                if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'close':
+                                if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'close' and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 5 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     #The time left to finish the task and the estimated time to reach the drop zone contributed the most to this advice.', 'RescueBot')
-                                if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'close':
+                                if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'close' and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
                                         I suggest to continue searching instead of rescuing ' + vic + ': 8 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The number of critically injured victims left to rescue contributed the most to this advice.', 'RescueBot')
-                                if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'close':
+                                if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'close' and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 7 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The number of critically injured victims left to rescue contributed the most to this advice.', 'RescueBot')
-                                if 'mild' in vic and self._second < 240 and self._criticalRescued < 2 and self._distanceDrop == 'far':
+                                if 'mild' in vic and self._second < 240 and self._criticalRescued < 2 and self._distanceDrop == 'far' and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
                                         I suggest to continue searching instead of rescuing ' + vic + ': 5 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')
                                     # The number of critically injured victims left to rescue contributed the most to this advice.', 'RescueBot')
-                                if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'far':
+                                if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'far' and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 6 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The time left to finish the task contributed the most to this advice.', 'RescueBot')
-                                if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'far':
+                                if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'far' and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
                                         I suggest to continue searching instead of rescuing ' + vic + ': 7 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The number of critically injured victims left to rescue contributed the most to this advice.','RescueBot')
-                                if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'far':
+                                if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'far' and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 5 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The number of critically injured victims left to rescue and the time left to finish the task contributed the most to this advice.','RescueBot')
                                 
-                                if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'close' and self._second < 240:
+                                if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'close' and self._second < 240 and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ', which should be carried together. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 8 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The estimated waiting time for you to arrive here contributed the most to this advice.', 'RescueBot')
-                                if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'far' and self._second < 240:
+                                if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'far' and self._second < 240 and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ', which should be carried together. \
                                         I siggest to rescue ' + vic + ' instead of continue searching: 6 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The estimated time to reach the drop zone and the time left to finish the task contributed the most to this advice.', 'RescueBot')
-                                if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second > 240:
+                                if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second > 240 and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ', which should be carried together. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 8 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The higher rescue priority contributed the most to this advice.', 'RescueBot')
-                                if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second < 240:
+                                if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second < 240 and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ', which should be carried together. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 6 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The time left to finish the task contributed the most to this advice.', 'RescueBot')
-                                if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second > 240:
+                                if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second > 240 and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ', which should be carried together. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 6 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     #  The estimated waiting time for you to arrive here contributed the most to this advice.', 'RescueBot')
-                                if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'close' and self._second > 240:
+                                if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'close' and self._second > 240 and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ', which should be carried together. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 7 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     #  The higher rescue priority contributed the most to this advice.', 'RescueBot')
-                                if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'far' and self._second < 240:
+                                if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'far' and self._second < 240 and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ', which should be carried together. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 5 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     # The time left to finish the task contributed the most to this advice.', 'RescueBot')
-                                if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'far' and self._second > 240:
+                                if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'far' and self._second > 240 and self._answered == False:
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + ', which should be carried together. \
                                         I suggest to rescue ' + vic + ' instead of continue searching: 7 out of 9 rescuers would decide the same in a similar situation. \
                                         Please select your decision using the buttons "Rescue" or "Continue".','RescueBot')
@@ -562,10 +570,12 @@ class TutorialAgent(BW4TBrain):
                     self.received_messages_content = []
                 self._searchedRooms.append(self._door['room_name'])
                 if self.received_messages_content and self.received_messages_content[-1]=='Rescue':
+                    self._answered = True
                     if 'critical' in self._recentVic:
                         self._sendMessage('Please come to ' + str(self._door['room_name']) + ' because we need to carry ' + str(self._recentVic) + ' together.', 'RescueBot')
                     self._phase=Phase.FIND_NEXT_GOAL
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
+                    self._answered = True
                     self._todo.append(self._recentVic)
                     self._phase=Phase.FIND_NEXT_GOAL
                 if self.received_messages_content and self._advice and self.received_messages_content[-1]!='Rescue' and self.received_messages_content[-1]!='Continue':
