@@ -74,6 +74,7 @@ class TutorialAgent(BW4TBrain):
         self._agentLoc = None
         self._todo = []
         self._answered = False
+        self._tosearch = []
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
@@ -180,8 +181,10 @@ class TutorialAgent(BW4TBrain):
                 unsearchedRooms=[room['room_name'] for room in state.values()
                 if 'class_inheritance' in room
                 and 'Door' in room['class_inheritance']
-                and room['room_name'] not in self._searchedRooms]
+                and room['room_name'] not in self._searchedRooms
+                and room['room_name'] not in self._tosearch]
                 if self._remainingZones and len(unsearchedRooms) == 0:
+                    self._tosearch = []
                     self._todo = []
                     self._searchedRooms = []
                     self._sendMessages = []
@@ -244,7 +247,7 @@ class TutorialAgent(BW4TBrain):
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         for info in state.values():
-                            if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
+                            if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id'] and info['location'] not in [(9,7),(9,19),(21,19)]:
                             #    self._sendMessage('Found stones blocking my path to ' + str(self._door['room_name']) + '. We can remove them faster if you help me. If you will come here press the "Yes" button, if not press "No".', 'RescueBot')
                             #    if self.received_messages_content and self.received_messages_content[-1]=='Yes':
                             #        return None, {}
@@ -306,7 +309,7 @@ class TutorialAgent(BW4TBrain):
 
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
                             self._answered = True
-                            self._searchedRooms.append(self._door['room_name'])
+                            self._tosearch.append(self._door['room_name'])
                             self._phase = Phase.FIND_NEXT_GOAL
                         if self.received_messages_content and self.received_messages_content[-1] == 'Remove':
                             self._answered = True
@@ -341,7 +344,7 @@ class TutorialAgent(BW4TBrain):
 
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
                             self._answered = True
-                            self._searchedRooms.append(self._door['room_name'])
+                            self._tosearch.append(self._door['room_name'])
                             self._phase=Phase.FIND_NEXT_GOAL
                         if self.received_messages_content and self.received_messages_content[-1] == 'Remove':
                             self._answered = True
@@ -395,7 +398,7 @@ class TutorialAgent(BW4TBrain):
                         
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
                             self._answered = True
-                            self._searchedRooms.append(self._door['room_name'])
+                            self._tosearch.append(self._door['room_name'])
                             self._phase=Phase.FIND_NEXT_GOAL
                         if self.received_messages_content and self.received_messages_content[-1] == 'Remove alone':
                             self._answered = True
@@ -732,6 +735,8 @@ class TutorialAgent(BW4TBrain):
                     area = 'area ' + msg.split()[-1]
                     self._door = state.get_room_doors(area)[0]
                     self._doormat = state.get_room(area)[-1]['doormat']
+                    if area in self._searchedRooms:
+                        self._searchedRooms.remove(area)
                     self.received_messages = []
                     self.received_messages_content = []
                     self._remove = True
