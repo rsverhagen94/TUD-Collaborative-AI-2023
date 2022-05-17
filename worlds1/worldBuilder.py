@@ -82,7 +82,7 @@ def add_agents(builder, condition, exp_version):
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
             if exp_version=="trial":
-                brain = TutorialAgent(condition, slowdown=2)
+                brain = TutorialAgent(condition, slowdown=15)
             if exp_version=="low":
                 brain = LowInterdependenceAgent(condition, slowdown=25)
             if exp_version=="high":
@@ -211,7 +211,7 @@ def create_builder(exp_version, condition):
     for loc in [(21,10),(21,11),(21,12),(21,13),(19,15),(19,16)]:
         builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final15.svg", visualize_size=1) 
     #for loc in [(6,11),(15,12),(12,16),(6,10),(6,9),(12,15),(16,12),(17,12),(18,5),(18,6),(21,2),(21,3)]:
-    for loc in [(12,16),(6,10),(6,9),(12,15),(21,2),(21,3)]:
+    for loc in [(12,14),(6,8),(6,9),(12,15)]:
         builder.add_object(loc,'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
     
     
@@ -300,8 +300,8 @@ def create_builder(exp_version, condition):
         builder.add_object((16,9),'healthy girl in area 7', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy girl.svg")
 
-        builder.add_object((22,3),'mildly injured boy in area 4', callable_class=CollectableBlock, 
-    visualize_shape='img',img_name="/images/mildly injured boy.svg")
+        builder.add_object((22,3),'healthy boy in area 4', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy boy.svg")
         builder.add_object((2,20),'healthy elderly woman in area 11', callable_class=CollectableBlock, 
     visualize_shape='img',img_name="/images/healthy elderly woman.svg")
 

@@ -323,7 +323,9 @@ class HumanBrain(HumanAgentBrain):
                                                   property_to_check="is_movable")
             action_kwargs['object_id'] = obj_id
             if obj_id and 'stone' in obj_id:
-                action_kwargs['action_duration'] = 10
+                action_kwargs['action_duration'] = 100
+            if obj_id and 'rock' in obj_id:
+                action_kwargs['action_duration'] = 200
         
         # If the user chose to remove an object
         elif action == RemoveObject.__name__:
@@ -339,7 +341,7 @@ class HumanBrain(HumanAgentBrain):
 
                 action_kwargs['object_id'] = obj_id
             #if 'stone' in obj_id:
-                action_kwargs['action_duration'] = 100
+                action_kwargs['action_duration'] = 500
 
         # if the user chose to do an open or close door action, find a door to
         # open/close within range
@@ -375,10 +377,10 @@ class HumanBrain(HumanAgentBrain):
                 if water['location'] not in water_locs:
                     water_locs.append(water['location'])
             if state[{"name": "Human"}]['location'] in water_locs:
-                print("DROWNING")
+                #print("DROWNING")
                 #return Idle.__name__,{'duration_in_ticks':50}
                 action == Idle.__name__
-                action_kwargs['duration_in_ticks'] = 20
+                action_kwargs['duration_in_ticks'] = 10
 
 
         return action, action_kwargs

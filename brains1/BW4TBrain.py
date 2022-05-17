@@ -1,4 +1,5 @@
 from abc import  ABC, abstractmethod
+from actions1.customActions import RemoveObjectTogether
 from matrx.agents.agent_utils.state import State
 from brains1.BW4TAgentBrain import BW4TAgentBrain
 
@@ -35,10 +36,16 @@ class BW4TBrain(BW4TAgentBrain, ABC):
         for water in state[{"name": "water"}]:
             if water['location'] not in water_locs:
                 water_locs.append(water['location'])
+        # remove doormat from water_locs
         if state[{"name": "RescueBot"}]['location'] in water_locs:
-            params['action_duration'] = 100
+            params['action_duration'] = 25
         else:
             params['action_duration'] = self.__slowdown
+        if act == 'RemoveObject' and 'stone' in params['object_id']:
+            params['action_duration'] = 500
+        if act == 'RemoveObject' and 'tree' in params['object_id']:
+            params['action_duration'] = 300
+
         return act,params
     
     #Override 
