@@ -323,9 +323,9 @@ class HumanBrain(HumanAgentBrain):
                                                   property_to_check="is_movable")
             action_kwargs['object_id'] = obj_id
             if obj_id and 'stone' in obj_id:
-                action_kwargs['action_duration'] = 100
+                action_kwargs['action_duration'] = 25
             if obj_id and 'rock' in obj_id:
-                action_kwargs['action_duration'] = 200
+                action_kwargs['action_duration'] = 50
         
         # If the user chose to remove an object
         elif action == RemoveObject.__name__:
@@ -341,7 +341,7 @@ class HumanBrain(HumanAgentBrain):
 
                 action_kwargs['object_id'] = obj_id
             #if 'stone' in obj_id:
-                action_kwargs['action_duration'] = 500
+                action_kwargs['action_duration'] = 200
 
         # if the user chose to do an open or close door action, find a door to
         # open/close within range
@@ -373,14 +373,15 @@ class HumanBrain(HumanAgentBrain):
 
             #print(state[{"name": "Human"}]['location'])
             water_locs = []
-            for water in state[{"name": "water"}]:
-                if water['location'] not in water_locs:
-                    water_locs.append(water['location'])
+            if state[{"name": "water"}]:
+                for water in state[{"name": "water"}]:
+                    if water['location'] not in water_locs:
+                        water_locs.append(water['location'])
             if state[{"name": "Human"}]['location'] in water_locs and state[{"name": "Human"}]['location'] not in [(3,5),(9,5),(15,5),(21,5),(3,6),(9,6),(15,6),(3,17),(9,17),(15,17),(3,18),(9,18),(15,18),(21,18)]:
                 #print("DROWNING")
                 #return Idle.__name__,{'duration_in_ticks':50}
                 action == Idle.__name__
-                action_kwargs['duration_in_ticks'] = 10
+                action_kwargs['duration_in_ticks'] = 5
 
 
         return action, action_kwargs

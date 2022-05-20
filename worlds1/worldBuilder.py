@@ -14,14 +14,15 @@ from matrx.actions.object_actions import RemoveObject
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from agents1.BaselineAgent import TutorialAgent
+from agents1.BaselineAgent import BaselineAgent
+from agents1.TutorialAgent import TutorialAgent
 from actions1.customActions import RemoveObjectTogether
 from brains1.HumanBrain import HumanBrain
 from loggers.action_logger import ActionLogger
 from datetime import datetime
 from loggers.message_logger import MessageLogger
 
-tick_duration = 0.05
+tick_duration = 0.1
 random_seed = 1
 verbose = False
 key_action_map = {
@@ -56,18 +57,16 @@ fov_occlusion = True
 agent_slowdown=[3,2,1,1,1]
 
 def add_drop_off_zones(builder, exp_version):
-    if exp_version == "experiment" or exp_version == "high":
+    if exp_version == "experiment":
         nr_drop_zones = 1
         for nr_zone in range(nr_drop_zones):
             builder.add_area((23,8), width=1, height=8, name=f"Drop off {nr_zone}", visualize_opacity=0.5, visualize_colour=drop_off_color, drop_zone_nr=nr_zone,
                 is_drop_zone=True, is_goal_block=False, is_collectable=False) 
-    if exp_version == "low":
-        nr_drop_zones = 2
+    if exp_version == "trial":
+        nr_drop_zones = 1
         for nr_zone in range(nr_drop_zones):
-            builder.add_area((1,23), width=4, height=1, name=f"Drop off {nr_zone}", visualize_colour=drop_off_color, drop_zone_nr=nr_zone,
-                is_drop_zone=True, is_goal_block=False, is_collectable=False)  
-            builder.add_area((5,23), width=4, height=1, name=f"Drop off {nr_zone}", visualize_opacity=0.3, drop_zone_nr=nr_zone, is_drop_zone=True, is_goal_block=False, is_collectable=False) 
-
+            builder.add_area((17,7), width=1, height=4, name=f"Drop off {nr_zone}",visualize_opacity=0.5, visualize_colour=drop_off_color, drop_zone_nr=nr_zone,
+                is_drop_zone=True, is_goal_block=False, is_collectable=False) 
             
 def add_agents(builder, condition, exp_version):
     sense_capability = SenseCapability({AgentBody: agent_sense_range,
@@ -81,14 +80,16 @@ def add_agents(builder, condition, exp_version):
         # Add agents
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
-            if exp_version=="experiment" or "trial":
-                brain = TutorialAgent(condition, slowdown=15)
+            if exp_version=="experiment" and condition=="baseline":
+                brain = BaselineAgent(slowdown=8)
+            if exp_version=="trial" and condition=="tutorial":
+                brain = TutorialAgent(slowdown=8)
 
             if exp_version=="experiment":
                 loc = (22,11)
             else:
-                loc = (5,5)
-            builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score'], score=0,
+                loc = (16,8)
+            builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score','followed','ignored'], score=0,followed=0,ignored=0,
                               sense_capability=sense_capability, is_traversable=True, img_name="/images/robot-final4.svg")
 
         # Add human agents
@@ -97,7 +98,7 @@ def add_agents(builder, condition, exp_version):
             if exp_version=="experiment":
                 loc = (22,12)
             else:
-                loc = (5,4)
+                loc = (16,9)
             builder.add_human_agent(loc, brain, team=team_name, name="Human",
                                     key_action_map=key_action_map, sense_capability=sense_capability, is_traversable=True, img_name="/images/rescue-man-final3.svg", visualize_when_busy=True)
 
@@ -117,8 +118,8 @@ def create_builder(exp_version, condition):
     else:
         builder = WorldBuilder(shape=[19,19], tick_duration=tick_duration, run_matrx_api=True,random_seed=random_seed,
                            run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#9a9083')
-    if exp_version=="low":
-        current_exp_folder = datetime.now().strftime("exp_LOW_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
+    if exp_version=="experiment":
+        current_exp_folder = datetime.now().strftime("exp_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
         logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
         builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
         builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")
@@ -137,16 +138,67 @@ def create_builder(exp_version, condition):
         with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(9,5)})
         builder.add_room(top_left_location=(13,1), width=5, height=4, name='area 3', door_locations=[(15,4)],doors_open=True, wall_visualize_colour=wall_color, 
         with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(15,5)})
-        builder.add_room(top_left_location=(1,7), width=5, height=4, name='area 5', door_locations=[(3,7)],doors_open=True, wall_visualize_colour=wall_color, 
+        builder.add_room(top_left_location=(1,7), width=5, height=4, name='area 4', door_locations=[(3,7)],doors_open=True, wall_visualize_colour=wall_color, 
         with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(3,6)})
-        builder.add_room(top_left_location=(7,7), width=5, height=4, name='area 6', door_locations=[(9,7)],doors_open=True, wall_visualize_colour=wall_color, 
+        builder.add_room(top_left_location=(7,7), width=5, height=4, name='area 5', door_locations=[(9,7)],doors_open=True, wall_visualize_colour=wall_color, 
         with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(9,6)})
-        builder.add_room(top_left_location=(1,13), width=5, height=4, name='area 8', door_locations=[(3,16)],doors_open=True, wall_visualize_colour=wall_color, 
+        builder.add_room(top_left_location=(1,13), width=5, height=4, name='area 6', door_locations=[(3,16)],doors_open=True, wall_visualize_colour=wall_color, 
         with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(3,17)})
-        builder.add_room(top_left_location=(7,13), width=5, height=4, name='area 9', door_locations=[(9,16)],doors_open=True, wall_visualize_colour=wall_color, 
+        builder.add_room(top_left_location=(7,13), width=5, height=4, name='area 7', door_locations=[(9,16)],doors_open=True, wall_visualize_colour=wall_color, 
         with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(9,17)})
-        builder.add_room(top_left_location=(13,13), width=5, height=4, name='area 10', door_locations=[(15,16)],doors_open=True, wall_visualize_colour=wall_color, 
+        builder.add_room(top_left_location=(13,13), width=5, height=4, name='area 8', door_locations=[(15,16)],doors_open=True, wall_visualize_colour=wall_color, 
         with_area_tiles=True, area_visualize_colour=room_colors[0],area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(15,17)})
+
+        for loc in [(1,1),(2,1),(3,1),(4,1),(5,1),(1,2),(1,3),(1,4),(2,4),(4,4),(5,4),(5,3),(5,2),(7,1),(8,1),(9,1),(10,1),(11,1),(7,2),(7,3),(7,4),(8,4),(11,2),(11,3),(11,4),(10,4),
+    (13,1),(14,1),(15,1),(16,1),(17,1),(13,1),(14,1),(15,1),(16,1),(17,1),(13,2),(13,3),(13,4),(14,4),(16,4),(17,4),(17,3),(17,2),
+    (1,7),(1,8),(1,9),(1,10),(2,10),(3,10),(4,10),(5,10),(5,9),(5,8),(5,7),(4,7),(2,7),
+    (7,7),(7,8),(7,9),(7,10),(8,10),(9,10),(10,10),(11,10),(11,9),(11,8),(11,7),(10,7),(8,7),
+    (1,13),(2,13),(3,13),(4,13),(5,13),(1,14),(1,15),(1,16),(2,16),(4,16),(5,16),(5,15),(5,14),(5,13),
+    (7,13),(8,13),(9,13),(10,13),(11,13),(7,14),(7,15),(7,16),(8,16),(10,16),(11,16),(11,15),(11,14),
+    (13,13),(14,13),(15,13),(16,13),(17,13),(13,14),(13,15),(13,16),(14,16),(17,14),(17,15),(17,16),(16,16)]:
+            builder.add_object(loc,'roof', EnvObject,is_traversable=True, is_movable=False, visualize_shape='img',img_name="/images/roof-final5.svg")
+
+        builder.add_object((3,4), 'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+        builder.add_object((3,7),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
+        builder.add_object((3,16),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
+        builder.add_object((9,16),'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
+        builder.add_object((15,16),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+        builder.add_object((9,7),'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
+
+        builder.add_object((16,3),'critically injured elderly woman in area 3', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
+        builder.add_object((14,14),'healthy man in area 8', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy man.svg")
+        builder.add_object((2,9),'mildly injured elderly man in area 4', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured elderly man.svg")
+        builder.add_object((2,14),'healthy girl in area 6', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy girl.svg")
+        builder.add_object((8,9),'critically injured girl in area 5', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/critically injured girl.svg")
+        builder.add_object((16,15),'mildly injured boy in area 8', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/mildly injured boy.svg")
+        builder.add_object((10,3),'healthy boy in area 2', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy boy.svg")
+        builder.add_object((10,8),'healthy elderly man in area 5', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy elderly man.svg")
+        builder.add_object((10,15),'healthy dog in area 7', callable_class=CollectableBlock, 
+    visualize_shape='img',img_name="/images/healthy dog.svg")
+
+        builder.add_object((17,7),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
+        builder.add_object((17,8),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured elderly woman.svg",drop_zone_nr=0)
+        builder.add_object((17,9),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured boy.svg",drop_zone_nr=0)
+        builder.add_object((17,10),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/mildly injured elderly man.svg",drop_zone_nr=0)
+
+        builder.add_object(location=[3,1], is_traversable=True, is_movable=False, name="area 01 sign", img_name="/images/sign01.svg", visualize_depth=110, visualize_size=0.5)
+        builder.add_object(location=[9,1], is_traversable=True, is_movable=False, name="area 02 sign", img_name="/images/sign02.svg", visualize_depth=110, visualize_size=0.55)
+        builder.add_object(location=[15,1], is_traversable=True, is_movable=False, name="area 03 sign", img_name="/images/sign03.svg", visualize_depth=110, visualize_size=0.55)
+        builder.add_object(location=[3,10], is_traversable=True, is_movable=False, name="area 04 sign", img_name="/images/sign04.svg", visualize_depth=110, visualize_size=0.55)
+        builder.add_object(location=[9,10], is_traversable=True, is_movable=False, name="area 05 sign", img_name="/images/sign05.svg", visualize_depth=110, visualize_size=0.55)
+        builder.add_object(location=[3,13], is_traversable=True, is_movable=False, name="area 06 sign", img_name="/images/sign06.svg", visualize_depth=110, visualize_size=0.55)
+        builder.add_object(location=[9,13], is_traversable=True, is_movable=False, name="area 07 sign", img_name="/images/sign07.svg", visualize_depth=110, visualize_size=0.55)
+        builder.add_object(location=[15,13], is_traversable=True, is_movable=False, name="area 08 sign", img_name="/images/sign08.svg", visualize_depth=110, visualize_size=0.55)
+
+        builder.add_object(location=[9,0], is_traversable=True, name="keyboard sign", img_name="/images/keyboard-final.svg", visualize_depth=110, visualize_size=15)
 
        
     if exp_version == "experiment":
@@ -186,7 +238,7 @@ def create_builder(exp_version, condition):
    
     #builder.add_object((21,4),'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
         builder.add_object((3,4), 'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
-        builder.add_object((9,4),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
+        builder.add_object((9,4),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
         builder.add_object((9,16),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
         builder.add_object((15, 7),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
         builder.add_object((15,19),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
@@ -240,7 +292,7 @@ def create_builder(exp_version, condition):
         for loc in [(21,10),(21,11),(21,12),(21,13),(19,15),(19,16)]:
             builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final15.svg", visualize_size=1) 
     #for loc in [(6,11),(15,12),(12,16),(6,10),(6,9),(12,15),(16,12),(17,12),(18,5),(18,6),(21,2),(21,3)]:
-        for loc in [(12,14),(6,8),(6,9),(12,15)]:
+        for loc in [(12,14),(6,9)]:
             builder.add_object(loc,'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
     
         builder.add_object((23,8),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
@@ -390,9 +442,6 @@ class CollectionGoal(WorldGoal):
     def score(self, grid_world: GridWorld):
         return self.__score
 
-    def progress(self, grid_world:GridWorld):
-        return self.__progress
-
     def goal_reached(self, grid_world: GridWorld):
         if grid_world.current_nr_ticks >= self.max_nr_ticks:
             return True
@@ -418,6 +467,18 @@ class CollectionGoal(WorldGoal):
         #    self.__score+=10
         #    human.change_property('score',self.__score)
         return is_satisfied
+
+    def progress(self, grid_world:GridWorld):
+        if self.__drop_off =={}:  # find all drop off locations, its tile ID's and goal blocks
+            self.__find_drop_off_locations(grid_world)
+
+        # Go through each drop zone, and check if the blocks are there in the right order
+        is_satisfied, progress = self.__check_completion(grid_world)
+
+        # Progress in percentage
+        self.__progress = progress / sum([len(goal_blocks)\
+            for goal_blocks in self.__drop_off.values()])
+        return self.__progress
 
     def __find_drop_off_locations(self, grid_world):
 
@@ -493,18 +554,18 @@ class CollectionGoal(WorldGoal):
                         tick is None:
                     self.__drop_off[zone_nr][rank][2] = curr_tick
                     if 'critical' in blocks[0].properties['img_name'][8:-4]:
-                        self.__score+=5
+                        self.__score+=6
                     if 'mild' in blocks[0].properties['img_name'][8:-4]:
-                        self.__score+=1
+                        self.__score+=3
                 # if there is no block, reset its tick to None
 
                 elif len(blocks) == 0:
                     if self.__drop_off[zone_nr][rank][2] != None:
                         self.__drop_off[zone_nr][rank][2] = None
                         if rank in [0,1,2,3]:
-                            self.__score-=5
+                            self.__score-=6
                         if rank in [4,5,6,7]:
-                            self.__score-=1
+                            self.__score-=3
                     #self.__score
 
         # Now check if all blocks are collected in the right order
@@ -515,15 +576,18 @@ class CollectionGoal(WorldGoal):
             ticks = [goal_blocks[r][2] for r in range(len(goal_blocks))]  # list of ticks in rank order
 
             # check if all ticks are increasing
-            for idx, tick in enumerate(ticks[:-1]):
-                if tick is None or ticks[idx+1] is None:
-                    progress += (idx+1) if tick is not None else idx  # increment progress
-                    zone_satisfied = False  # zone is not complete or ordered
-                    break  # break this loop
+            for tick in ticks:
+                if tick is not None:
+                    progress += 1
+                #if tick is None:  # increment progress
+                #    zone_satisfied = False  # zone is not complete or ordered
+                #    break  # break this loop
+            if None in ticks:
+                zone_satisfied = False
 
             # if all ticks were increasing, check if the last tick is set and set progress to full for this zone
-            if zone_satisfied and ticks[-1] is not None:
-                progress += len(goal_blocks)
+            #if zone_satisfied and None not in ticks:
+            #    progress += len(goal_blocks)
 
             # update our satisfied boolean
             is_satisfied = is_satisfied and zone_satisfied

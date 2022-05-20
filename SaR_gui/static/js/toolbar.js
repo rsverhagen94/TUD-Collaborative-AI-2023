@@ -499,7 +499,11 @@ function add_message(chatroom_ID, mssg) {
     mssg_content = mssg_content.replaceAll("healthy elderly man", "<img src='/static/images/healthy elderly man.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("healthy elderly woman", "<img src='/static/images/healthy elderly woman.svg' height= 30 width=30/>");
 
-    if (mssg_content.includes("score")) {
+    mssg_content = mssg_content.replaceAll("rock", "<img src='/static/images/stone.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("stones", "<img src='/static/images/stone-small.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("tree", "<img src='/static/images/tree-fallen2.svg' height= 30 width=30/>");
+
+    if (mssg_content.includes("Our score is")) {
         function score() {
             const text = mssg_content.split(".").join("").split(" ").at(-1);
 
@@ -534,7 +538,7 @@ function increment() {
   if (elapsedTime/1000>limit) {
     document.getElementById('elapsedTime').innerHTML = 'Time up!'
     localStorage.removeItem('ts');
-    toggle_stop();
+    toggle_pause();
 }
 
 }
@@ -563,7 +567,7 @@ function checkTime(i) {
     }
 
     // add the message text to the message div
-    if (!mssg_content.includes("score")) {
+    if (!mssg_content.includes("Our score is") && !mssg_content.includes("You ignored me")) {
     var content = document.createElement('span');
     content.className = "chat-content";
     content.innerHTML = mssg_content;
