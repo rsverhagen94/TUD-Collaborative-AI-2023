@@ -301,7 +301,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to continue searching instead of removing rock: 5/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found rock blocking ' + str(self._door['room_name']) + '. \
-                            #    I suggest to continue searching instead of removing rock: 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to continue searching instead of removing rock: 5/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \ 
+                            # If we had found more than 1 critical victim, I would have suggested to remove rock.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                         if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound < 2 and self._answered == False and not self._remove:
@@ -309,7 +311,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to continue searching instead of removing rock: 7/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '. \
-                            #    I suggest to continue searching instead of removing rock: 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to continue searching instead of removing rock: 7/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            # If we had found more than 1 critical victim, I would have suggested to remove rock.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                         if self._distanceHuman == 'close' and self._second < 240 and self._criticalFound > 1 and self._answered == False and not self._remove:
@@ -317,7 +321,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove rock instead of continue searching: 7/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove rock instead of continue searching: 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                            #    I suggest to remove rock instead of continue searching: 7/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                            # If we had found less than 2 critical victims, I would have suggested to continue searching.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                         if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound > 1 and self._answered == False and not self._remove:
@@ -325,7 +331,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove rock instead of continue searching: 5/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove rock instead of continue searching: 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to remove rock instead of continue searching: 5/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            # If we had found less than 2 critical victims, I would have suggested to continue searching.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                         if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound < 2 and self._answered == False and not self._remove:
@@ -333,7 +341,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to continue searching instead of removing rock: 8 out 9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to continue searching instead of removing rock: 8 out 9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to continue searching instead of removing rock: 8 out 9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            # If we had found less than 1 critical victim, I would have suggested to remove rock.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                         if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound < 2 and self._answered == False and not self._remove:
@@ -341,7 +351,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to continue searching instead of removing rock: 8/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to continue searching instead of removing rock: 8/9 rescuers would decide the same, because the distance between us is large. \
+                            #    I suggest to continue searching instead of removing rock: 8/9 rescuers would decide the same, 
+                            # because the distance between us is large. \
+                            # If we had found more than 1 critical victim, I would have suggested to remove rock.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                         if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound > 1 and self._answered == False and not self._remove:
@@ -349,7 +361,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove rock instead of continue searching: 6/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove rock instead of continue searching: 6/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to remove rock instead of continue searching: 6/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            # If we found less than 2 critical victims, I would have suggested to continue searching.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                         if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound > 1 and self._answered == False and not self._remove:
@@ -357,7 +371,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove rock instead of continue searching: 5/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove rock instead of continue searching: 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                            #    I suggest to remove rock instead of continue searching: 5/9 rescuers would decide the same, 
+                            # because we have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                            # If we had found less than 2 critical victims, I would have suggested to continue searching. 
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
 
@@ -390,7 +406,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove tree instead of continue searching: 5/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove tree instead of continue searching: 5/9 rescuers would decide the same, because removing tree only takes around 10 seconds. \
+                            #    I suggest to remove tree instead of continue searching: 5/9 rescuers would decide the same, 
+                            # because removing tree only takes around 10 seconds. \
+                            # If we had less than 4 minutes left, I would have suggested to continue searching.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                         if self._second < 240 and self._criticalFound > 1 and self._answered == False and not self._remove:
@@ -398,7 +416,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove tree instead of continue searching: 8/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove tree instead of continue searching: 8/9 rescuers would decide the same, because removing tree only takes around 10 seconds. \
+                            #    I suggest to remove tree instead of continue searching: 8/9 rescuers would decide the same, 
+                            # because removing tree only takes around 10 seconds. \
+                            # If we had less than 4 minutes left, I would have suggested to continue searching.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                         if self._second > 240 and self._criticalFound < 2 and self._answered == False and not self._remove:
@@ -406,7 +426,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to continue searching instead of removing tree: 8/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to continue searching instead of removing tree: 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to continue searching instead of removing tree: 8/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            # If we had more than 4 minutes left, I would have suggested to remove tree.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                         if self._second > 240 and self._criticalFound > 1 and self._answered == False and not self._remove:
@@ -414,7 +436,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to continue searching instead of removing tree: 7/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             #self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to continue searching instead of removing tree: 7/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                            #    I suggest to continue searching instead of removing tree: 7/9 rescuers would decide the same, 
+                            # because we have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                            # If we had more than 4 minutes left, I would have suggested to remove tree.
                             #    Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
 
@@ -445,7 +469,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to continue searching instead of removing stones: 5/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             #self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to continue searching instead of removing stones: 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                            #    I suggest to continue searching instead of removing stones: 5/9 rescuers would decide the same, 
+                            # because we have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                            # If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, I would have suggested to remove together.
                             #    Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Continue']
                         if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second < 240 and self._answered == False and not self._remove:
@@ -453,7 +479,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove stones alone instead of continue searching or removing together: 8/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             #self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove stones alone instead of continue searching or removing together: 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to remove stones alone instead of continue searching or removing together: 8/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            # If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching. 
                             #    Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Remove alone']
                         if self._distanceHuman == 'far' and self._criticalFound < 2 and self._second > 240 and self._answered == False and not self._remove:
@@ -461,7 +489,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to continue searching instead of removing stones: 7/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             #self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to continue searching instead of removing stones: 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to continue searching instead of removing stones: 7/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            # If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, and we had more than 4 minutes left or found more than 1 critical victim, I would have suggested to remove together.
                             #    Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Continue']
                         if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second > 240 and self._answered == False and not self._remove:
@@ -469,7 +499,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove stones alone instead of continue searching or removing together: 5/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             #self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove stones alone instead of continue searching or removing together: 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance between us is large. \
+                            #    I suggest to remove stones alone instead of continue searching or removing together: 5/9 rescuers would decide the same, 
+                            # because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance between us is large. \
+                            # If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching. 
                             #    Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Remove alone']
                         if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second < 240 and self._answered == False and not self._remove:
@@ -477,7 +509,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove stones together or to continue searching: 8/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             #self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove stones together or to continue searching: 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to remove stones together or to continue searching: 8/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            # If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone. 
                             #    Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Remove together', 'Continue']
                         if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second < 240 and self._answered == False and not self._remove:
@@ -485,7 +519,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove stones together instead of continue searching or removing alone: 6/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Continue", "Remove alone" or "Remove together".', 'RescueBot')
                             #self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove stones together instead of continue searching or removing alone: 6/9 rescuers would decide the same, because the distance between us is small and removing together only takes around 3 seconds. \
+                            #    I suggest to remove stones together instead of continue searching or removing alone: 6/9 rescuers would decide the same, 
+                            # because the distance between us is small and removing together only takes around 3 seconds. \
+                            # If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching. 
                             #    Select your decision using the buttons "Continue", "Remove alone" or "Remove together".', 'RescueBot')
                             self._suggestion=['Remove together']
                         if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second > 240 and self._answered == False and not self._remove:
@@ -493,7 +529,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to continue searching instead of removing stones: 5/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             #self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to continue searching instead of removing stones: 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            #    I suggest to continue searching instead of removing stones: 5/9 rescuers would decide the same, 
+                            # because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. \
+                            # If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone. If we had found more than 1 critical victim, I would have suggested to remove together. 
                             #    Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Continue']
                         if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second > 240 and self._answered == False and not self._remove:
@@ -501,7 +539,9 @@ class BaselineAgent(BW4TBrain):
                                 I suggest to remove stones together instead of continue searching or removing alone: 7/9 rescuers would decide the same. \
                                 Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             #self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                            #    I suggest to remove stones together instead of continue searching or removing alone: 7/9 rescuers would decide the same, because the distance between us is small. \
+                            #    I suggest to remove stones together instead of continue searching or removing alone: 7/9 rescuers would decide the same, 
+                            # because the distance between us is small. \
+                            # If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching. 
                             #    Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Remove together']
                         
@@ -608,7 +648,9 @@ class BaselineAgent(BW4TBrain):
                                         I suggest to continue searching instead of rescuing ' + vic + ': 5/9 rescuers would decide the same. \
                                         Select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')
                                     #self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                    #    I suggest to continue searching instead of rescuing ' + vic + ': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    #    I suggest to continue searching instead of rescuing ' + vic + ': 5/9 rescuers would decide the same, 
+                                    # because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    # If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic '. \
                                     #    Select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')
                                     self._suggestion=['Continue']
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'close' and self._answered == False:
@@ -616,7 +658,9 @@ class BaselineAgent(BW4TBrain):
                                         I suggest to rescue ' + vic + ' instead of continue searching: 5/9 rescuers would decide the same. \
                                         Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     #self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                    #    I suggest to rescue ' + vic + ' instead of continue searching: 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance to the drop zone is small. \
+                                    #    I suggest to rescue ' + vic + ' instead of continue searching: 5/9 rescuers would decide the same, 
+                                    # because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance to the drop zone is small. \
+                                    # If we had rescued less than 2 critical victims, I would have suggested to continue searching.
                                     #    Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'close' and self._answered == False:
@@ -624,7 +668,9 @@ class BaselineAgent(BW4TBrain):
                                         I suggest to continue searching instead of rescuing ' + vic + ': 8/9 rescuers would decide the same. \
                                         Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     #self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                    #    I suggest to continue searching instead of rescuing ' + vic + ': 8/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    #    I suggest to continue searching instead of rescuing ' + vic + ': 8/9 rescuers would decide the same, 
+                                    # because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    # If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic '.' \
                                     #    Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Continue']
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'close' and self._answered == False:
@@ -632,7 +678,9 @@ class BaselineAgent(BW4TBrain):
                                         I suggest to rescue ' + vic + ' instead of continue searching: 7/9 rescuers would decide the same. \
                                         Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     #self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                    #    I suggest to rescue ' + vic + ' instead of continue searching: 7/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    #    I suggest to rescue ' + vic + ' instead of continue searching: 7/9 rescuers would decide the same, 
+                                    # because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    # If we had rescued less than 2 critical victims, I would have suggested to continue searching.
                                     #    Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued < 2 and self._distanceDrop == 'far' and self._answered == False:
@@ -640,7 +688,9 @@ class BaselineAgent(BW4TBrain):
                                         I suggest to continue searching instead of rescuing ' + vic + ': 5/9 rescuers would decide the same. \
                                         Select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')
                                     #self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                    #    I suggest to continue searching instead of rescuing ' + vic + ': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    #    I suggest to continue searching instead of rescuing ' + vic + ': 5/9 rescuers would decide the same, 
+                                    # because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    # If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic '.' \
                                     #    Select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')
                                     self._suggestion=['Continue']
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'far' and self._answered == False:
@@ -648,7 +698,9 @@ class BaselineAgent(BW4TBrain):
                                         I suggest to rescue ' + vic + ' instead of continue searching: 6/9 rescuers would decide the same. \
                                         Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     #self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                    #    I suggest to rescue ' + vic + ' instead of continue searching: 6/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                                    #    I suggest to rescue ' + vic + ' instead of continue searching: 6/9 rescuers would decide the same, 
+                                    # because we have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                                    # If we had rescued less than 2 critical victims, I would have suggested to continue searching.
                                     #    Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'far' and self._answered == False:
@@ -656,7 +708,9 @@ class BaselineAgent(BW4TBrain):
                                         I suggest to continue searching instead of rescuing ' + vic + ': 7/9 rescuers would decide the same. \
                                         Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     #self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                    #    I suggest to continue searching instead of rescuing ' + vic + ': 7/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    #    I suggest to continue searching instead of rescuing ' + vic + ': 7/9 rescuers would decide the same, 
+                                    # because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. \
+                                    # If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic '.' \
                                     #    Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Continue']
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'far' and self._answered == False:
@@ -664,7 +718,9 @@ class BaselineAgent(BW4TBrain):
                                         I suggest to rescue ' + vic + ' instead of continue searching: 5/9 rescuers would decide the same. \
                                         Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     #self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                    #    I suggest to rescue ' + vic + ' instead of continue searching: 5/9 rescuers would decide the same because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                                    #    I suggest to rescue ' + vic + ' instead of continue searching: 5/9 rescuers would decide the same, 
+                                    # because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left. \
+                                    # If we had rescued less than 2 critical victims, I would have suggested to continue searching.
                                     #    Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                 
