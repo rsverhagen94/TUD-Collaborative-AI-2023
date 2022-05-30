@@ -252,8 +252,9 @@ class TutorialAgent(BW4TBrain):
             if Phase.INTRO9==self._phase:
                 self._sendMessage('Nice job! Lets move to area 8 now. Remember to inform me about this. \
                 If you are in front of area 8, you see that it is blocked by stones. stones can be removed both alone and together. Removing alone takes around 20 seconds, together around 3 seconds. \
-                For this tutorial you will remove stones blocking area 4 alone. To do this, remain in front of stones and press "E" on your keyboard. \
-                Now, you will see a small busy icon untill stones is successfully removed. If the entrance is cleared, press the "Continue" button.','RescueBot')
+                For this tutorial you will remove stones blocking area 8 alone. To do this, remain in front of stones and press "E" on your keyboard. \
+                Now, you will see a small busy icon untill stones is successfully removed. When you are busy removing, you can send messages but they will only appear once the action is finished. \
+                So no need to keep clicking buttons! If the entrance is cleared, press the "Continue" button.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
                     self._phase=Phase.INTRO10
                     self.received_messages_content=[]

@@ -119,12 +119,7 @@ def create_builder(exp_version, condition):
         builder = WorldBuilder(shape=[19,19], tick_duration=tick_duration, run_matrx_api=True,random_seed=random_seed,
                            run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#9a9083')
     if exp_version=="experiment":
-        current_exp_folder = datetime.now().strftime("exp_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
-        logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
-        builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
-        builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")
-    if exp_version=="high":
-        current_exp_folder = datetime.now().strftime("exp_HIGH_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
+        current_exp_folder = datetime.now().strftime("exp_"+condition+"_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
         logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
         builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
         builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")

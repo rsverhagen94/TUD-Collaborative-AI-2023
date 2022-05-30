@@ -70,7 +70,7 @@ if __name__ == "__main__":
                     unique_agent_moves.append(row[2:4])
                 if row[4:6] not in unique_human_moves:
                     unique_human_moves.append(row[4:6])
-                if row[2] == "":
+                if row[2] == "" and row[4]!='RemoveObjectTogether':
                     idle_agent+=1
                 if row[4] == "":
                     idle_human+=1
