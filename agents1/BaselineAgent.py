@@ -278,7 +278,7 @@ class BaselineAgent(BW4TBrain):
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action!=None:
                         for info in state.values():
-                            if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id'] and info['location'] not in [(9,7),(9,19),(21,19)]:
+                            if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id'] and info['location'] not in [(9,4),(9,7),(9,19),(21,19)]:
                                 self._sendMessage('Reaching ' + str(self._door['room_name']) + ' will take a bit longer because I found stones blocking my path.', 'RescueBot')
                             #    if self.received_messages_content and self.received_messages_content[-1]=='Yes':
                             #        return None, {}
@@ -298,94 +298,66 @@ class BaselineAgent(BW4TBrain):
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
                         objects.append(info)
                         if self._distanceHuman == 'close' and self._second < 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
-                            messages = ['.',': 5/9 rescuers would decide the same.',', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            '. If we had found more than 1 critical victim, I would have suggested to remove rock.', ': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 5/9 rescuers would decide the same. If we had found more than 1 critical victim, I would have suggested to remove rock.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove rock.',
+                            messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                             ': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove rock.']
                             self._sendMessage('Found rock blocking ' + str(self._door['room_name']) + '. \
-                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                             self._waiting = True
 
                         if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
-                            messages = ['.',': 7/9 rescuers would decide the same.',', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            '. If we had found more than 1 critical victim, I would have suggested to remove rock.',': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 7/9 rescuers would decide the same. If we had found more than 1 critical victim, I would have suggested to remove rock.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove rock.',
+                            messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                             ': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove rock.']
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '. \
-                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                             self._waiting = True
 
                         if self._distanceHuman == 'close' and self._second < 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
-                            messages = ['.',': 7/9 rescuers would decide the same.',', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                            '. If we had found less than 2 critical victims, I would have suggested to continue searching.',': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                            ': 7/9 rescuers would decide the same. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had found less than 2 critical victims, I would have suggested to continue searching.',
+                            messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left.',
                             ': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                             self._waiting = True
 
                         if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
-                            messages = ['.',': 5/9 rescuers would decide the same.', ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            '. If we had found less than 2 critical victims, I would have suggested to continue searching.',': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 5/9 rescuers would decide the same. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 2 critical victims, I would have suggested to continue searching.',
+                            messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                             ': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')    
+                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')    
                             self._suggestion=['Remove']
                             self._waiting = True
 
                         if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 1 critical victim, I would have suggested to remove rock.',
-                            ': 8/9 rescuers would decide the same. If we had found less than 1 critical victim, I would have suggested to remove rock.',
-                            '. If we had found less than 1 critical victim, I would have suggested to remove rock.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 1 critical victim, I would have suggested to remove rock.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.']
+                            ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 1 critical victim, I would have suggested to remove rock.']
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                             self._waiting = True
 
                         if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because the distance between us is large.',
-                            ': 8/9 rescuers would decide the same, because the distance between us is large. If we had found more than 1 critical victim, I would have suggested to remove rock.',
-                            ': 8/9 rescuers would decide the same. If we had found more than 1 critical victim, I would have suggested to remove rock.',
-                            '. If we had found more than 1 critical victim, I would have suggested to remove rock.',
-                            ', because the distance between us is large. If we had found more than 1 critical victim, I would have suggested to remove rock.',
-                            ', because the distance between us is large.']
+                            ': 8/9 rescuers would decide the same, because the distance between us is large. If we had found more than 1 critical victim, I would have suggested to remove rock.']
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                             self._waiting = True
 
                         if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 6/9 rescuers would decide the same. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ': 6/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            '. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            ': 6/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                             self._waiting = True
 
                         if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 5/9 rescuers would decide the same.', ': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                            ': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ': 5/9 rescuers would decide the same. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            '. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                            ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            ': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                             self._waiting = True
 
@@ -416,49 +388,33 @@ class BaselineAgent(BW4TBrain):
                         objects.append(info)
                         if self._second < 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because removing tree only takes around 10 seconds.',
-                            ': 5/9 rescuers would decide the same, because removing tree only takes around 10 seconds. If we had less than 4 minutes left, I would have suggested to continue searching.',
-                            ': 5/9 rescuers would decide the same. If we had less than 4 minutes left, I would have suggested to continue searching.',
-                            ', because removing tree only takes around 10 seconds.',
-                            ', because removing tree only takes around 10 seconds. If we had less than 4 minutes left, I would have suggested to continue searching.',
-                            '. If we had less than 4 minutes left, I would have suggested to continue searching.']
+                            ': 5/9 rescuers would decide the same, because removing tree only takes around 10 seconds. If we had less than 4 minutes left, I would have suggested to continue searching.']
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove tree instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove tree instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                             self._waiting = True
 
                         if self._second < 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 8/9 rescuers would decide the same.', ': 8/9 rescuers would decide the same, because removing tree only takes around 10 seconds.',
-                            ': 8/9 rescuers would decide the same, because removing tree only takes around 10 seconds. If we had less than 4 minutes left, I would have suggested to continue searching.',
-                            ': 8/9 rescuers would decide the same. If we had less than 4 minutes left, I would have suggested to continue searching.',
-                            ', because removing tree only takes around 10 seconds.',
-                            ', because removing tree only takes around 10 seconds. If we had less than 4 minutes left, I would have suggested to continue searching.',
-                            '. If we had less than 4 minutes left, I would have suggested to continue searching.']
+                            ': 8/9 rescuers would decide the same, because removing tree only takes around 10 seconds. If we had less than 4 minutes left, I would have suggested to continue searching.']
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove tree instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove tree instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Remove']
                             self._waiting = True
 
                         if self._second > 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had more than 4 minutes left, I would have suggested to remove tree.',
-                            ': 8/9 rescuers would decide the same. If we had more than 4 minutes left, I would have suggested to remove tree.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had more than 4 minutes left, I would have suggested to remove tree.',
-                            '. If we had more than 4 minutes left, I would have suggested to remove tree.']
+                            ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had more than 4 minutes left, I would have suggested to remove tree.']
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing tree' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing tree' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                             self._waiting = True
 
                         if self._second > 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                            ': 7/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had more than 4 minutes left, I would have suggested to remove tree.',
-                            ': 7/9 rescuers would decide the same. If we had more than 4 minutes left, I would have suggested to remove tree.',
-                            ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                            ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had more than 4 minutes left, I would have suggested to remove tree.',
-                            '. If we had more than 4 minutes left, I would have suggested to remove tree.']
+                            ': 7/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had more than 4 minutes left, I would have suggested to remove tree.']
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing tree' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing tree' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
                             self._suggestion=['Continue']
                             self._waiting = True
 
@@ -490,97 +446,65 @@ class BaselineAgent(BW4TBrain):
                         objects.append(info)
                         if self._distanceHuman == 'far' and self._criticalFound < 2 and self._second < 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                            ': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, I would have suggested to remove together.',
-                            ': 5/9 rescuers would decide the same. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, I would have suggested to remove together.',
-                            ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                            ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, I would have suggested to remove together.',
-                            '. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, I would have suggested to remove together.']
+                            ': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, I would have suggested to remove together.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing stones' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to continue searching instead of removing stones' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Continue']
                             self._waiting = True
 
                         if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second < 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ': 8/9 rescuers would decide the same. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            '. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones alone instead of continue searching or removing together' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to remove stones alone instead of continue searching or removing together' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Remove alone']
                             self._waiting = True
 
                         if self._distanceHuman == 'far' and self._criticalFound < 2 and self._second > 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, and we had more than 4 minutes left or found more than 1 critical victim, I would have suggested to remove together.',
-                            ': 7/9 rescuers would decide the same. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, and we had more than 4 minutes left or found more than 1 critical victim, I would have suggested to remove together.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, and we had more than 4 minutes left or found more than 1 critical victim, I would have suggested to remove together.',
-                            '. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, and we had more than 4 minutes left or found more than 1 critical victim, I would have suggested to remove together.']
+                            ': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, and we had more than 4 minutes left or found more than 1 critical victim, I would have suggested to remove together.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing stones' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to continue searching instead of removing stones' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Continue']
                             self._waiting = True
 
                         if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second > 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance between us is large.',
-                            ': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance between us is large. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ': 5/9 rescuers would decide the same. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance between us is large.',
-                            ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance between us is large. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            '. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            ': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance between us is large. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones alone instead of continue searching or removing together' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to remove stones alone instead of continue searching or removing together' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Remove alone']
                             self._waiting = True
 
                         if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second < 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone.',
-                            ': 8/9 rescuers would decide the same. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone.',
-                            '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone.']
+                            ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones together or to continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to remove stones together or to continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
                             self._suggestion=['Remove together', 'Continue']
                             self._waiting = True
 
                         if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second < 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because the distance between us is small and removing together only takes around 3 seconds.',
-                            ': 6/9 rescuers would decide the same, because the distance between us is small and removing together only takes around 3 seconds. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ': 6/9 rescuers would decide the same. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ', because the distance between us is small and removing together only takes around 3 seconds.',
-                            ', because the distance between us is small and removing together only takes around 3 seconds. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            '. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            ': 6/9 rescuers would decide the same, because the distance between us is small and removing together only takes around 3 seconds. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones together instead of continue searching or removing alone' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".', 'RescueBot')
+                                I suggest to remove stones together instead of continue searching or removing alone' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".', 'RescueBot')
                             self._suggestion=['Remove together']
                             self._waiting = True
 
                         if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second > 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone. If we had found more than 1 critical victim, I would have suggested to remove together.',
-                            ': 5/9 rescuers would decide the same. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone. If we had found more than 1 critical victim, I would have suggested to remove together.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
-                            ', because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone. If we had found more than 1 critical victim, I would have suggested to remove together.',
-                            '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone. If we had found more than 1 critical victim, I would have suggested to remove together']
+                            ': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone. If we had found more than 1 critical victim, I would have suggested to remove together.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing stones' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')       
+                                I suggest to continue searching instead of removing stones' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')       
                             self._suggestion=['Continue']
                             self._waiting = True
 
                         if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second > 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because the distance between us is small.',
-                            ': 7/9 rescuers would decide the same, because the distance between us is small. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ': 7/9 rescuers would decide the same. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            ', because the distance between us is small.', 
-                            ', because the distance between us is small. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.',
-                            '. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            ': 7/9 rescuers would decide the same, because the distance between us is small. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones together instead of continue searching or removing alone' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')  
+                                I suggest to remove stones together instead of continue searching or removing alone' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')  
                             self._suggestion=['Remove together']
                             self._waiting = True
                         
@@ -687,154 +611,121 @@ class BaselineAgent(BW4TBrain):
                                 self._foundVictimLocs[vic] = {'location':info['location'],'room':self._door['room_name'],'obj_id':info['obj_id']}
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued < 2 and self._distanceDrop == 'close' and self._answered == False and not self._waiting:
                                     messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic +'.',
-                                    ': 5/9 rescuers would decide the same. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic +'.',
-                                    ', because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ', because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic +'.',
-                                    '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic +'.']
+                                    ': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic +'.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,7)] + ' Select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')                          
+                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')                          
                                     self._suggestion=['Continue']
                                     self._waiting = True
 
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'close' and self._answered == False and not self._waiting:
                                     messages = ['.',': 5/9 rescuers would decide the same',': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance to the drop zone is small.',
-                                    ': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance to the drop zone is small. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    ': 5/9 rescuers would decide the same. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance to the drop zone is small.',
-                                    ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance to the drop zone is small. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    '. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
+                                    ': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left and the distance to the drop zone is small. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'close' and self._answered == False and not self._waiting:
                                     messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ': 8/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.',
-                                    ': 8/9 rescuers would decide the same. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.',
-                                    ', because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ', because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.',
-                                    '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
+                                    ': 8/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to continue searching instead of rescuing ' + vic  + messages[random.randint(0,7)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to continue searching instead of rescuing ' + vic  + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Continue']
                                     self._waiting = True
 
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'close' and self._answered == False and not self._waiting:
                                     messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ': 7/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    ': 7/9 rescuers would decide the same. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    ', because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ', because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    '. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
+                                    ': 7/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued < 2 and self._distanceDrop == 'far' and self._answered == False and not self._waiting:
                                     messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.',
-                                    ': 5/9 rescuers would decide the same. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.',
-                                    ', because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ', because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.',
-                                    '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
+                                    ': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,7)] + ' Select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')
+                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".', 'RescueBot')
                                     self._suggestion=['Continue']
                                     self._waiting = True
 
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'far' and self._answered == False and not self._waiting:
                                     messages = ['.',': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                                    ': 6/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    ': 6/9 rescuers would decide the same. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                                    ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    '. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
+                                    ': 6/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'far' and self._answered == False and not self._waiting:
                                     messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ': 7/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.',
-                                    ': 7/9 rescuers would decide the same. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.',
-                                    ', because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
-                                    ', because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.',
-                                    '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
+                                    ': 7/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,7)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Continue']
                                     self._waiting = True
 
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'far' and self._answered == False and not self._waiting:
                                     messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                                    ': 5/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    ': 5/9 rescuers would decide the same. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    ', because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                                    ', because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had rescued less than 2 critical victims, I would have suggested to continue searching.',
-                                    '. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
+                                    ': 5/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480-self._second)/60)) + ' minutes left. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,7)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
                                 
                                 if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'close' and self._second < 240 and self._answered == False and not self._waiting:
-                                    messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because the distance between us is small.',', because the distance between us is small.']
+                                    messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because the distance between us is small.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')    
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')    
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
                                 if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'far' and self._second < 240 and self._answered == False and not self._waiting:
-                                    messages = ['.', ': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because the distance to the drop zone is small and we have around ' + str(round((480-self._second)/60)) + ' minutes left.',
-                                    ', because the distance to the drop zone is small and we have around ' + str(round((480-self._second)/60)) + ' minutes left.']
+                                    messages = ['.', ': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because the distance to the drop zone is small and we have around ' + str(round((480-self._second)/60)) + ' minutes left.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')                                
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')                                
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
                                 if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second > 240 and self._answered == False and not self._waiting:
-                                    messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because critical victims have a higher priority.',', because critical victims have a higher priority.']
+                                    messages = ['.',': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because critical victims have a higher priority.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
                                 if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second < 240 and self._answered == False and not self._waiting:
-                                    messages = ['.',': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',', because we have around ' + str(round((480-self._second)/60)) + ' minutes left.']
+                                    messages = ['.',': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
                                 if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second > 240 and self._answered == False and not self._waiting:
-                                    messages = ['.',': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because the distance between us is small.',', because the distance between us is small.']
+                                    messages = ['.',': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because the distance between us is small.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
                                     
                                 if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'close' and self._second > 240 and self._answered == False and not self._waiting:
-                                    messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because critical victims have a higher priority.',', because critical victims have a higher priority.']
+                                    messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because critical victims have a higher priority.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
                                 if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'far' and self._second < 240 and self._answered == False and not self._waiting:
-                                    messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.', ', because we have around ' + str(round((480-self._second)/60)) + ' minutes left.']
+                                    messages = ['.',': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.']
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
                                 if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'far' and self._second > 240 and self._answered == False and not self._waiting:
-                                    messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.',', because we have around ' + str(round((480-self._second)/60)) + ' minutes left.'] 
+                                    messages = ['.',': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we have around ' + str(round((480-self._second)/60)) + ' minutes left.'] 
                                     self._sendMessage('Found '+ vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
                                     self._suggestion=['Rescue']
                                     self._waiting = True
 
