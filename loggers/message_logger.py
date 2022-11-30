@@ -28,7 +28,11 @@ class MessageLogger(GridWorldLogger):
             'timePressure':0,
             'taskSeverity':0,
             'taskSwitch':0,
-            'occupiedTime':0
+            'occupiedTime':0,
+            'complySpeed':-1,
+            'performanceGap':-1,
+            'responseTime':-1,
+            'searchTookLong':-1
         }
 
         gwmm = grid_world.message_manager
@@ -60,10 +64,17 @@ class MessageLogger(GridWorldLogger):
                         log_data['taskSeverity'] = mssg.content.split()[-3]
                         log_data['taskSwitch'] = mssg.content.split()[-4]
                         log_data['occupiedTime'] = mssg.content.split()[-5]
+                    if 'RescueBot' in mssg.from_id and 'Your performance' in mssg.content:
+                        if 'comply speed' in mssg.content:
+                            log_data['complySpeed'] = mssg.content.split()[-1]
+                        elif 'performance gap' in mssg.content:
+                            log_data['performanceGap'] = mssg.content.split()[-1]
+                        elif 'response time' in mssg.content:
+                            log_data['responseTime'] = mssg.content.split()[-1]
+                        elif 'search took long' in mssg.content:
+                            log_data['searchTookLong'] = mssg.content.split()[-1]
 
         log_data['total_number_messages_human'] = tot_messages_human
         log_data['total_number_messages_agent'] = int(tot_messages_agent / 2)
-        # log_data['average_message_length_human'] = round(np.mean(mssg_len_human),2)
-        # log_data['average_message_length_agent'] = round(np.mean(mssg_len_agent),2)
 
         return log_data

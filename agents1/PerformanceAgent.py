@@ -1,18 +1,13 @@
-import sys, random, enum, ast, time
-from matrx import grid_world
-from brains1.BW4TBrain import BW4TBrain
-from actions1.customActions import *
+import enum
 from matrx import utils
-from matrx.grid_world import GridWorld
-from matrx.agents.agent_utils.state import State
+from matrx.actions.object_actions import RemoveObject
 from matrx.agents.agent_utils.navigator import Navigator
+from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.state_tracker import StateTracker
-from matrx.actions.door_actions import OpenDoorAction
-from matrx.actions.object_actions import GrabObject, DropObject, RemoveObject
-from matrx.actions.move_actions import MoveNorth
 from matrx.messages.message import Message
-from matrx.messages.message_manager import MessageManager
-from actions1.customActions import RemoveObjectTogether, CarryObjectTogether, DropObjectTogether, CarryObject, Drop
+from actions1.customActions import *
+from actions1.customActions import CarryObject, Drop
+from brains1.BW4TBrain import BW4TBrain
 
 class Phase(enum.Enum):
     INTRO0 = 0,
@@ -46,8 +41,7 @@ class Phase(enum.Enum):
     REMOVE_OBSTACLE_IF_NEEDED = 28,
     ENTER_ROOM = 29
 
-
-class BaselineAgent(BW4TBrain):
+class PerformanceAgent(BW4TBrain):
     def __init__(self, slowdown: int):
         super().__init__(slowdown)
         self._slowdown = slowdown
@@ -81,10 +75,21 @@ class BaselineAgent(BW4TBrain):
         self._carrying = False
         self._waiting = False
         self._confidence = True
+        self._waitingHuman = False
+        self._complySpeed = 800
+        self._lateComply = 0
+        self._responseSpeed = 800
+        self._lateResponse = 0
+        self._reminderMessage = ""
+        self._searchSpeed = 58
+        self._searchTookLong = 0
+        self._reminder = True
+        self._performanceMetric = 0
+        self._progressMessage = ""
 
     def initialize(self):
         self._state_tracker = StateTracker(agent_id=self.agent_id)
-        self._navigator = Navigator(agent_id=self.agent_id,action_set=self.action_set, algorithm=Navigator.A_STAR_ALGORITHM)
+        self._navigator = Navigator(agent_id=self.agent_id, action_set=self.action_set, algorithm=Navigator.A_STAR_ALGORITHM)
 
     def filter_bw4t_observations(self, state):
         return state
@@ -130,9 +135,28 @@ class BaselineAgent(BW4TBrain):
 
         self._second = state['World']['tick_duration'] * state['World']['nr_ticks']
 
+        if (self._responseSpeed != 800) and ((self._second - self._responseSpeed) > 11):
+            if self._lateResponse <= 0:
+                self._sendMessage("I am still waiting for an answer from you in order to proceed.", 'RescueBot')
+            elif self._lateResponse == 1:
+                self._sendMessage("You still haven't given an answer to my question, please do, so I can proceed.",'RescueBot')
+            else:
+                self._sendMessage("While waiting for an answer, we are losing crucial time.", 'RescueBot')
+
         for info in state.values():
+            if 'is_human_agent' in info and 'Human' in info['name'] and self._waitingHuman and self._complySpeed != 0:
+                self._waitingHuman = False
+                self._sendMessage('Your performance comply speed is ' + str(self._second - self._complySpeed), 'RescueBot')
+                if (self._second - self._complySpeed) > 15:
+                    self._complySpeed = 800
+                    self._lateComply += 1
+                else:
+                    self._complySpeed = 800
+                    self._lateComply = 0
+
             if 'is_human_agent' in info and 'Human' in info['name'] and len(info['is_carrying']) > 0 and 'critical' in info['is_carrying'][0]['obj_id']:
-                self._collectedVictims.append(info['is_carrying'][0]['img_name'][8:-4])
+                if info['is_carrying'][0]['img_name'][8:-4] not in self._collectedVictims:
+                    self._collectedVictims.append(info['is_carrying'][0]['img_name'][8:-4])
                 self._carryingTogether = True
             if 'is_human_agent' in info and 'Human' in info['name'] and len(info['is_carrying']) == 0:
                 self._carryingTogether = False
@@ -143,13 +167,32 @@ class BaselineAgent(BW4TBrain):
         for member in state['World']['team_members']:
             if member != agent_name and member not in self._teamMembers:
                 self._teamMembers.append(member)
-        # Process messages from team members
         self._processMessages(state, self._teamMembers)
+
+        if self._second < 1:
+            predictedScore = 0
+        else:
+            predictedScore = round(((480/self._second)*state['rescuebot']['score']), 0)
+        progressMessagesGood = ["", "", "", " We are doing great! Continuing like this, we will probably complete the mission with " + str(predictedScore) + "/36 point(s), because we have " + str(round((480 - self._second)/60, 1)) + " minute(s) left and " + str(len(self._collectedVictims)) + " victim(s) rescued."]
+        progressMessagesBad = [" We should be a little faster! Continuing like this, we will probably complete the mission with " + str(predictedScore) + "/36 point(s), because we have " + str(round((480 - self._second)/60, 1)) + " minute(s) left and " + str(8-len(self._collectedVictims)) + " victim(s) to rescue.", " It is not recommended to reject high confidence suggestions, because it will likely decrease our performance.", "", ""]
+        self._sendMessage('Your performance gap is ' + str(self._second/480 - state['rescuebot']['score']/36), 'RescueBot')
+        if (self._second/480 - state['rescuebot']['score']/36) >= 0.20:
+            self._performanceMetric = 3
+            self._progressMessage = progressMessagesBad[random.randint(0, 3)]
+        elif (self._second/480 - state['rescuebot']['score']/36) >= 0.133333:
+            self._performanceMetric = 2
+            self._progressMessage = progressMessagesBad[random.randint(0, 3)]
+        elif (self._second/480 - state['rescuebot']['score']/36) >= 0.066666:
+            self._performanceMetric = 1
+            self._progressMessage = progressMessagesGood[random.randint(0, 3)]
+        else:
+            self._performanceMetric = 0
+            self._progressMessage = progressMessagesGood[random.randint(0, 3)]
 
         self._sendMessage('Our score is ' + str(state['rescuebot']['score']) + '.', 'RescueBot')
         if self._noSuggestions > 0:
             state['rescuebot']['ignored'] = round(self._ignored / self._noSuggestions, 2)
-            self._sendMessage('You ignored me ' +str(state['rescuebot']['ignored']), 'RescueBot')
+            self._sendMessage('You ignored me ' + str(state['rescuebot']['ignored']), 'RescueBot')
 
         while True:
             if Phase.INTRO0 == self._phase:
@@ -231,7 +274,8 @@ class BaselineAgent(BW4TBrain):
 
             if Phase.PLAN_PATH_TO_ROOM == self._phase:
                 self._navigator.reset_full()
-                if self._goalVic and self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
+                if self._goalVic and self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[
+                    self._goalVic].keys():
                     self._door = state.get_room_doors(self._foundVictimLocs[self._goalVic]['room'])[0]
                     self._doormat = state.get_room(self._foundVictimLocs[self._goalVic]['room'])[-1]['doormat']
                     if self._door['room_name'] == 'area 1':
@@ -257,17 +301,30 @@ class BaselineAgent(BW4TBrain):
                     self._phase = Phase.FIND_NEXT_GOAL
                 else:
                     self._state_tracker.update(state)
+                    if self._second > 8 and (self._reminder or (
+                            ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._searchSpeed) > 63)):
+                        reminderMessages = [
+                            " Do not forget to inform me about the areas you will search (or have searched), because this improves our performance.",
+                            " To complete the mission successfully, we have to be a little faster and communicate efficiently.",
+                            " Do not forget to keep me informed me about where you will search / who you found / who you will rescue, because this greatly improves efficiency."]
+                        self._reminderMessage = reminderMessages[random.randint(0, 2)]
+                    elif self._second <= 8:
+                        self._reminderMessage = ""
+                    else:
+                        reminderMessages = ["", " You are fast! Tip: Do not forget to avoid water, because it slows you down.",
+                                            " We are doing great! Tip: Do not forget you can search a room with only two steps forward, because you can also see the blocks next to you.",
+                                            " We are doing great!", " You are fast!", ""]
+                        self._reminderMessage = reminderMessages[random.randint(0, 5)]
                     if self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room'] and not self._remove:
-                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic + '.', 'RescueBot')
+                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic + '.' + self._reminderMessage,'RescueBot')
                     if self._goalVic not in self._foundVictims and not self._remove or not self._goalVic and not self._remove:
-                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' because it is the closest unsearched area.', 'RescueBot')
+                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' because it is the closest unsearched area.' + self._reminderMessage,'RescueBot')
                     self._currentDoor = self._door['location']
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action != None:
                         for info in state.values():
-                            if 'class_inheritance' in info and 'ObstacleObject' in info[
-                                'class_inheritance'] and 'stone' in info['obj_id'] and info['location'] not in [(9, 4), (9, 7), (9, 19), (21, 19)]:
-                                self._sendMessage('Reaching ' + str(self._door['room_name']) + ' will take a bit longer because I found stones blocking my path.', 'RescueBot')
+                            if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id'] and info['location'] not in [(9, 4),(9, 7),(9, 19),(21,19)]:
+                                self._sendMessage('Reaching ' + str(self._door['room_name']) + ' will take a bit longer because I found stones blocking my path.','RescueBot')
                                 return RemoveObject.__name__, {'object_id': info['obj_id']}
                         return action, {}
                     self._phase = Phase.REMOVE_OBSTACLE_IF_NEEDED
@@ -281,72 +338,135 @@ class BaselineAgent(BW4TBrain):
                         if self._distanceHuman == 'close' and self._second < 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove rock.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found rock blocking ' + str(self._door['room_name']) + '. \
-                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".', 'RescueBot')
+                                I suggest to continue searching instead of removing rock' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove rock.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '. \
-                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing rock' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'close' and self._second < 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + ' and have around ' + str(round((480 - self._second) / 60)) + ' minutes left.',
                                         ': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + ' and have around ' + str(round((480 - self._second) / 60)) + ' minutes left. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove rock instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Remove']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'close' and self._second > 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove rock instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Remove']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = False
                         if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 1 critical victim, I would have suggested to remove rock.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing rock' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because the distance between us is large.',
-                            ': 8/9 rescuers would decide the same, because the distance between us is large. If we had found more than 1 critical victim, I would have suggested to remove rock.']
+                                        ': 8/9 rescuers would decide the same, because the distance between us is large. If we had found more than 1 critical victim, I would have suggested to remove rock.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing rock' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing rock' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'far' and self._second < 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 6/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove rock instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Remove']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'far' and self._second > 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left.',
                                         ': 5/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left. If we had found less than 2 critical victims, I would have suggested to continue searching.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found rock blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove rock instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove rock instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Remove']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = False
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue' and not self._remove:
                             if self.received_messages_content[-1] not in self._suggestion:
                                 self._ignored += 1
                             self._noSuggestions += 1
                             self._answered = True
+                            self._sendMessage('Your performance response time is ' + str(((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed)), 'RescueBot')
+                            if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed) > 8.5:
+                                self._lateResponse += 1
+                                self._responseSpeed = 800
+                            else:
+                                self._lateResponse = 0
+                                self._responseSpeed = 800
                             self._waiting = False
                             self._tosearch.append(self._door['room_name'])
                             self._phase = Phase.FIND_NEXT_GOAL
@@ -356,8 +476,23 @@ class BaselineAgent(BW4TBrain):
                             if not self._remove:
                                 self._noSuggestions += 1
                                 self._answered = True
+                            self._sendMessage('Your performance response time is ' + str(((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed)), 'RescueBot')
+                            if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed) > 8.5:
+                                self._lateResponse += 1
+                                self._responseSpeed = 800
+                            else:
+                                self._lateResponse = 0
+                                self._responseSpeed = 800
                             if not state[{'is_human_agent': True}]:
-                                self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove rock.','RescueBot')
+                                if self._lateComply <= 0:
+                                    self._sendMessage(
+                                        'Please come to ' + str(self._door['room_name']) + ' to remove rock.','RescueBot')
+                                elif self._lateComply == 1:
+                                    self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove rock, a bit faster than last time, because we lost important time then.','RescueBot')
+                                else:
+                                    self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove rock. You have to be quicker this time, because I am waiting for you.','RescueBot')
+                                self._waitingHuman = True
+                                self._complySpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                 return None, {}
                             if state[{'is_human_agent': True}]:
                                 self._sendMessage('Lets remove rock blocking ' + str(self._door['room_name']) + '!','RescueBot')
@@ -368,42 +503,77 @@ class BaselineAgent(BW4TBrain):
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id']:
                         objects.append(info)
                         if self._second < 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
-                            messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because removing tree only takes around 10 seconds.',
+                            messages = ['.', ': 5/9 rescuers would decide the same.', ': 5/9 rescuers would decide the same, because removing tree only takes around 10 seconds.',
                                         ': 5/9 rescuers would decide the same, because removing tree only takes around 10 seconds. If we had less than 4 minutes left, I would have suggested to continue searching.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove tree instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove tree instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Remove']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = False
                         if self._second < 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because removing tree only takes around 10 seconds.',
                                         ': 8/9 rescuers would decide the same, because removing tree only takes around 10 seconds. If we had less than 4 minutes left, I would have suggested to continue searching.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove tree instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to remove tree instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Remove']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._second > 240 and self._criticalFound < 2 and self._answered == False and not self._remove and not self._waiting:
-                            messages = ['.', ': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
+                            messages = ['.', ': 8/9 rescuers would decide the same.', ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had more than 4 minutes left, I would have suggested to remove tree.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing tree' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing tree' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._second > 240 and self._criticalFound > 1 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left.',
                                         ': 7/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left. If we had more than 4 minutes left, I would have suggested to remove tree.']
+                            if self._lateResponse <= 0:
+                                responseString = "."
+                            elif self._lateResponse == 1:
+                                responseString = ", a bit faster than last time, since we lost crucial time."
+                            else:
+                                responseString = ", please inform me quickly this time, since I am waiting for your response."
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing tree' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Remove" or "Continue".','RescueBot')
+                                I suggest to continue searching instead of removing tree' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Remove" or "Continue"' + responseString,'RescueBot')
                             self._suggestion = ['Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue' and not self._remove:
                             if self.received_messages_content[-1] not in self._suggestion:
                                 self._ignored += 1
                             self._noSuggestions += 1
                             self._answered = True
+                            self._sendMessage('Your performance response time is ' + str(((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed)), 'RescueBot')
+                            if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed) > 8.5:
+                                self._lateResponse += 1
+                                self._responseSpeed = 800
+                            else:
+                                self._lateResponse = 0
+                                self._responseSpeed = 800
                             self._waiting = False
                             self._tosearch.append(self._door['room_name'])
                             self._phase = Phase.FIND_NEXT_GOAL
@@ -413,8 +583,15 @@ class BaselineAgent(BW4TBrain):
                             if not self._remove:
                                 self._noSuggestions += 1
                                 self._answered = True
+                                self._sendMessage('Your performance response time is ' + str(((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed)), 'RescueBot')
+                                if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed) > 13:
+                                    self._lateResponse += 1
+                                    self._responseSpeed = 800
+                                else:
+                                    self._lateResponse = 0
+                                    self._responseSpeed = 800
                                 self._waiting = False
-                                self._sendMessage('Removing tree blocking ' + str(self._door['room_name']) + '.','RescueBot')
+                                self._sendMessage('Removing tree blocking ' + str(self._door['room_name']) + '.', 'RescueBot')
                             if self._remove:
                                 self._sendMessage('Removing tree blocking ' + str(self._door['room_name']) + ' because you asked me to.', 'RescueBot')
                             self._phase = Phase.ENTER_ROOM
@@ -425,75 +602,97 @@ class BaselineAgent(BW4TBrain):
 
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
                         objects.append(info)
+                        if self._lateResponse <= 0:
+                            responseString = "."
+                        elif self._lateResponse == 1:
+                            responseString = ", a bit faster than last time, since we lost crucial time."
+                        else:
+                            responseString = ", please inform me quickly this time, since I am waiting for your response."
                         if self._distanceHuman == 'far' and self._criticalFound < 2 and self._second < 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left.',
                                         ': 5/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, I would have suggested to remove together.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing stones' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to continue searching instead of removing stones' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together"' + responseString,'RescueBot')
                             self._suggestion = ['Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = False
+
                         if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second < 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones alone instead of continue searching or removing together' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to remove stones alone instead of continue searching or removing together' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together"' + responseString,'RescueBot')
                             self._suggestion = ['Remove alone']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'far' and self._criticalFound < 2 and self._second > 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 7/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If we had found more than 1 critical victim, I would have suggested to remove alone. If the distance between us had been small, and we had more than 4 minutes left or found more than 1 critical victim, I would have suggested to remove together.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing stones' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to continue searching instead of removing stones' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together"' + responseString,'RescueBot')
                             self._suggestion = ['Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'far' and self._criticalFound > 1 and self._second > 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left and the distance between us is large.',
                                         ': 5/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left and the distance between us is large. If the distance between us had been small, I would have suggested to remove together. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones alone instead of continue searching or removing together' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to remove stones alone instead of continue searching or removing together' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together"' + responseString,'RescueBot')
                             self._suggestion = ['Remove alone']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = False
                         if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second < 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 8/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones together or to continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to remove stones together or to continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together"' + responseString,'RescueBot')
                             self._suggestion = ['Remove together', 'Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second < 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because the distance between us is small and removing together only takes around 3 seconds.',
                                         ': 6/9 rescuers would decide the same, because the distance between us is small and removing together only takes around 3 seconds. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones together instead of continue searching or removing alone' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to remove stones together instead of continue searching or removing alone' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together"' + responseString,'RescueBot')
                             self._suggestion = ['Remove together']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self._distanceHuman == 'close' and self._criticalFound < 2 and self._second > 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '.',
                                         ': 5/9 rescuers would decide the same, because we found ' + str(self._criticalFound) + ' critical ' + self._vicString + '. If the distance between us had been large and we had found more than 1 critical victim, I would have suggested to remove alone. If we had found more than 1 critical victim, I would have suggested to remove together.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to continue searching instead of removing stones' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to continue searching instead of removing stones' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together"' + responseString,'RescueBot')
                             self._suggestion = ['Continue']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = False
                         if self._distanceHuman == 'close' and self._criticalFound > 1 and self._second > 240 and self._answered == False and not self._remove and not self._waiting:
                             messages = ['.', ': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because the distance between us is small.',
                                         ': 7/9 rescuers would decide the same, because the distance between us is small. If the distance between us had been large, I would have suggested to remove alone. If we had found less than 2 critical victims, I would have suggested to continue searching.']
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '.  \
-                                I suggest to remove stones together instead of continue searching or removing alone' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together".','RescueBot')
+                                I suggest to remove stones together instead of continue searching or removing alone' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Continue", "Remove alone" or "Remove together"' + responseString,'RescueBot')
                             self._suggestion = ['Remove together']
                             self._waiting = True
+                            self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                             self._confidence = True
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue' and not self._remove:
                             if self.received_messages_content[-1] not in self._suggestion:
                                 self._ignored += 1
                             self._noSuggestions += 1
                             self._answered = True
+                            self._sendMessage('Your performance response time is ' + str(((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed)),'RescueBot')
+                            if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed) > 8.5:
+                                self._lateResponse += 1
+                                self._responseSpeed = 800
+                            else:
+                                self._lateResponse = 0
+                                self._responseSpeed = 800
                             self._waiting = False
                             self._tosearch.append(self._door['room_name'])
                             self._phase = Phase.FIND_NEXT_GOAL
@@ -502,6 +701,13 @@ class BaselineAgent(BW4TBrain):
                                 self._ignored += 1
                             self._noSuggestions += 1
                             self._answered = True
+                            self._sendMessage('Your performance response time is ' + str(((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed)),'RescueBot')
+                            if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed) > 8.5:
+                                self._lateResponse += 1
+                                self._responseSpeed = 800
+                            else:
+                                self._lateResponse = 0
+                                self._responseSpeed = 800
                             self._waiting = False
                             self._phase = Phase.ENTER_ROOM
                             self._remove = False
@@ -512,9 +718,23 @@ class BaselineAgent(BW4TBrain):
                             if not self._remove:
                                 self._noSuggestions += 1
                                 self._answered = True
+                            self._sendMessage(
+                                'Your performance response time is ' + str(((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed)),'RescueBot')
+                            if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed) > 8.5:
+                                self._lateResponse += 1
+                                self._responseSpeed = 800
+                            else:
+                                self._lateResponse = 0
+                                self._responseSpeed = 800
                             if not state[{'is_human_agent': True}]:
-                                self._sendMessage(
-                                    'Please come to ' + str(self._door['room_name']) + ' to remove stones together.','RescueBot')
+                                if self._lateComply <= 0:
+                                    self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove stones together.','RescueBot')
+                                elif self._lateComply == 1:
+                                    self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove stones together, a bit faster than last time, because we lost important time then.','RescueBot')
+                                else:
+                                    self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove stones together. You have to be quicker this time, because I am waiting for you.','RescueBot')
+                                self._waitingHuman = True
+                                self._complySpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                 return None, {}
                             if state[{'is_human_agent': True}]:
                                 self._sendMessage('Lets remove stones blocking ' + str(self._door['room_name']) + '!','RescueBot')
@@ -526,6 +746,7 @@ class BaselineAgent(BW4TBrain):
                     self._answered = False
                     self._remove = False
                     self._waiting = False
+
                     self._phase = Phase.ENTER_ROOM
 
             if Phase.ENTER_ROOM == self._phase:
@@ -533,7 +754,8 @@ class BaselineAgent(BW4TBrain):
                 if self._goalVic in self._collectedVictims:
                     self._currentDoor = None
                     self._phase = Phase.FIND_NEXT_GOAL
-                if self._goalVic in self._foundVictims and self._door['room_name'] != self._foundVictimLocs[self._goalVic]['room']:
+                if self._goalVic in self._foundVictims and self._door['room_name'] != \
+                        self._foundVictimLocs[self._goalVic]['room']:
                     self._currentDoor = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 if self._door['room_name'] in self._searchedRooms and self._goalVic not in self._foundVictims:
@@ -552,7 +774,8 @@ class BaselineAgent(BW4TBrain):
                              if 'class_inheritance' in info
                              and 'AreaTile' in info['class_inheritance']
                              and 'room_name' in info
-                             and info['room_name'] == self._door['room_name']]
+                             and info['room_name'] == self._door['room_name']
+                             ]
                 self._roomtiles = roomTiles
                 self._navigator.reset_full()
                 self._navigator.add_waypoints(self._efficientSearch(roomTiles))
@@ -581,128 +804,168 @@ class BaselineAgent(BW4TBrain):
                                 self._recentVic = vic
                                 self._foundVictims.append(vic)
                                 self._foundVictimLocs[vic] = {'location': info['location'],'room': self._door['room_name'], 'obj_id': info['obj_id']}
+                                if self._lateResponse <= 0:
+                                    responseString = "."
+                                elif self._lateResponse == 1:
+                                    responseString = ", a bit faster than last time, since we lost crucial time."
+                                else:
+                                    responseString = ", please inform me quickly this time, since I am waiting for your response."
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued < 2 and self._distanceDrop == 'close' and self._answered == False and not self._waiting:
                                     messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
                                                 ': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to continue searching instead of rescuing ' + vic + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Continue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = False
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'close' and self._answered == False and not self._waiting:
                                     messages = ['.', ': 5/9 rescuers would decide the same',': 5/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left and the distance to the drop zone is small.',
                                                 ': 5/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left and the distance to the drop zone is small. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = False
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'close' and self._answered == False and not self._waiting:
                                     messages = ['.', ': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
                                                 ': 8/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to continue searching instead of rescuing ' + vic + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Continue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'close' and self._answered == False and not self._waiting:
                                     messages = ['.', ': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
                                                 ': 7/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued < 2 and self._distanceDrop == 'far' and self._answered == False and not self._waiting:
                                     messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
                                                 ': 5/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to continue searching instead of rescuing ' + vic + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Continue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = False
                                 if 'mild' in vic and self._second < 240 and self._criticalRescued > 1 and self._distanceDrop == 'far' and self._answered == False and not self._waiting:
                                     messages = ['.', ': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left.',
                                                 ': 6/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
+
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued < 2 and self._distanceDrop == 'far' and self._answered == False and not self._waiting:
                                     messages = ['.', ': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '.',
                                                 ': 7/9 rescuers would decide the same, because we only rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + '. If we had rescued  more than 1 critical victim, I would have suggested to rescue ' + vic + '.']
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to continue searching instead of rescuing ' + vic + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to continue searching instead of rescuing ' + vic + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Continue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
                                 if 'mild' in vic and self._second > 240 and self._criticalRescued > 1 and self._distanceDrop == 'far' and self._answered == False and not self._waiting:
                                     messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480 - self._second) / 60)) + ' minutes left.',
-                                    ': 5/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480 - self._second) / 60)) + ' minutes left. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
+                                                ': 5/9 rescuers would decide the same, because we already rescued ' + str(self._criticalFound) + ' critical ' + self._vicString2 + ' and have around ' + str(round((480 - self._second) / 60)) + ' minutes left. If we had rescued less than 2 critical victims, I would have suggested to continue searching.']
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,3)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = False
                                 if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'close' and self._second < 240 and self._answered == False and not self._waiting:
                                     messages = ['.', ': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because the distance between us is small.']
+                                    if (self._performanceMetric == 3):
+                                        self._performanceMetric = 2
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
                                 if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'far' and self._second < 240 and self._answered == False and not self._waiting:
                                     messages = ['.', ': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because the distance to the drop zone is small and we have around ' + str(round((480 - self._second) / 60)) + ' minutes left.']
+                                    if (self._performanceMetric == 3):
+                                        self._performanceMetric = 2
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
                                 if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second > 240 and self._answered == False and not self._waiting:
                                     messages = ['.', ': 8/9 rescuers would decide the same.',': 8/9 rescuers would decide the same, because critical victims have a higher priority.']
+                                    if (self._performanceMetric == 3):
+                                        self._performanceMetric = 2
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
-                                    self._confidence = True  
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
+                                    self._confidence = True
                                 if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second < 240 and self._answered == False and not self._waiting:
                                     messages = ['.', ': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left.']
+                                    if (self._performanceMetric == 3):
+                                        self._performanceMetric = 2
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
                                 if 'critical' in vic and self._distanceDrop == 'close' and self._distanceHuman == 'close' and self._second > 240 and self._answered == False and not self._waiting:
                                     messages = ['.', ': 6/9 rescuers would decide the same.',': 6/9 rescuers would decide the same, because the distance between us is small.']
+                                    if (self._performanceMetric == 3):
+                                        self._performanceMetric = 2
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
                                 if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'close' and self._second > 240 and self._answered == False and not self._waiting:
                                     messages = ['.', ': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because critical victims have a higher priority.']
+                                    if (self._performanceMetric == 3):
+                                        self._performanceMetric = 2
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
                                 if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'far' and self._second < 240 and self._answered == False and not self._waiting:
                                     messages = ['.', ': 5/9 rescuers would decide the same.',': 5/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left.']
+                                    if (self._performanceMetric == 3):
+                                        self._performanceMetric = 2
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = False
                                 if 'critical' in vic and self._distanceDrop == 'far' and self._distanceHuman == 'far' and self._second > 240 and self._answered == False and not self._waiting:
                                     messages = ['.', ': 7/9 rescuers would decide the same.',': 7/9 rescuers would decide the same, because we have around ' + str(round((480 - self._second) / 60)) + ' minutes left.']
+                                    if (self._performanceMetric == 3):
+                                        self._performanceMetric = 2
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. \
-                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[random.randint(0,2)] + ' Select your decision using the buttons "Rescue" or "Continue".','RescueBot')
+                                        I suggest to rescue ' + vic + ' instead of continue searching' + messages[self._performanceMetric] + self._progressMessage + ' Select your decision using the buttons "Rescue" or "Continue"' + responseString,'RescueBot')
                                     self._suggestion = ['Rescue']
                                     self._waiting = True
+                                    self._responseSpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                                     self._confidence = True
                     return action, {}
-                if self._goalVic in self._foundVictims and self._goalVic not in self._roomVics and self._foundVictimLocs[self._goalVic]['room'] == self._door['room_name']:
+                if self._goalVic in self._foundVictims and self._goalVic not in self._roomVics and \
+                        self._foundVictimLocs[self._goalVic]['room'] == self._door['room_name']:
                     self._sendMessage(self._goalVic + ' not present in ' + str(self._door['room_name']) + ' because I searched the whole area without finding ' + self._goalVic + '.','RescueBot')
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
@@ -715,10 +978,24 @@ class BaselineAgent(BW4TBrain):
                         self._ignored += 1
                     self._noSuggestions += 1
                     self._answered = True
+                    self._sendMessage('Your performance response time is ' + str(((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed)),'RescueBot')
+                    if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed) > 8.5:
+                        self._lateResponse += 1
+                        self._responseSpeed = 800
+                    else:
+                        self._lateResponse = 0
+                        self._responseSpeed = 800
                     self._waiting = False
                     if 'critical' in self._recentVic:
                         if not state[{'is_human_agent': True}]:
-                            self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(self._recentVic) + ' together.', 'RescueBot')
+                            if self._lateComply <= 0:
+                                self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(self._recentVic) + ' together.', 'RescueBot')
+                            elif self._lateComply == 1:
+                                self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(self._recentVic) + ' together, a bit faster than last time, because we lost important time then.', 'RescueBot')
+                            else:
+                                self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(self._recentVic) + ' together. You have to be quicker this time, because I am waiting for you.', 'RescueBot')
+                            self._waitingHuman = True
+                            self._complySpeed = state['World']['tick_duration'] * state['World']['nr_ticks']
                         if state[{'is_human_agent': True}]:
                             self._sendMessage('Lets carry ' + str(self._recentVic) + ' together!', 'RescueBot')
                     self._phase = Phase.FIND_NEXT_GOAL
@@ -727,6 +1004,13 @@ class BaselineAgent(BW4TBrain):
                         self._ignored += 1
                     self._noSuggestions += 1
                     self._answered = True
+                    self._sendMessage('Your performance response time is ' + str(((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed)),'RescueBot')
+                    if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._responseSpeed) > 8.5:
+                        self._lateResponse += 1
+                        self._responseSpeed = 800
+                    else:
+                        self._lateResponse = 0
+                        self._responseSpeed = 800
                     self._waiting = False
                     self._todo.append(self._recentVic)
                     self._phase = Phase.FIND_NEXT_GOAL
@@ -828,6 +1112,13 @@ class BaselineAgent(BW4TBrain):
                     area = 'area ' + msg.split()[-1]
                     if area not in self._searchedRooms:
                         self._searchedRooms.append(area)
+                        if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._searchSpeed) > 63:
+                            self._reminder = True
+                            self._searchTookLong += 1
+                            self._sendMessage('Your performance search took long is ' + str(self._searchTookLong),'RescueBot')
+                        else:
+                            self._reminder = False
+                        self._searchSpeed = (state['World']['tick_duration'] * state['World']['nr_ticks'])
                 if msg.startswith("Found:"):
                     if len(msg.split()) == 6:
                         foundVic = ' '.join(msg.split()[1:4])
@@ -843,6 +1134,14 @@ class BaselineAgent(BW4TBrain):
                         self._foundVictimLocs[foundVic] = {'room': loc}
                     if 'mild' in foundVic:
                         self._todo.append(foundVic)
+                    if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._searchSpeed) > 63:
+                        self._reminder = True
+                        self._searchTookLong += 1
+                        self._sendMessage(
+                            'Your performance search took long is ' + str(self._searchTookLong),'RescueBot')
+                    else:
+                        self._reminder = False
+                    self._searchSpeed = (state['World']['tick_duration'] * state['World']['nr_ticks'])
                 if msg.startswith('Collect:'):
                     if len(msg.split()) == 6:
                         collectVic = ' '.join(msg.split()[1:4])
@@ -858,6 +1157,13 @@ class BaselineAgent(BW4TBrain):
                         self._foundVictimLocs[collectVic] = {'room': loc}
                     if collectVic not in self._collectedVictims:
                         self._collectedVictims.append(collectVic)
+                    if ((state['World']['tick_duration'] * state['World']['nr_ticks']) - self._searchSpeed) > 63:
+                        self._reminder = True
+                        self._searchTookLong += 1
+                        self._sendMessage('Your performance search took long is ' + str(self._searchTookLong),'RescueBot')
+                    else:
+                        self._reminder = False
+                    self._searchSpeed = (state['World']['tick_duration'] * state['World']['nr_ticks'])
                 if msg.startswith('Remove:'):
                     if not self._carrying:
                         area = 'area ' + msg.split()[-1]
@@ -868,23 +1174,25 @@ class BaselineAgent(BW4TBrain):
                         self.received_messages = []
                         self.received_messages_content = []
                         self._remove = True
-                        self._sendMessage(
-                            'Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.',
-                            'RescueBot')
+                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.','RescueBot')
                         self._phase = Phase.PLAN_PATH_TO_ROOM
                     else:
                         area = 'area ' + msg.split()[-1]
-                        self._sendMessage('Will come to ' + area + ' after dropping ' + self._goalVic + '.',
-                                          'RescueBot')
-            if mssgs and mssgs[-1].split()[-1] in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14']:
+                        self._sendMessage('Will come to ' + area + ' after dropping ' + self._goalVic + '.','RescueBot')
+            if mssgs and mssgs[-1].split()[-1] in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13','14']:
                 self._humanLoc = int(mssgs[-1].split()[-1])
-
 
     def _sendMessage(self, mssg, sender):
         msg = Message(content=mssg, from_id=sender)
-        if msg.content not in self.received_messages_content and 'Our score is' not in msg.content:
-            self.send_message(msg)
-            self._sendMessages.append(msg.content)
+
+        if (('Moving to ' not in msg.content) or (msg.content[0:len(msg.content) - (len(self._reminderMessage))] not in self._sendMessages)):
+            if msg.content not in self.received_messages_content and 'Our score is' not in msg.content:
+                self.send_message(msg)
+                if ('Moving to ' in msg.content):
+                    self._sendMessages.append((msg.content[0:len(msg.content) - (len(self._reminderMessage))]))
+                else:
+                    self._sendMessages.append(msg.content)
+
         if 'Our score is' in msg.content:
             self.send_message(msg)
 
@@ -917,18 +1225,3 @@ class BaselineAgent(BW4TBrain):
             else:
                 locs.append((x[i], max(y)))
         return locs
-
-    def _dynamicMessage(self, mssg1, mssg2, explanation, sender):
-        if explanation not in self._providedExplanations:
-            self._sendMessage(mssg1, sender)
-            self._providedExplanations.append(explanation)
-        if 'Searching' in mssg1:
-            if explanation in self._providedExplanations and mssg1 not in self._sendMessages[-5:]:
-                self._sendMessage(mssg2, sender)
-        if 'Found' in mssg1:
-            history = [mssg2[:-1] in mssg for mssg in self._sendMessages]
-            if explanation in self._providedExplanations and True not in history:
-                self._sendMessage(mssg2, sender)
-        if 'Searching' not in mssg1 and 'Found' not in mssg1:
-            if explanation in self._providedExplanations and self._sendMessages[-1] != mssg1:
-                self._sendMessage(mssg2, sender)

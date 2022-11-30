@@ -567,7 +567,7 @@ function checkTime(i) {
     }
 
     // add the message text to the message div
-    if (!mssg_content.includes("Our score is") && !mssg_content.includes("You ignored me")) {
+    if (!mssg_content.includes("Our score is") && !mssg_content.includes("You ignored me") && !mssg_content.includes("Your workload") && !mssg_content.includes("Your performance")) {
     var content = document.createElement('span');
     content.className = "chat-content";
     content.innerHTML = mssg_content;

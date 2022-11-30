@@ -22,15 +22,12 @@ class BW4TBrain(BW4TAgentBrain, ABC):
         self.__slowdown = slowdown
         super().__init__()
     
-    #Override
     def decide_on_action(self, state:State):
         '''
         Final . Agents must override decide_on_bw4t_action instead
         '''
         act,params = self.decide_on_bw4t_action(state)
         params['grab_range']=1
-        # door_range=1 does not work, doors don't open
-       # params['door_range']=1
         params['max_objects']=1
         water_locs = []
         if state[{"name": "water"}]:
@@ -49,7 +46,6 @@ class BW4TBrain(BW4TAgentBrain, ABC):
 
         return act,params
     
-    #Override 
     def filter_observations(self,state:State)->State:
         '''
         Final. Agents must override filter_bw4t_observations.

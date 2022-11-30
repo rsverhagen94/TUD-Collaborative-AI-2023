@@ -10,16 +10,11 @@ class ActionLogger(GridWorldLogger):
 
     def log(self, grid_world, agent_data):
         log_data = {}
-        #log_data['done'] = grid_world.simulation_goal.isBlocksPlaced(grid_world)
         log_data['score'] = grid_world.simulation_goal.score(grid_world)
         log_data['completeness'] = grid_world.simulation_goal.progress(grid_world)
         for agent_id, agent_body in grid_world.registered_agents.items():
             if 'human_agent' or 'robot_partner' in agent_id:
                 log_data[agent_id + '_action'] = agent_body.current_action
-                #log_data[agent_id + '_action_result'] = None
-                #if agent_body.action_result is not None:
-                #    log_data[agent_id + '_action_result'] = agent_body.action_result.succeeded
                 log_data[agent_id + '_location'] = agent_body.location
-                #print(agent_body.customizable_properties)
                 
         return log_data

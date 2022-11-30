@@ -11,7 +11,6 @@ class Idle(Action):
         super().__init__(duration_in_ticks)
 
     def is_possible(self, grid_world, agent_id, **kwargs):
-        # Maybe do a check to see if the empty location is really and still empty?
         return IdleResult(IdleResult.RESULT_SUCCESS, True)
 
 
@@ -24,25 +23,6 @@ class IdleResult(ActionResult):
 
     def __init__(self, result, succeeded):
         super().__init__(result, succeeded)
-
-#class RemoveObjectTogether(RemoveObject):
-#    def __init__(self, duration_in_ticks=1):
-#        super().__init__(duration_in_ticks)
-
-#    def is_possible(self, grid_world, agent_id, world_state, **kwargs):
-#        remove_range = np.inf if 'remove_range' not in kwargs else kwargs['remove_range']
-#        other_agent = world_state[{"name": "RescueBot"}]
-#        obj_to_remove = world_state[kwargs["object_id"]]
-
-        # check if the collaborating agent is close enough to the object as well 
-#        if get_distance(other_agent['location'], obj_to_remove['location']) > remove_range and 'bush' in obj_to_remove:
-#            return RemoveTogetherResult(RemoveTogetherResult.OTHER_TOO_FAR, False)
-
-#        return super().is_possible(grid_world, agent_id, world_state, **kwargs)
-
-#class RemoveTogetherResult(RemoveObjectResult):
-#    REMOVE_SUCCESS = 'Successfully removed object together'
-#    OTHER_TOO_FAR = 'Failed to remove object. The other agent is too far from the object'
 
 class RemoveObjectTogether(Action):
     """ Removes an object from the world.

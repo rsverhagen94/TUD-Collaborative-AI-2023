@@ -1,4 +1,3 @@
-from distutils.command.build import build
 import os, requests
 import sys
 import csv
@@ -6,7 +5,6 @@ import glob
 import pathlib
 from SaR_gui import visualization_server
 from worlds1.worldBuilder import create_builder
-from typing import final, List, Dict, Final
 from pathlib import Path
 
 if __name__ == "__main__":
@@ -15,29 +13,20 @@ if __name__ == "__main__":
     if choice1=='trial':
         builder = create_builder(exp_version='trial',condition='tutorial')
     else:
-        print("\nEnter one of the robot adaptation styles 'baseline', 'trust', 'workload', or 'performance':")
+        print("\nEnter one of the explainable robot conditions 'baseline', 'trust', 'workload', or 'performance':")
         choice2=input()
-
-        #PAY ATTENTION
-        if choice2=='trust' or choice2=='workload' or choice2=='performance':
-            print("\nMake sure to add your agents to the agents folder, starting baseline now..")
-            print()
-            print()
-            print()
-            builder = create_builder(exp_version=choice1,condition="baseline")
-        else:
+        if choice2=='trust' or choice2=='workload' or choice2=='performance' or choice2=='baseline':
             builder = create_builder(exp_version=choice1,condition=choice2)
+        else:
+            print("\nWrong condition name entered")
 
-    # Start overarching MATRX scripts and threads, such as the api and/or visualizer if requested. Here we also link our
-    # own media resource folder with MATRX.
+    # Start overarching MATRX scripts and threads, such as the api and/or visualizer if requested. Here we also link our own media resource folder with MATRX.
     media_folder = pathlib.Path().resolve()
-    #media_folder = os.path.dirname(os.path.join(os.path.realpath("/home/ruben/Documents/MATRX/MATRX"), "media"))
     builder.startup(media_folder=media_folder)
     print("Starting custom visualizer")
     vis_thread = visualization_server.run_matrx_visualizer(verbose=False, media_folder=media_folder)
     world = builder.get_world()
     print("Started world...")
-    #for world in builder.worlds():
     world.run(builder.api_info)
     print("DONE!")
     print("Shutting down custom visualizer")
