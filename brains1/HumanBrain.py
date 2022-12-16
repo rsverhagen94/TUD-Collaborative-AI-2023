@@ -19,7 +19,7 @@ class HumanBrain(HumanAgentBrain):
     """
 
     def __init__(self, memorize_for_ticks=None, fov_occlusion=False, max_carry_objects=3,
-                 grab_range=1, drop_range=1, door_range=1, remove_range=1):
+                 grab_range=1, drop_range=1, door_range=1, remove_range=1, strength='normal'):
         """ Creates an Human Agent which is an agent that can be controlled by
         a human.
 
@@ -35,6 +35,7 @@ class HumanBrain(HumanAgentBrain):
         self.__drop_range = drop_range
         self.__door_range = door_range
         self.__remove_range = remove_range
+        self.__strength = strength
 
     def _factory_initialise(self, agent_name, agent_id, action_set,
                             sense_capability, agent_properties,
@@ -281,6 +282,8 @@ class HumanBrain(HumanAgentBrain):
                                                   property_to_check="is_movable")
             if obj_id and 'critical' in obj_id:
                 action_kwargs['object_id'] = obj_id
+            if obj_id and 'mild' in obj_id:
+                action_kwargs['object_id'] = obj_id
             
 
         # If the user chose to drop an object in its inventory
@@ -301,7 +304,8 @@ class HumanBrain(HumanAgentBrain):
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
             #if 'tree' not in obj_id and 'rocks' not in obj_id and 'mild' in obj_id and 'stone' not in obj_id:
-            action_kwargs['object_id'] = obj_id
+            if obj_id and self.__strength!='weak':
+                action_kwargs['object_id'] = obj_id
 
         # If the user chose to drop an object in its inventory
         elif action == Drop.__name__:
@@ -337,7 +341,7 @@ class HumanBrain(HumanAgentBrain):
                 self.__select_random_obj_in_range(state,
                                                   range_=self.__remove_range,
                                                   property_to_check="is_movable")
-            if obj_id and 'stone' in obj_id:                           
+            if obj_id and 'stone' in obj_id and self.__strength!='weak':                           
 
                 action_kwargs['object_id'] = obj_id
             #if 'stone' in obj_id:

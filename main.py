@@ -13,10 +13,10 @@ if __name__ == "__main__":
     if choice1=='trial':
         builder = create_builder(exp_version='trial',condition='tutorial')
     else:
-        print("\nEnter one of the explainable robot conditions 'baseline', 'trust', 'workload', or 'performance':")
+        print("\nEnter one of the human conditions 'normal', 'strong', or 'weak':")
         choice2=input()
-        if choice2=='trust' or choice2=='workload' or choice2=='performance' or choice2=='baseline':
-            builder = create_builder(exp_version=choice1,condition=choice2)
+        if choice2=='normal' or choice2=='strong' or choice2=='weak':
+            builder = create_builder(exp_version=choice1, condition=choice2)
         else:
             print("\nWrong condition name entered")
 
@@ -27,6 +27,7 @@ if __name__ == "__main__":
     vis_thread = visualization_server.run_matrx_visualizer(verbose=False, media_folder=media_folder)
     world = builder.get_world()
     print("Started world...")
+    builder.api_info['matrx_paused'] = False
     world.run(builder.api_info)
     print("DONE!")
     print("Shutting down custom visualizer")
@@ -59,12 +60,6 @@ if __name__ == "__main__":
                     unique_agent_moves.append(row[2:4])
                 if row[4:6] not in unique_human_moves:
                     unique_human_moves.append(row[4:6])
-                if row[2] == "" and row[4]!='RemoveObjectTogether':
-                    idle_agent+=1
-                if row[4] == "":
-                    idle_human+=1
-                if row[2] == "" and row[4]=="":
-                    idle_together+=1
                 res = {action_header[i]: row[i] for i in range(len(action_header))}
                 action_contents.append(res)
         
@@ -82,12 +77,11 @@ if __name__ == "__main__":
         no_ticks = action_contents[-1]['tick_nr']
         score = action_contents[-1]['score']
         completeness = action_contents[-1]['completeness']
-        ignored = message_contents[-1]['ignored']
 
         print("Saving output...")
         with open(os.path.join(recent_dir,'world_1/output.csv'),mode='w') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            csv_writer.writerow(['completeness','score','no_ticks','ignored_suggestions','agent_moves','human_moves','agent_messages','human_messages','agent_idle','human_idle','simultaneous_idle'])
-            csv_writer.writerow([completeness,score,no_ticks,ignored,len(unique_agent_moves),len(unique_human_moves),no_messages_agent,no_messages_human,idle_agent,idle_human,idle_together])
+            csv_writer.writerow(['completeness','score','no_ticks','agent_moves','human_moves','agent_messages','human_messages'])
+            csv_writer.writerow([completeness,score,no_ticks,len(unique_agent_moves),len(unique_human_moves),no_messages_agent,no_messages_human])
 
     builder.stop()

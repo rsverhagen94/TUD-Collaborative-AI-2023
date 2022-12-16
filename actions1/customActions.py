@@ -555,7 +555,7 @@ class Drop(Action):
             objects can be on the same location.
         """
         reg_ag = grid_world.registered_agents[agent_id]
-        if 'human' in agent_id:
+        if 'human' in agent_id and len(reg_ag.is_carrying)<2:
             reg_ag.change_property("img_name", "/images/rescue-man-final3.svg")
         if 'bot' in agent_id:
             reg_ag.change_property("img_name", "/images/robot-final4.svg")
@@ -955,7 +955,7 @@ class DropObjectTogether(Action):
         else:
             return DropObjectResult(DropObjectResult.RESULT_NO_OBJECT, False)
 
-        if 'mild' in obj_id or 'healthy' in obj_id:
+        if 'healthy' in obj_id:
             return DropObjectResult(DropObjectResult.RESULT_UNKNOWN_OBJECT_TYPE, False)            
         else:
             return _possible_drop(grid_world, agent_id=agent_id, obj_id=obj_id, drop_range=drop_range)

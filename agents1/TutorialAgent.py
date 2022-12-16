@@ -133,15 +133,16 @@ class TutorialAgent(BW4TBrain):
         self._sendMessage('Our score is ' + str(state['rescuebot']['score']) +'.', 'RescueBot')
         while True:           
             if Phase.INTRO0==self._phase:
-                self._sendMessage('Hello! My name is RescueBot. During this experiment we will collaborate with each other. \
-                It is our goal to search and rescue as many victims at the drop zone on our right. \
-                For this tutorial there are 4 victims and 3 injury types, during the real experiment there are 8 victims. \
+                self._sendMessage('Hello! My name is RescueBot. During this task we will collaborate with each other. \
+                It is our goal to search and rescue the victims at the drop zone on our right. \
+                For this tutorial there are 4 victims and 3 injury types, during the real task there are 8 victims. \
                 The red color refers to critically injured victims, yellow to mildly injured victims, and green to healthy victims. Healthy victims do not need to be rescued. \
                 The 8 victims are a girl (critically injured girl/mildly injured girl/healthy girl), boy (critically injured boy/mildly injured boy/healthy boy), \
                 woman (critically injured woman/mildly injured woman/healthy woman), man (critically injured man/mildly injured man/healthy man), \
                 elderly woman (critically injured elderly woman/mildly injured elderly woman/healthy elderly woman), \
                 elderly man (critically injured elderly man/mildly injured elderly man/healthy elderly man), dog (critically injured dog/mildly injured dog/healthy dog), \
-                and a cat (critically injured cat/mildly injured cat/healthy cat). At the top of the world you can find the keyboard controls, for moving you can use the arrow keys. \
+                and a cat (critically injured cat/mildly injured cat/healthy cat). The environment will also contain different obstacle types with varying removal times. \
+                At the top of the world you can find the keyboard controls, for moving you can use the arrow keys. \
                 Press the "Continue" button to start the tutorial explaining everything.', 'RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
                     self._phase=Phase.INTRO1
@@ -173,7 +174,7 @@ class TutorialAgent(BW4TBrain):
 
             if Phase.INTRO3==self._phase:
                 self._sendMessage('If you search area 3, you will find one of the victims to rescue: critically injured elderly woman. \
-                Critical victims can only be carried together, so if you want to rescue critically injured elderly woman you should inform me that you found this victim. \
+                Let us carry this victim together, for which you should inform me that you found this victim. \
                 You can do this using the buttons below "I have found:", and select "critically injured elderly woman in 03". \
                 If you found critically injured elderly woman and informed me about it, press the "Continue" button. I will then come over to help.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
@@ -187,7 +188,7 @@ class TutorialAgent(BW4TBrain):
                     return None,{}
 
             if Phase.INTRO4==self._phase:
-                self._sendMessage('Lets carry ' + self._goalVic + ' together. To do this, move yourself on top, above, or next to ' + self._goalVic + '. \
+                self._sendMessage('Let us carry ' + self._goalVic + ' together. To do this, move yourself on top, above, or next to ' + self._goalVic + '. \
                 Now, press "A" on your keyboard (all keyboard controls can be found at the top of the world). \
                 Transport ' + self._goalVic + ' to the drop zone and move yourself on top of the image of '+ self._goalVic + '. \
                 Next, press "S" on your keyboard to drop '+ self._goalVic + '. \
@@ -201,7 +202,7 @@ class TutorialAgent(BW4TBrain):
 
             if Phase.INTRO5==self._phase:
                 self._sendMessage('Nice job! Lets move to area 5 next. Remember to inform me about this. \
-                If you are in front of area 5, you see that it is blocked by rock. rock can only be removed together and takes around 5 seconds, so if you want to remove it you should inform me. \
+                If you are in front of area 5, you see that it is blocked by rock. Let us remove rock together, for which you should inform me. \
                 You can do so using the button "Help remove" and select "at 05". I will then come over to help. \
                 If you found rock blocking area 5 and I arrived there to help, press the "Continue" button.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
@@ -212,7 +213,7 @@ class TutorialAgent(BW4TBrain):
                     return None,{}
 
             if Phase.INTRO6==self._phase:
-                self._sendMessage('Lets remove rock together. To do this, remain in front of rock and press "D" on your keyboard. \
+                self._sendMessage('Let us remove rock together. To do this, remain in front of rock and press "D" on your keyboard. \
                 Now, you will see a small busy icon untill rock is successfully removed. If the entrance is cleared, press the "Continue" button.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
                     self._phase=Phase.INTRO7
@@ -223,7 +224,7 @@ class TutorialAgent(BW4TBrain):
 
             if Phase.INTRO7==self._phase:
                 self._sendMessage('Lets move to area 4 next. Remember to inform me about this. \
-                If you are in front of area 4, you see that it is blocked by tree. tree can only be removed by me, and takes around 10 seconds, so if you want to remove it you should inform me. \
+                If you are in front of area 4, you see that it is blocked by tree. Let me remove tree for you, for which you should inform me about this first. \
                 You can do so using the button "Help remove" and select "at 04". I will then come over to remove tree. \
                 If you found tree blocking area 4 and I removed it, press the "Continue" button.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
@@ -236,7 +237,7 @@ class TutorialAgent(BW4TBrain):
             if Phase.INTRO8==self._phase:
                 self._sendMessage('In area 4 you will find mildly injured elderly man. If you find mildly injured victims, it is recommended to inform me about this. \
                 You can do this using the buttons below "I have found:", and select "mildly injured elderly man in 04". \
-                Mildly injured victims can be carried alone. If you decide to do so, it is recommended to inform me about it. \
+                If you decide to carry mildly injured victims, it is recommended to inform me about it. \
                 You can do this using the buttons below "I will pick up:", and select "mildly injured elderly man in 04." \
                 You can pick up mildly injured elderly man by moving yourself on top, above, or next to mildly injured elderly man. \
                 Now, press "Q" on your keyboard and transport mildly injured elderly man to the drop zone. \
@@ -251,8 +252,8 @@ class TutorialAgent(BW4TBrain):
 
             if Phase.INTRO9==self._phase:
                 self._sendMessage('Nice job! Lets move to area 8 now. Remember to inform me about this. \
-                If you are in front of area 8, you see that it is blocked by stones. stones can be removed both alone and together. Removing alone takes around 20 seconds, together around 3 seconds. \
-                For this tutorial you will remove stones blocking area 8 alone. To do this, remain in front of stones and press "E" on your keyboard. \
+                If you are in front of area 8, you see that it is blocked by stones. \
+                You can remove stones by pressing "E" on your keyboard. \
                 Now, you will see a small busy icon untill stones is successfully removed. When you are busy removing, you can send messages but they will only appear once the action is finished. \
                 So no need to keep clicking buttons! If the entrance is cleared, press the "Continue" button.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
@@ -263,7 +264,7 @@ class TutorialAgent(BW4TBrain):
                     return None,{}
 
             if Phase.INTRO10==self._phase:
-                self._sendMessage('This concludes the tutorial. Please contact the experimenter to start the real experiment.','RescueBot')
+                self._sendMessage('This concludes the tutorial. You can now start the real task.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Found: critically injured girl in 5':
                     self._phase=Phase.FIND_NEXT_GOAL
                     self.received_messages_content=[]

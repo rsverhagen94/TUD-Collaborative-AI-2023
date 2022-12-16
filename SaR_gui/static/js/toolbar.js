@@ -446,7 +446,17 @@ function add_message(chatroom_ID, mssg) {
     div.appendChild(document.createTextNode(mssg_content));
     */
     
-    
+    mssg_content = mssg_content.replaceAll("safe", "<img src='/static/images/safe.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("afstand", "<img src='/static/images/distance.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("clock", "<img src='/static/images/time.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("explore", "<img src='/static/images/search.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("]","");
+    mssg_content = mssg_content.replaceAll("[","");
+    mssg_content = mssg_content.replaceAll("'","");
+    mssg_content = mssg_content.replaceAll("[]","");  
+    mssg_content = mssg_content.replaceAll("['",""); 
+    mssg_content = mssg_content.replaceAll("']",""); 
+    mssg_content = mssg_content.replaceAll("\n","<br>");
     mssg_content = mssg_content.replaceAll("healthy girl", "<img src='/static/images/healthy%20girl.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("healthy boy", "<img src='/static/images/healthy%20boy.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("healthy man", "<img src='/static/images/healthy%20man.svg' height= 30 width=30/>");
@@ -511,45 +521,6 @@ function add_message(chatroom_ID, mssg) {
         }
         score()
     }
-
-    if (mssg_content == "Ready!") {
-
-var limit = 480
-var timeStamp = Date.now(),
-		sessionStamp = localStorage.getItem('ts'),
-    elapsedTime;
-if (!sessionStamp) {
-	localStorage.setItem('ts', timeStamp.toString());
-  sessionStamp = timeStamp;
-}
-else {
-  sessionStamp = parseInt(sessionStamp);
-}
-
-
-function increment() {
-	elapsedTime = Date.now() - sessionStamp;
-    d = elapsedTime/1000
-    m = Math.floor(d % 3600 / 60);
-    s = Math.floor(d % 3600 % 60);
-    m = checkTime(m); // add a leading zero if it's single digit
-    s = checkTime(s);
-  document.getElementById('elapsedTime').innerHTML = 'Elapsed time: ' + m + ":" + s;
-  if (elapsedTime/1000>limit) {
-    document.getElementById('elapsedTime').innerHTML = 'Time up!'
-    localStorage.removeItem('ts');
-    toggle_pause();
-}
-
-}
-
-function checkTime(i) {
-    if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
-    return i;
-}
-        setInterval(increment, 1000);
-    }
-
 
     var div = document.createElement("div");
     div.className = "message_you"; // by default assume we sent this message

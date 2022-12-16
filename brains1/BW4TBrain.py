@@ -10,7 +10,7 @@ class BW4TBrain(BW4TAgentBrain, ABC):
     """
     
 
-    def __init__(self, slowdown:int):
+    def __init__(self, slowdown:int, condition:str):
         '''
         @param slowdown an integer. Basically this sets action_duration
         field to the given slowdown. 1 implies normal speed
@@ -20,6 +20,7 @@ class BW4TBrain(BW4TAgentBrain, ABC):
         FIXME this is hacky. These parameters should really be private.
         '''
         self.__slowdown = slowdown
+        self.__condition = condition
         super().__init__()
     
     def decide_on_action(self, state:State):
@@ -43,6 +44,8 @@ class BW4TBrain(BW4TAgentBrain, ABC):
             params['action_duration'] = 200
         if act == 'RemoveObject' and 'tree' in params['object_id']:
             params['action_duration'] = 100
+        if act == 'CarryObject' and 'mild' in params['object_id']:
+            params['action_duration'] = 150
 
         return act,params
     

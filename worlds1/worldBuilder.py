@@ -16,9 +16,6 @@ from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
 from agents1.BaselineAgent import BaselineAgent
 from agents1.TutorialAgent import TutorialAgent
-from agents1.PerformanceAgent import PerformanceAgent
-from agents1.TrustAgent import TrustAgent
-from agents1.WorkloadAgent import WorkloadAgent
 from actions1.customActions import RemoveObjectTogether
 from brains1.HumanBrain import HumanBrain
 from loggers.action_logger import ActionLogger
@@ -69,25 +66,29 @@ def add_drop_off_zones(builder, exp_version):
                 is_drop_zone=True, is_goal_block=False, is_collectable=False) 
             
 def add_agents(builder, condition, exp_version):
-    sense_capability = SenseCapability({AgentBody: agent_sense_range,
+    sense_capability_agent = SenseCapability({AgentBody: agent_sense_range,
                                         CollectableBlock: block_sense_range,
                                         None: other_sense_range,
                                         ObstacleObject: 1})
+    if condition=='normal' or condition=='weak' or condition=='tutorial':
+        sense_capability_human = SenseCapability({AgentBody: agent_sense_range,
+                                            CollectableBlock: block_sense_range,
+                                            None: other_sense_range,
+                                            ObstacleObject: 1})
+    if condition=='strong':
+        sense_capability_human = SenseCapability({AgentBody: agent_sense_range,
+                                            CollectableBlock: block_sense_range,
+                                            None: other_sense_range,
+                                            ObstacleObject: 10})
 
     for team in range(nr_teams):
         team_name = f"Team {team}"
         # Add agents
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
-            if exp_version=="experiment" and condition=="baseline":
-                brain = BaselineAgent(slowdown=8)
-            if exp_version=="experiment" and condition=="performance":
-                brain = PerformanceAgent(slowdown=8)
-            if exp_version=="experiment" and condition=="trust":
-                brain = TrustAgent(slowdown=8)
-            if exp_version=="experiment" and condition=="workload":
-                brain = WorkloadAgent(slowdown=8)
-            if exp_version=="trial" and condition=="tutorial":
+            if exp_version=="experiment":
+                brain = BaselineAgent(slowdown=8, condition=condition)
+            if exp_version=="trial":
                 brain = TutorialAgent(slowdown=8)
 
             if exp_version=="experiment":
@@ -95,17 +96,20 @@ def add_agents(builder, condition, exp_version):
             else:
                 loc = (16,8)
             builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score','followed','ignored'], score=0,followed=0,ignored=0,
-                              sense_capability=sense_capability, is_traversable=True, img_name="/images/robot-final4.svg")
+                              sense_capability=sense_capability_agent, is_traversable=True, img_name="/images/robot-final4.svg")
 
         # Add human agents
         for human_agent_nr in range(human_agents_per_team):
-            brain = HumanBrain(max_carry_objects=1, grab_range=1, drop_range=0, remove_range=1, fov_occlusion=fov_occlusion)
+            if condition=='strong':
+                brain = HumanBrain(max_carry_objects=np.inf, grab_range=1, drop_range=0, remove_range=1, fov_occlusion=fov_occlusion, strength=condition)
+            else:
+                brain = HumanBrain(max_carry_objects=1, grab_range=1, drop_range=0, remove_range=1, fov_occlusion=fov_occlusion, strength=condition)
             if exp_version=="experiment":
                 loc = (22,12)
             else:
                 loc = (16,9)
             builder.add_human_agent(loc, brain, team=team_name, name="Human",
-                                    key_action_map=key_action_map, sense_capability=sense_capability, is_traversable=True, img_name="/images/rescue-man-final3.svg", visualize_when_busy=True)
+                                    key_action_map=key_action_map, sense_capability=sense_capability_human, is_traversable=True, img_name="/images/rescue-man-final3.svg", visualize_when_busy=True)
 
 def create_builder(exp_version, condition):
     # Set numpy's random generator
@@ -113,7 +117,7 @@ def create_builder(exp_version, condition):
 
     # Create the goal
     if exp_version == "experiment":
-        goal = CollectionGoal(max_nr_ticks=9600)
+        goal = CollectionGoal(max_nr_ticks=10000000000)
     if exp_version == "trial":
         goal = CollectionGoal(max_nr_ticks=10000000000)
     # Create our world builder
@@ -281,8 +285,8 @@ def create_builder(exp_version, condition):
             builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final20.svg", visualize_size=1) 
         for loc in [(21,10),(21,11),(21,12),(21,13),(19,15),(19,16)]:
             builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final15.svg", visualize_size=1) 
-        for loc in [(12,14),(6,9)]:
-            builder.add_object(loc,'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+        #for loc in [(12,14),(6,9)]:
+        #    builder.add_object(loc,'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
     
         builder.add_object((23,8),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
         builder.add_object((23,9),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured elderly woman.svg",drop_zone_nr=0)
