@@ -47,8 +47,8 @@ class Phase(enum.Enum):
     ENTER_ROOM=29
     
 class TutorialAgent(BW4TBrain):
-    def __init__(self, slowdown:int):
-        super().__init__(slowdown)
+    def __init__(self, slowdown:int, condition:str):
+        super().__init__(slowdown, condition)
         self._slowdown = slowdown
         self._phase=Phase.INTRO0
         self._roomVics = []
@@ -59,7 +59,7 @@ class TutorialAgent(BW4TBrain):
         self._maxTicks = 9600
         self._sendMessages = []
         self._currentDoor=None 
-        #self._condition = condition
+        self._condition = condition
         self._providedExplanations = []   
         self._teamMembers = []
         self._carryingTogether = False

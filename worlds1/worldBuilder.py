@@ -89,7 +89,7 @@ def add_agents(builder, condition, exp_version):
             if exp_version=="experiment":
                 brain = BaselineAgent(slowdown=8, condition=condition)
             if exp_version=="trial":
-                brain = TutorialAgent(slowdown=8)
+                brain = TutorialAgent(slowdown=8, condition=condition)
 
             if exp_version=="experiment":
                 loc = (22,11)
