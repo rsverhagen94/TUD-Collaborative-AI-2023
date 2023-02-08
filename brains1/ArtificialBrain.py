@@ -1,17 +1,20 @@
 import copy
 import warnings
 import numpy as np
+from abc import  ABC, abstractmethod
+from actions1.customActions import RemoveObjectTogether
+from matrx.agents.agent_utils.state import State
+from matrx.agents.agent_brain import AgentBrain
 from matrx.agents.agent_brain import AgentBrain
 from matrx.actions import GrabObject, RemoveObject, OpenDoorAction, CloseDoorAction
 from matrx.agents.agent_utils.state import State
 from matrx.messages import Message
 
 
-class BW4TAgentBrain(AgentBrain):
+class ArtificialAgentBrain(AgentBrain):
     """ An artificial agent whose behaviour can be programmed to be, for example, (semi-)autonomous.
     This brain inherits from the normal MATRX AgentBrain but with one small adjustment in the function '_set_messages' making it possible to identify the sender of messages.
     """
-
 
     def __init__(self,memorize_for_ticks=None):
         """ Defines the behavior of an agent.
@@ -203,25 +206,6 @@ class BW4TAgentBrain(AgentBrain):
         Belief-Desire-Intention (BDI) like structure, and perhaps even support
         for learning agents.
         """
-
-        # send a random message once in a while
-        #if self.rnd_gen.random() < 0.1:
-            # Get all agents in our state.
-            # The codeline below can return three things:
-            # - None                    -> no agents found (impossible as we are in an agent right now)
-            # - an agent object         -> only a single agent found
-            # - a list of agent objects -> multiple agents found
-            # Also see for state usage:
-            # https://github.com/matrx-software/matrx/blob/master/matrx/cases/bw4t/bw4t_agents.py
-            #agents = state[{"isAgent": True}]
-
-            # If we found multiple agents, randomly select the ID of one of them or otherwise the ID of the only agent
-            #to_id = self.rnd_gen.choice(agents)['obj_id'] if isinstance(agents, list) else agents['obj_id']
-
-            #self.send_message(Message(content=f"Hello, my name is (agent) {self.agent_name} and I sent this message at "
-            #                                  f"tick {state['World']['nr_ticks']}",
-            #                          from_id=self.agent_id,
-            #                          to_id=to_id))
         # Select a random action
         if self.action_set:
             action = self.rnd_gen.choice(self.action_set)
@@ -599,15 +583,11 @@ class BW4TAgentBrain(AgentBrain):
             A list of dictionaries that contain a 'from_id', 'to_id' and 'content. If messages is set to None (or no
             messages are used as input), only the previous messages are removed
         """
-
-        # We empty all received messages as this is from the previous tick
-        # self.received_messages = []
-
         # Loop through all messages and create a Message object out of the dictionaries.
         for mssg in messages:
 
             # Check if the message is of type Message (its content contains the actual message)
-            BW4TAgentBrain.__check_message(mssg, self.agent_id)
+            ArtificialAgentBrain.__check_message(mssg, self.agent_id)
 
             # Since each message is secretly wrapped inside a Message (as its content), we unpack its content and
             # set that as the actual received message.
@@ -627,3 +607,80 @@ class BW4TAgentBrain(AgentBrain):
         if not isinstance(mssg, Message):
             raise Exception(f"A message to {this_agent_id} is not, nor inherits from, the class {Message.__name__}."
                             f" This is required for agents to be able to send and receive them.")
+
+
+
+class ArtificialBrain(ArtificialAgentBrain, ABC):
+    """
+    This class is the obligatory base class for the agents.
+    Agents must implement decide_on_action
+    """
+    def __init__(self, slowdown, condition, name):
+        '''
+        @param slowdown an integer. Basically this sets action_duration
+        field to the given slowdown. 1 implies normal speed
+        of 1 action per tick. 3 givs 1 allowed action every 3 ticks. etc.
+        This is to ensure that agents run at the required speed.
+        '''
+        self.__slowdown = slowdown
+        self.__condition = condition
+        self.__name = name
+        super().__init__()
+    
+    def decide_on_action(self, state:State):
+        '''
+        Agents must override decide_on_actions instead. Define obstacle removal durations.
+        '''
+        act,params = self.decide_on_actions(state)
+        params['grab_range']=1
+        params['max_objects']=1
+        # find state locations with water
+        water_locs = []
+        if state[{"name": "water"}]:
+            for water in state[{"name": "water"}]:
+                if water['location'] not in water_locs:
+                    water_locs.append(water['location'])
+        # remove doormat from water_locs
+        if state[{"name": "RescueBot"}]['location'] in water_locs and state[{"name": "RescueBot"}]['location'] not in [(3,5),(9,5),(15,5),(21,5),(3,6),(9,6),(15,6),(3,17),(9,17),(15,17),(3,18),(9,18),(15,18),(21,18)]:
+            params['action_duration'] = 13
+        else:
+            params['action_duration'] = self.__slowdown
+        # define duration to remove stone object by agent only
+        if act == 'RemoveObject' and 'stone' in params['object_id']:
+            params['action_duration'] = 200
+        # define duration to remove tree object by agent only
+        if act == 'RemoveObject' and 'tree' in params['object_id']:
+            params['action_duration'] = 100
+        # define duration to pick up a mildly injured victim by agent
+        if act == 'CarryObject' and 'mild' in params['object_id']:
+            params['action_duration'] = 150
+
+        return act,params
+    
+    @abstractmethod
+    def decide_on_actions(self, state:State):
+        '''
+        @param state
+        A state description as given by the agent's
+        :meth:`matrx.agents.agent_brain.AgentBrain.filter_observation` method.
+
+        Contains the decision logic of the agent.
+        @return tuple (action name:str,  action arguments:dict)
+        
+        action is a string of the class name of an action that is also in the
+        `action_set` class attribute. To ensure backwards compatibility
+        we advise to use Action.__name__ where Action is the intended
+        action.
+        
+        action_args is a dictionary with keys any action arguments and as values the
+        actual argument values. If a required argument is missing an
+        exception is raised, if an argument that is not used by that
+        action a warning is printed. 
+        
+        An argument that is always possible is that of action_duration, which
+        denotes how many ticks this action should take and overrides the
+        action duration set by the action implementation. The minimum of 1
+        is used if you provide a value <1.
+        '''
+        pass
+    

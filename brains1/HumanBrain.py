@@ -1,29 +1,19 @@
 import warnings
 import copy
-
+import numpy as np
 from matrx.actions.object_actions import GrabObject, DropObject, RemoveObject
 from matrx.actions.door_actions import OpenDoorAction, CloseDoorAction
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.state_tracker import StateTracker
 from matrx.agents import HumanAgentBrain
-import numpy as np
-
 from matrx.messages import Message
 from matrx.actions.move_actions import MoveNorth, MoveNorthEast, MoveEast, MoveSouthEast, MoveSouth, MoveSouthWest, MoveWest, MoveNorthWest
 from actions1.customActions import RemoveObjectTogether, Idle, CarryObject, CarryObjectTogether, DropObjectTogether, Drop, RemoveObject
 
-
 class HumanBrain(HumanAgentBrain):
-    """ Creates an Human Agent which is an agent that can be controlled by a
-    human.
+    """ Creates an Human Agent which is an agent that can be controlled by a human.
     """
-
-    def __init__(self, memorize_for_ticks=None, fov_occlusion=False, max_carry_objects=3,
-                 grab_range=1, drop_range=1, door_range=1, remove_range=1, strength='normal'):
-        """ Creates an Human Agent which is an agent that can be controlled by
-        a human.
-
-        """
+    def __init__(self, memorize_for_ticks=None, fov_occlusion=False, max_carry_objects=3, grab_range=1, drop_range=1, door_range=1, remove_range=1, strength='normal', name='human'):
         super().__init__(memorize_for_ticks=memorize_for_ticks)
         self.__fov_occlusion = fov_occlusion
         if fov_occlusion:
@@ -36,6 +26,7 @@ class HumanBrain(HumanAgentBrain):
         self.__door_range = door_range
         self.__remove_range = remove_range
         self.__strength = strength
+        self.__name = name
 
     def _factory_initialise(self, agent_name, agent_id, action_set,
                             sense_capability, agent_properties,
@@ -231,26 +222,6 @@ class HumanBrain(HumanAgentBrain):
         action = None
         action_kwargs = {}
 
-        # send a random message once in a while
-        #if self.rnd_gen.random() < 0.1:
-            # Get all agents in our state.
-            # The codeline below can return three things:
-            # - None                    -> no agents found (impossible as we are in an agent right now)
-            # - an agent object         -> only a single agent found
-            # - a list of agent objects -> multiple agents found
-            # Also see for state usage:
-            # https://github.com/matrx-software/matrx/blob/master/matrx/cases/bw4t/bw4t_agents.py
-            #agents = state[{"isAgent": True}]
-
-            # If we found multiple agents, randomly select the ID of one of them or otherwise the ID of the only agent
-            #to_id = self.rnd_gen.choice(agents)['obj_id'] if isinstance(agents, list) else agents['obj_id']
-
-            #self.send_message(Message(content=f"Hello, my name is (human agent) {self.agent_name} and I sent this message at "
-            #                                  f"tick {state['World']['nr_ticks']}",
-            #                          from_id=self.agent_id,
-            #                          to_id=to_id))
-
-
         # if no keys were pressed, do nothing
         if user_input is None or user_input == []:
             return None, {}
@@ -260,35 +231,29 @@ class HumanBrain(HumanAgentBrain):
         pressed_keys = user_input[-1]
         action = self.key_action_map[pressed_keys]
 
-        # if the user chose a grab action, choose an object within a grab_range
-        # of 1
-        #obj_id = \
-        #        self.__select_random_obj_in_range(state,
-        #                                          range_=self.__grab_range,
-        #                                          property_to_check="is_movable")
-
-        # if the user chose a grab action, choose an object within grab_range
+        # if the user chose a grab together action, choose an object within grab_range
         if action == CarryObjectTogether.__name__:
             # Set grab range
             action_kwargs['grab_range'] = self.__grab_range
             # Set max amount of objects
             action_kwargs['max_objects'] = self.__max_carry_objects
+            action_kwargs['human_name'] = self.__name
 
             # grab the closest victim
-            #obj = state.get_closest_with_property(props={"name": "Victim"})
-            #obj_id = obj[0]['obj_id'] if obj is not None else None
             obj_id = self.__select_random_obj_in_range(state,
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
+            action_kwargs['strength'] = self.__strength
             if obj_id and 'critical' in obj_id:
                 action_kwargs['object_id'] = obj_id
             if obj_id and 'mild' in obj_id:
-                action_kwargs['object_id'] = obj_id
-            
+                action_kwargs['object_id'] = obj_id            
 
         # If the user chose to drop an object in its inventory
         elif action == DropObjectTogether.__name__:
+            action_kwargs['strength'] = self.__strength
             action_kwargs['drop_range'] = self.__drop_range
+            action_kwargs['human_name'] = self.__name
             pass            
 
         if action == CarryObject.__name__:
@@ -298,21 +263,24 @@ class HumanBrain(HumanAgentBrain):
             # Set max amount of objects
             action_kwargs['max_objects'] = self.__max_carry_objects
             action_kwargs['object_id'] = None
+            action_kwargs['strength'] = self.__strength
+            action_kwargs['human_name'] = self.__name
 
             obj_id = \
                 self.__select_random_obj_in_range(state,
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
-            #if 'tree' not in obj_id and 'rocks' not in obj_id and 'mild' in obj_id and 'stone' not in obj_id:
             if obj_id and self.__strength!='weak':
                 action_kwargs['object_id'] = obj_id
+            action_kwargs['action_type'] = 'alone'
 
         # If the user chose to drop an object in its inventory
         elif action == Drop.__name__:
             # Assign it to the arguments list
             # Set drop range
-
+            action_kwargs['strength'] = self.__strength
             action_kwargs['drop_range'] = self.__drop_range
+            action_kwargs['human_name'] = self.__name
             pass
 
         # If the user chose to remove an object
@@ -320,6 +288,7 @@ class HumanBrain(HumanAgentBrain):
             # Assign it to the arguments list
             # Set drop range
             action_kwargs['remove_range'] = self.__remove_range
+            action_kwargs['human_name'] = self.__name
 
             obj_id = \
                 self.__select_random_obj_in_range(state,
@@ -336,15 +305,14 @@ class HumanBrain(HumanAgentBrain):
             # Assign it to the arguments list
             # Set drop range
             action_kwargs['remove_range'] = self.__remove_range
+            action_kwargs['human_name'] = self.__name
 
             obj_id = \
                 self.__select_random_obj_in_range(state,
                                                   range_=self.__remove_range,
                                                   property_to_check="is_movable")
             if obj_id and 'stone' in obj_id and self.__strength!='weak':                           
-
                 action_kwargs['object_id'] = obj_id
-            #if 'stone' in obj_id:
                 action_kwargs['action_duration'] = 200
 
         # if the user chose to do an open or close door action, find a door to
@@ -374,19 +342,14 @@ class HumanBrain(HumanAgentBrain):
                     self.rnd_gen.choice(doors_in_range)
 
         elif action in [MoveNorth.__name__, MoveNorthEast.__name__, MoveEast.__name__, MoveSouthEast.__name__, MoveSouth.__name__, MoveSouthWest.__name__, MoveWest.__name__, MoveNorthWest.__name__]:
-
-            #print(state[{"name": "Human"}]['location'])
             water_locs = []
             if state[{"name": "water"}]:
                 for water in state[{"name": "water"}]:
                     if water['location'] not in water_locs:
                         water_locs.append(water['location'])
-            if state[{"name": "Human"}]['location'] in water_locs and state[{"name": "Human"}]['location'] not in [(3,5),(9,5),(15,5),(21,5),(3,6),(9,6),(15,6),(3,17),(9,17),(15,17),(3,18),(9,18),(15,18),(21,18)]:
-                #print("DROWNING")
-                #return Idle.__name__,{'duration_in_ticks':50}
+            if state[{"name": self.__name}]['location'] in water_locs and state[{"name": self.__name}]['location'] not in [(3,5),(9,5),(15,5),(21,5),(3,6),(9,6),(15,6),(3,17),(9,17),(15,17),(3,18),(9,18),(15,18),(21,18)]:
                 action == Idle.__name__
                 action_kwargs['duration_in_ticks'] = 5
-
 
         return action, action_kwargs
 
@@ -437,7 +400,6 @@ class HumanBrain(HumanAgentBrain):
 
         # read messages and remove them
         for message in list(self.received_messages):
-            #print("Received message:", message)
             self.received_messages.remove(message)
 
         if user_input is None:

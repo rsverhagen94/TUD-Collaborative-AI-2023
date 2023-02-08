@@ -7,6 +7,24 @@ from matrx.utils import get_distance
 import random
 
 class Idle(Action):
+    """ Let's an agent be idle for a specified number of ticks.
+    Parameters
+    ----------
+    duration_in_ticks : int
+        Optional. Default: ``1``. Should be zero or larger.
+        The default duration of this action in ticks during which the
+        :class:`matrx.grid_world.GridWorld` blocks the agent performing other
+        actions. By default this is 1, meaning that all actions of this type will take
+        both the tick in which it was decided upon and the subsequent tick.
+        When the agent is blocked / busy with an action, only the
+        :meth:`matrx.agents.agent_brain.AgentBrain.filter_observations` method is called for that agent, and the
+        :meth:`matrx.agents.agent_brain.AgentBrain.decide_on_action` method is skipped.
+        This means that agents that are busy with an action can only perceive the world but not decide on
+        a new action untill the action has completed.
+        An agent can overwrite the duration of an action by returning the ``action_duration`` in the ``action_kwargs``
+        in the :meth:`matrx.agents.agent_brain.AgentBrain.decide_on_action` method, as so:
+        ``return >action_name<, {'action_duration': >ticks<}``
+    """
     def __init__(self, duration_in_ticks=1):
         super().__init__(duration_in_ticks)
 
@@ -15,10 +33,7 @@ class Idle(Action):
 
 
 class IdleResult(ActionResult):
-    """ Result when falling succeeded. """
     RESULT_SUCCESS = 'Idling action successful'
-
-    """ Result when the emptied space was not actually empty. """
     RESULT_FAILED = 'Failed to idle'
 
     def __init__(self, result, succeeded):
@@ -87,7 +102,7 @@ class RemoveObjectTogether(Action):
         object_id = kwargs['object_id']  # assign
         remove_range = 1  # default remove range
         other_agent = world_state[{"name": "RescueBot"}]
-        other_human = world_state[{"name": "Human"}]
+        other_human = world_state[{"name": kwargs['human_name']}]
         if 'remove_range' in kwargs.keys():  # if remove range is present
             assert isinstance(kwargs['remove_range'], int)  # should be of integer
             assert kwargs['remove_range'] >= 0  # should be equal or larger than 0
@@ -352,10 +367,10 @@ class CarryObject(Action):
         env_obj.carried_by.append(agent_id)
         reg_ag.is_carrying.append(env_obj)  # we add the entire object!
 
-        if 'healthy' in object_id and 'human' in agent_id:
+        if 'healthy' in object_id and kwargs['human_name'] in agent_id:
             reg_ag.change_property("img_name", "/images/carry-healthy-human.svg")
 
-        if 'mild' in object_id and 'human' in agent_id:
+        if 'mild' in object_id and kwargs['human_name'] in agent_id:
             reg_ag.change_property("img_name", "/images/carry-mild-human.svg")
         #if 'critical' in object_id and 'bot' in agent_id:
             # change our image 
@@ -501,8 +516,10 @@ class Drop(Action):
             the results it can contain.
         """
         reg_ag = grid_world.registered_agents[agent_id]
-
         drop_range = 1 if 'drop_range' not in kwargs else kwargs['drop_range']
+        other_human = world_state[{"name": kwargs['human_name']}]
+        other_agent_id = world_state[{"name": "RescueBot"}]['obj_id']
+        other_agent = grid_world.registered_agents[other_agent_id]
 
         # If no object id is given, the last item is dropped
         if 'object_id' in kwargs:
@@ -512,10 +529,13 @@ class Drop(Action):
         else:
             return DropObjectResult(DropObjectResult.RESULT_NO_OBJECT, False)
 
-        if 'critical' in obj_id:
+        #if 'critical' in obj_id or 'strength' in kwargs and 'mild' in obj_id and 'weak' in kwargs['strength']:
+        if 'critical' in obj_id or 'mild' in obj_id and other_agent.properties['visualization']['opacity']==0:
             return DropObjectResult(DropObjectResult.RESULT_UNKNOWN_OBJECT_TYPE, False)            
         else:
             return _possible_drop(grid_world, agent_id=agent_id, obj_id=obj_id, drop_range=drop_range)
+
+            
 
     def mutate(self, grid_world, agent_id, world_state, **kwargs):
         """ Drops the carried object.
@@ -555,7 +575,7 @@ class Drop(Action):
             objects can be on the same location.
         """
         reg_ag = grid_world.registered_agents[agent_id]
-        if 'human' in agent_id and len(reg_ag.is_carrying)<2:
+        if kwargs['human_name'] in agent_id and len(reg_ag.is_carrying)<2:
             reg_ag.change_property("img_name", "/images/rescue-man-final3.svg")
         if 'bot' in agent_id:
             reg_ag.change_property("img_name", "/images/robot-final4.svg")
@@ -652,7 +672,7 @@ class DropObjectResult(ActionResult):
         self.obj_id = obj_id
 
 class CarryObjectTogether(Action):
-    """ Grab and hold objects.
+    """ Carries objects together.
     The action that can pick up / grab and hold an
     :class:`matrx.objects.env_object.EnvObject`. Cannot be performed on agents
     (including the agent performing the action). After grabbing / picking up,
@@ -800,10 +820,10 @@ class CarryObjectTogether(Action):
         # change our image 
         
         object_id = None if 'object_id' not in kwargs else kwargs['object_id']
-        if 'critical' in object_id and 'human' in agent_id:
+        if 'critical' in object_id and kwargs['human_name'] in agent_id:
             # change our image 
             agent.change_property("img_name", "/images/carry-critical-final.svg")
-        if 'mild' in object_id and 'human' in agent_id:
+        if 'mild' in object_id and kwargs['human_name'] in agent_id:
             agent.change_property("img_name", "/images/carry-mild-final.svg")
 
         # Remove it from the grid world (it is now stored in the is_carrying list of the AgentAvatar
@@ -944,9 +964,9 @@ class DropObjectTogether(Action):
             the results it can contain.
         """
         reg_ag = grid_world.registered_agents[agent_id]
-
         drop_range = 1 if 'drop_range' not in kwargs else kwargs['drop_range']
-
+        other_agent_id = world_state[{"name": "RescueBot"}]['obj_id']
+        other_agent = grid_world.registered_agents[other_agent_id]
         # If no object id is given, the last item is dropped
         if 'object_id' in kwargs:
             obj_id = kwargs['object_id']
@@ -954,8 +974,7 @@ class DropObjectTogether(Action):
             obj_id = reg_ag.is_carrying[-1].obj_id
         else:
             return DropObjectResult(DropObjectResult.RESULT_NO_OBJECT, False)
-
-        if 'healthy' in obj_id:
+        if 'healthy' in obj_id and other_agent.properties['visualization']['opacity']!=0 or 'mild' in obj_id and other_agent.properties['visualization']['opacity']!=0:
             return DropObjectResult(DropObjectResult.RESULT_UNKNOWN_OBJECT_TYPE, False)            
         else:
             return _possible_drop(grid_world, agent_id=agent_id, obj_id=obj_id, drop_range=drop_range)

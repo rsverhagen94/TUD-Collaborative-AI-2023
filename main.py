@@ -10,13 +10,15 @@ from pathlib import Path
 if __name__ == "__main__":
     print("\nEnter one of the environments 'trial' or 'experiment':")
     choice1=input()
+    print("\nEnter a name or id for the human agent:")
+    choice2=input()
     if choice1=='trial':
-        builder = create_builder(exp_version='trial',condition='tutorial')
+        builder = create_builder(exp_version='trial',condition='tutorial', name=choice2)
     else:
         print("\nEnter one of the human conditions 'normal', 'strong', or 'weak':")
-        choice2=input()
-        if choice2=='normal' or choice2=='strong' or choice2=='weak':
-            builder = create_builder(exp_version=choice1, condition=choice2)
+        choice3=input()
+        if choice3=='normal' or choice3=='strong' or choice3=='weak':
+            builder = create_builder(exp_version=choice1, condition=choice3, name=choice2)
         else:
             print("\nWrong condition name entered")
 
