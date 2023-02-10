@@ -1,7 +1,7 @@
 import sys, random, enum, ast, time
 from matrx import grid_world
 from brains1.ArtificialBrain import ArtificialBrain
-from actions1.customActions import *
+from actions1.CustomActions import *
 from matrx import utils
 from matrx.grid_world import GridWorld
 from matrx.agents.agent_utils.state import State
@@ -12,7 +12,7 @@ from matrx.actions.object_actions import GrabObject, DropObject, RemoveObject
 from matrx.actions.move_actions import MoveNorth
 from matrx.messages.message import Message
 from matrx.messages.message_manager import MessageManager
-from actions1.customActions import RemoveObjectTogether, CarryObjectTogether, DropObjectTogether, CarryObject, Drop
+from actions1.CustomActions import RemoveObjectTogether, CarryObjectTogether, DropObjectTogether, CarryObject, Drop
 
 class Phase(enum.Enum):
     INTRO0=0,
@@ -94,8 +94,6 @@ class TutorialAgent(ArtificialBrain):
                 self._teamMembers.append(member)       
         # Process messages from team members
         self._processMessages(state, self._teamMembers)
-        # Update trust beliefs for team members
-        self._trustBelief(self._teamMembers)
         
         # Check whether human is close in distance
         if state[{'is_human_agent':True}]:
@@ -275,7 +273,6 @@ class TutorialAgent(ArtificialBrain):
             if Phase.FIND_NEXT_GOAL==self._phase:
                 # Definition of some relevant variables
                 self._answered = False
-                self._advice = False
                 self._goalVic = None
                 self._goalLoc = None
                 remainingZones = []
@@ -314,7 +311,6 @@ class TutorialAgent(ArtificialBrain):
                 self._phase=Phase.PICK_UNSEARCHED_ROOM
 
             if Phase.PICK_UNSEARCHED_ROOM==self._phase:
-                self._advice = False
                 agent_location = state[self.agent_id]['location']
                 # Identify which areas are not explored yet
                 unsearchedRooms=[room['room_name'] for room in state.values()
@@ -681,6 +677,9 @@ class TutorialAgent(ArtificialBrain):
                     self.received_messages = []
                     self.received_messages_content = []
                     self._remove = True
+                    self._waiting = False
+                    if self._recentVic:
+                        self._todo.append(self._recentVic)
                     # Let the human know that the agent is coming over to help
                     self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.', 'RescueBot')  
                     # Plan the path to the relevant area
@@ -688,33 +687,6 @@ class TutorialAgent(ArtificialBrain):
             # Store the current location of the human in memory
             if mssgs and mssgs[-1].split()[-1] in ['1','2','3','4','5','6','7','8','9','10','11','12','13','14']:
                 self._humanLoc = int(mssgs[-1].split()[-1])
-
-    def _trustBelief(self, members):
-        '''
-        Baseline implementation of a trust belief. Creates a dictionary with trust belief scores for each team member, for example based on the received messages.
-        '''
-        receivedMessages = {}
-        # Create a dictionary with a list of received messages from each team member
-        for member in members:
-            receivedMessages[member] = []
-        for mssg in self.received_messages:
-            for member in members:
-                if mssg.from_id == member:
-                    receivedMessages[member].append(mssg.content) 
-        # Set a default starting trust value
-        default = 0.5
-        # Create a dictionary with trust values for all team members
-        trustBeliefs = {}
-        for member in receivedMessages.keys():
-            trustBeliefs[member] = default
-        # Update the trust value based on for example the received messages
-        for member in receivedMessages.keys():
-            for message in receivedMessages[member]:
-                # Increase agent trust in a team member that rescued a victim
-                if 'Collect' in message:
-                    trustBeliefs[member]+=0.25
-                    break
-        return trustBeliefs
 
     def _sendMessage(self, mssg, sender):
         '''

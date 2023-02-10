@@ -1,7 +1,7 @@
 import sys, random, enum, ast, time
 from matrx import grid_world
 from brains1.ArtificialBrain import ArtificialBrain
-from actions1.customActions import *
+from actions1.CustomActions import *
 from matrx import utils
 from matrx.grid_world import GridWorld
 from matrx.agents.agent_utils.state import State
@@ -12,7 +12,7 @@ from matrx.actions.object_actions import GrabObject, DropObject, RemoveObject
 from matrx.actions.move_actions import MoveNorth
 from matrx.messages.message import Message
 from matrx.messages.message_manager import MessageManager
-from actions1.customActions import RemoveObjectTogether, CarryObjectTogether, DropObjectTogether, CarryObject, Drop
+from actions1.CustomActions import RemoveObjectTogether, CarryObjectTogether, DropObjectTogether, CarryObject, Drop
 
 class Phase(enum.Enum):
     INTRO = 1,
@@ -140,7 +140,6 @@ class BaselineAgent(ArtificialBrain):
             if Phase.FIND_NEXT_GOAL == self._phase:
                 # Definition of some relevant variables
                 self._answered = False
-                self._advice = False
                 self._goalVic = None
                 self._goalLoc = None
                 remainingZones = []
@@ -193,7 +192,6 @@ class BaselineAgent(ArtificialBrain):
                 self._phase = Phase.PICK_UNSEARCHED_ROOM
 
             if Phase.PICK_UNSEARCHED_ROOM == self._phase:
-                self._advice = False
                 agent_location = state[self.agent_id]['location']
                 # Identify which areas are not explored yet
                 unsearchedRooms = [room['room_name'] for room in state.values()
@@ -462,7 +460,6 @@ class BaselineAgent(ArtificialBrain):
 
                             # Identify injured victim in the area
                             if 'healthy' not in vic and vic not in self._foundVictims:
-                                self._advice = True
                                 self._recentVic = vic
                                 # Add the victim and the location to the corresponding dictionary
                                 self._foundVictims.append(vic)
@@ -532,9 +529,9 @@ class BaselineAgent(ArtificialBrain):
                     self._todo.append(self._recentVic)
                     self._phase = Phase.FIND_NEXT_GOAL
                 # Remain idle untill the human communicates to the agent what to do with the found victim
-                if self.received_messages_content and self._advice and self.received_messages_content[-1] != 'Rescue' and self.received_messages_content[-1] != 'Continue':
+                if self.received_messages_content and self._waiting and self.received_messages_content[-1] != 'Rescue' and self.received_messages_content[-1] != 'Continue':
                     return None, {}
-                if not self._advice:
+                if not self._waiting:
                     self._phase = Phase.FIND_NEXT_GOAL
                 return Idle.__name__, {'duration_in_ticks': 25}
 
@@ -717,6 +714,9 @@ class BaselineAgent(ArtificialBrain):
                         self.received_messages = []
                         self.received_messages_content = []
                         self._remove = True
+                        self._waiting = False
+                        if self._recentVic:
+                            self._todo.append(self._recentVic)
                         # Let the human know that the agent is coming over to help
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.','RescueBot')
                         # Plan the path to the relevant area
@@ -746,13 +746,13 @@ class BaselineAgent(ArtificialBrain):
         # Create a dictionary with trust values for all team members
         trustBeliefs = {}
         for member in receivedMessages.keys():
-            trustBeliefs[member] = default
+            trustBeliefs[member] = {'competence': default, 'willingness': default}
         # Update the trust value based on for example the received messages
         for member in receivedMessages.keys():
             for message in receivedMessages[member]:
                 # Increase agent trust in a team member that rescued a victim
                 if 'Collect' in message:
-                    trustBeliefs[member]+=0.25
+                    trustBeliefs[member]['competence']+=0.25
                     break
         return trustBeliefs
 

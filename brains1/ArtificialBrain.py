@@ -2,7 +2,7 @@ import copy
 import warnings
 import numpy as np
 from abc import  ABC, abstractmethod
-from actions1.customActions import RemoveObjectTogether
+from actions1.CustomActions import RemoveObjectTogether
 from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_brain import AgentBrain
 from matrx.agents.agent_brain import AgentBrain

@@ -9,18 +9,17 @@ from matrx.actions import MoveNorth, OpenDoorAction, CloseDoorAction, GrabObject
 from matrx.actions.move_actions import MoveEast, MoveSouth, MoveWest
 from matrx.agents import AgentBrain, HumanAgentBrain, SenseCapability
 from matrx.grid_world import GridWorld, AgentBody
-from actions1.customActions import RemoveObjectTogether, DropObject, Idle, CarryObject, Drop, CarryObjectTogether, DropObjectTogether
+from actions1.CustomActions import RemoveObjectTogether, DropObject, Idle, CarryObject, Drop, CarryObjectTogether, DropObjectTogether
 from matrx.actions.object_actions import RemoveObject
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
 from agents1.BaselineAgent import BaselineAgent
 from agents1.TutorialAgent import TutorialAgent
-from actions1.customActions import RemoveObjectTogether
+from actions1.CustomActions import RemoveObjectTogether
 from brains1.HumanBrain import HumanBrain
-from loggers.action_logger import ActionLogger
+from loggers.ActionLogger import ActionLogger
 from datetime import datetime
-from loggers.message_logger import MessageLogger
 
 random_seed = 1
 verbose = False
@@ -55,18 +54,18 @@ other_sense_range = np.inf  # the range with which agents detect other objects (
 fov_occlusion = True
 
 # Add the drop zones to the world
-def add_drop_off_zones(builder, exp_version):
-    if exp_version == "experiment":
+def add_drop_off_zones(builder, task_type):
+    if task_type == "official":
         nr_drop_zones = 1
         for nr_zone in range(nr_drop_zones):
             builder.add_area((23,8), width=1, height=8, name=f"Drop off {nr_zone}", visualize_opacity=0.5, visualize_colour=drop_off_color, drop_zone_nr=nr_zone, is_drop_zone=True, is_goal_block=False, is_collectable=False) 
-    if exp_version == "trial":
+    if task_type == "tutorial":
         nr_drop_zones = 1
         for nr_zone in range(nr_drop_zones):
             builder.add_area((17,7), width=1, height=4, name=f"Drop off {nr_zone}",visualize_opacity=0.5, visualize_colour=drop_off_color, drop_zone_nr=nr_zone, is_drop_zone=True, is_goal_block=False, is_collectable=False) 
 
 # Add the agents to the world
-def add_agents(builder, condition, exp_version, name):
+def add_agents(builder, condition, task_type, name):
     # Define the agent's sense capabilites
     sense_capability_agent = SenseCapability({AgentBody: agent_sense_range, CollectableBlock: object_sense_range, None: other_sense_range, ObstacleObject: 1})
     # Define the human's sense capabilities based on the selected condition
@@ -80,10 +79,10 @@ def add_agents(builder, condition, exp_version, name):
         # Add the artificial agents based on condition
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
-            if exp_version=="experiment":
+            if task_type=="official":
                 brain = BaselineAgent(slowdown=8, condition=condition, name=name) # Slowdown makes the agent a bit slower, do not change value during evaluations
                 loc = (22,11)
-            if exp_version=="trial":
+            if task_type=="tutorial":
                 brain = TutorialAgent(slowdown=8, condition=condition, name=name)
                 loc = (16,8)
             builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score'], score=0, sense_capability=sense_capability_agent, is_traversable=True, img_name="/images/robot-final4.svg")
@@ -94,26 +93,26 @@ def add_agents(builder, condition, exp_version, name):
                 brain = HumanBrain(max_carry_objects=np.inf, grab_range=1, drop_range=0, remove_range=1, fov_occlusion=fov_occlusion, strength=condition, name=name)
             else:
                 brain = HumanBrain(max_carry_objects=1, grab_range=1, drop_range=0, remove_range=1, fov_occlusion=fov_occlusion, strength=condition, name=name)
-            if exp_version=="experiment":
+            if task_type=="official":
                 loc = (22,12)
             else:
                 loc = (16,9)
             builder.add_human_agent(loc, brain, team=team_name, name=name, key_action_map=key_action_map, sense_capability=sense_capability_human, is_traversable=True, img_name="/images/rescue-man-final3.svg", visualize_when_busy=True)
 
 # Create the world
-def create_builder(exp_version, condition, name):
+def create_builder(task_type, condition, name):
     # Set numpy's random generator
     np.random.seed(random_seed)
     # Create the collection goal
     goal = CollectionGoal(max_nr_ticks=np.inf)
     # Create the world builder
-    if exp_version=="experiment":
+    if task_type=="official":
         builder = WorldBuilder(shape=[25,24], tick_duration=tick_duration, run_matrx_api=True, run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#9a9083')
     else:
         builder = WorldBuilder(shape=[19,19], tick_duration=tick_duration, run_matrx_api=True,random_seed=random_seed, run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#9a9083')
 
     # Add all areas and objects to the tutorial world
-    if exp_version == "trial":
+    if task_type == "tutorial":
         builder.add_room(top_left_location=(0, 0), width=19, height=19, name="world_bounds", wall_visualize_colour="#1F262A")
         builder.add_room(top_left_location=(1,1), width=5, height=4, name='area 1', door_locations=[(3,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0, door_open_colour='#9a9083', area_custom_properties={'doormat':(3,5)})
         builder.add_room(top_left_location=(7,1), width=5, height=4, name='area 2', door_locations=[(9,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(9,5)})
@@ -168,15 +167,14 @@ def create_builder(exp_version, condition, name):
                     (7,3),(7,4),(11,2),(11,3),(11,4),(10,4)]:
             builder.add_object(loc,'roof', EnvObject,is_traversable=True, is_movable=False, visualize_shape='img',img_name="/images/roof-final5.svg")
 
-    # Create folders where the logs are stored during the experiment condition
-    if exp_version=="experiment":
+    # Create folders where the logs are stored during the official condition
+    if task_type=="official":
         current_exp_folder = datetime.now().strftime("exp_"+condition+"_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
-        logger_save_folder = os.path.join("experiment_logs", current_exp_folder)
+        logger_save_folder = os.path.join("logs", current_exp_folder)
         builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
-        builder.add_logger(MessageLogger, save_path=logger_save_folder, file_name_prefix="messages_")       
-    
-    # Add all area and objects to the experiment world
-    if exp_version == "experiment":
+        
+    # Add all area and objects to the official world
+    if task_type == "official":
         builder.add_room(top_left_location=(0, 0), width=25, height=24, name="world_bounds", wall_visualize_colour="#1F262A")
         builder.add_room(top_left_location=(1,1), width=5, height=4, name='area 1', door_locations=[(3,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0, door_open_colour='#9a9083', area_custom_properties={'doormat':(3,5)})
         builder.add_room(top_left_location=(7,1), width=5, height=4, name='area 2', door_locations=[(9,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(9,5)})
@@ -301,8 +299,8 @@ def create_builder(exp_version, condition, name):
         for loc in [(21,10),(21,11),(21,12),(21,13),(19,15),(19,16)]:
             builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final15.svg", visualize_size=1) 
     
-    add_drop_off_zones(builder, exp_version)
-    add_agents(builder, condition, exp_version, name)
+    add_drop_off_zones(builder, task_type)
+    add_agents(builder, condition, task_type, name)
 
     return builder
 
