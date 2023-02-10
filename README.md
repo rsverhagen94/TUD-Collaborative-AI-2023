@@ -1,4 +1,4 @@
-# Personalized XAI for Human-Agent Teamwork
+# Human-Agent Teamwork for Search and Rescue
 ## Installation
 - Install the required dependencies through 'pip install -r requirements.txt'. 
 - Launch the human-agent teamwork task by running main.py.
