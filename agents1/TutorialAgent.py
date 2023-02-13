@@ -47,11 +47,12 @@ class Phase(enum.Enum):
     ENTER_ROOM=29
     
 class TutorialAgent(ArtificialBrain):
-    def __init__(self, slowdown, condition, name):
-        super().__init__(slowdown, condition, name)
+    def __init__(self, slowdown, condition, name, folder):
+        super().__init__(slowdown, condition, name, folder)
         # Initialization of some relevant variables
         self._slowdown = slowdown
         self._humanName = name
+        self._folder = folder
         self._phase=Phase.INTRO0
         self._roomVics = []
         self._searchedRooms = []

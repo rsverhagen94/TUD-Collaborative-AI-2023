@@ -9,17 +9,18 @@ from pathlib import Path
 from loggers.OutputLogger import output_logger
 
 if __name__ == "__main__":
+    fld = os.getcwd()
     print("\nEnter one of the task types 'tutorial' or 'official':")
     choice1=input()
     print("\nEnter a name or id for the human agent:")
     choice2=input()
     if choice1=='tutorial':
-        builder = create_builder(task_type='tutorial',condition='tutorial', name=choice2)
+        builder = create_builder(task_type='tutorial',condition='tutorial', name=choice2, folder=fld)
     else:
         print("\nEnter one of the human conditions 'normal', 'strong', or 'weak':")
         choice3=input()
         if choice3=='normal' or choice3=='strong' or choice3=='weak':
-            builder = create_builder(task_type=choice1, condition=choice3, name=choice2)
+            builder = create_builder(task_type=choice1, condition=choice3, name=choice2, folder=fld)
         else:
             print("\nWrong condition name entered")
 
@@ -38,6 +39,5 @@ if __name__ == "__main__":
     vis_thread.join()
     if choice1=="official":
         # Generate one final output log file for the official task type
-        fld = os.getcwd()
         output_logger(fld)
     builder.stop()

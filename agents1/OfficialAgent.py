@@ -1,4 +1,4 @@
-import sys, random, enum, ast, time
+import sys, random, enum, ast, time, csv
 from matrx import grid_world
 from brains1.ArtificialBrain import ArtificialBrain
 from actions1.CustomActions import *
@@ -36,12 +36,13 @@ class Phase(enum.Enum):
     ENTER_ROOM = 19
 
 class BaselineAgent(ArtificialBrain):
-    def __init__(self, slowdown, condition, name):
-        super().__init__(slowdown, condition, name)
+    def __init__(self, slowdown, condition, name, folder):
+        super().__init__(slowdown, condition, name, folder)
         # Initialization of some relevant variables
         self._slowdown = slowdown
         self._condition = condition
         self._humanName = name
+        self._folder = folder
         self._phase = Phase.INTRO
         self._roomVics = []
         self._searchedRooms = []
@@ -83,8 +84,9 @@ class BaselineAgent(ArtificialBrain):
                 self._teamMembers.append(member)
         # Process messages from team members
         self._processMessages(state, self._teamMembers, self._condition)
-        # Update trust beliefs for team members
-        self._trustBelief(self._teamMembers)
+        # Initialize and update trust beliefs for team members
+        trustBeliefs = self._loadBelief(self._teamMembers, self._folder)
+        self._trustBelief(self._teamMembers, trustBeliefs, self._folder)
 
         # Check whether human is close in distance
         if state[{'is_human_agent': True}]:
@@ -729,7 +731,37 @@ class BaselineAgent(ArtificialBrain):
             if mssgs and mssgs[-1].split()[-1] in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14']:
                 self._humanLoc = int(mssgs[-1].split()[-1])
 
-    def _trustBelief(self, members):
+    def _loadBelief(self, members, folder):
+        '''
+        Loads trust belief values if agent already collaborated with human before, otherwise trust belief values are initialized using default values.
+        '''
+        # Create a dictionary with trust values for all team members
+        trustBeliefs = {}
+        # Set a default starting trust value
+        default = 0.5
+        trustfile_header = []
+        trustfile_contents = []
+        # Check if agent already collaborated with this human before, if yes: load the corresponding trust values, if no: initialize using default trust values
+        with open(folder+'/beliefs/allTrustBeliefs.csv') as csvfile:
+            reader = csv.reader(csvfile, delimiter=';', quotechar="'")
+            for row in reader:
+                if trustfile_header==[]:
+                    trustfile_header=row
+                    continue
+                # Retrieve trust values 
+                if row[0]==self._humanName:
+                    name = row[0]
+                    competence = float(row[1])
+                    willingness = float(row[2])
+                    trustBeliefs[name] = {'competence': competence, 'willingness': willingness}
+                # Initialize default trust values
+                if row[0]!=self._humanName:
+                    competence = default
+                    willingness = default
+                    trustBeliefs[self._humanName] = {'competence': competence, 'willingness': willingness}
+        return trustBeliefs
+
+    def _trustBelief(self, members, trustBeliefs, folder):
         '''
         Baseline implementation of a trust belief. Creates a dictionary with trust belief scores for each team member, for example based on the received messages.
         '''
@@ -740,20 +772,19 @@ class BaselineAgent(ArtificialBrain):
         for mssg in self.received_messages:
             for member in members:
                 if mssg.from_id == member:
-                    receivedMessages[member].append(mssg.content) 
-        # Set a default starting trust value
-        default = 0.5
-        # Create a dictionary with trust values for all team members
-        trustBeliefs = {}
-        for member in receivedMessages.keys():
-            trustBeliefs[member] = {'competence': default, 'willingness': default}
+                    receivedMessages[member].append(mssg.content)
         # Update the trust value based on for example the received messages
         for member in receivedMessages.keys():
             for message in receivedMessages[member]:
                 # Increase agent trust in a team member that rescued a victim
                 if 'Collect' in message:
                     trustBeliefs[member]['competence']+=0.25
-                    break
+        # Save current trust belief values so we can later use and retrieve them to add to a csv file with all the logged trust belief values
+        with open(folder + '/beliefs/currentTrustBelief.csv', mode='w') as csv_file:
+            csv_writer = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            csv_writer.writerow(['name','competence','willingness'])
+            csv_writer.writerow([self._humanName,trustBeliefs[self._humanName]['competence'],trustBeliefs[self._humanName]['willingness']])
+
         return trustBeliefs
 
     def _sendMessage(self, mssg, sender):

@@ -615,7 +615,7 @@ class ArtificialBrain(ArtificialAgentBrain, ABC):
     This class is the obligatory base class for the agents.
     Agents must implement decide_on_action
     """
-    def __init__(self, slowdown, condition, name):
+    def __init__(self, slowdown, condition, name, folder):
         '''
         @param slowdown an integer. Basically this sets action_duration
         field to the given slowdown. 1 implies normal speed
@@ -625,6 +625,7 @@ class ArtificialBrain(ArtificialAgentBrain, ABC):
         self.__slowdown = slowdown
         self.__condition = condition
         self.__name = name
+        self.__folder = folder
         super().__init__()
     
     def decide_on_action(self, state:State):
