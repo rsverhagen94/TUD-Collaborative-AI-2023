@@ -77,6 +77,7 @@ class TutorialAgent(ArtificialBrain):
         self._answered = False
         self._tosearch = []
         self._tutorial = True
+        self._recentVic = None
 
     def initialize(self):
         # Initialization of the state tracker and navigation algorithm
@@ -519,6 +520,7 @@ class TutorialAgent(ArtificialBrain):
                     self.received_messages_content = []
                 # Add the area to the list of searched areas and make a plan what to do next
                 self._searchedRooms.append(self._door['room_name'])
+                self._recentVic = None
                 self._phase=Phase.FIND_NEXT_GOAL
                 return Idle.__name__,{'duration_in_ticks':25}
                 
@@ -678,9 +680,6 @@ class TutorialAgent(ArtificialBrain):
                     self.received_messages = []
                     self.received_messages_content = []
                     self._remove = True
-                    self._waiting = False
-                    if self._recentVic:
-                        self._todo.append(self._recentVic)
                     # Let the human know that the agent is coming over to help
                     self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.', 'RescueBot')  
                     # Plan the path to the relevant area

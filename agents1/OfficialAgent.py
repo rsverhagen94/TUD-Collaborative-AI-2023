@@ -66,6 +66,7 @@ class BaselineAgent(ArtificialBrain):
         self._carrying = False
         self._waiting = False
         self._rescue = None
+        self._recentVic = None
 
     def initialize(self):
         # Initialization of the state tracker and navigation algorithm
@@ -169,6 +170,7 @@ class BaselineAgent(ArtificialBrain):
                         self._goalVic = vic
                         self._goalLoc = remaining[vic]
                         # Move to target victim
+                        self._rescue = 'together'
                         self._sendMessage('Moving to ' + self._foundVictimLocs[vic]['room'] + ' to pick up ' + self._goalVic +'. Please come there as well to help me carry ' + self._goalVic + ' to the drop zone.', 'RescueBot')
                         # Plan path to victim because the exact location is known (i.e., the agent found this victim)
                         if 'location' in self._foundVictimLocs[vic].keys():
@@ -504,6 +506,7 @@ class BaselineAgent(ArtificialBrain):
                     # Tell the human to carry the critically injured victim together
                     if state[{'is_human_agent': True}]:
                         self._sendMessage('Lets carry ' + str(self._recentVic) + ' together!', 'RescueBot')
+                    self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 # Make a plan to rescue a found mildly injured victim together if the human decides so
                 if self.received_messages_content and self.received_messages_content[-1] == 'Rescue together' and 'mild' in self._recentVic:
@@ -516,6 +519,7 @@ class BaselineAgent(ArtificialBrain):
                     # Tell the human to carry the mildly injured victim together
                     if state[{'is_human_agent': True}]:
                         self._sendMessage('Lets carry ' + str(self._recentVic) + ' together!', 'RescueBot')
+                    self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 # Make a plan to rescue the mildly injured victim alone if the human decides so, and communicate this to the human
                 if self.received_messages_content and self.received_messages_content[-1] == 'Rescue alone' and 'mild' in self._recentVic:
@@ -523,17 +527,20 @@ class BaselineAgent(ArtificialBrain):
                     self._rescue = 'alone'
                     self._answered = True
                     self._waiting = False
+                    self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 # Continue searching other areas if the human decides so
                 if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
                     self._answered = True
                     self._waiting = False
                     self._todo.append(self._recentVic)
+                    self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 # Remain idle untill the human communicates to the agent what to do with the found victim
                 if self.received_messages_content and self._waiting and self.received_messages_content[-1] != 'Rescue' and self.received_messages_content[-1] != 'Continue':
                     return None, {}
                 if not self._waiting:
+                    self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 return Idle.__name__, {'duration_in_ticks': 25}
 
@@ -716,9 +723,9 @@ class BaselineAgent(ArtificialBrain):
                         self.received_messages = []
                         self.received_messages_content = []
                         self._remove = True
-                        self._waiting = False
-                        if self._recentVic:
+                        if self._waiting and self._recentVic:
                             self._todo.append(self._recentVic)
+                        self._waiting = False
                         # Let the human know that the agent is coming over to help
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.','RescueBot')
                         # Plan the path to the relevant area
