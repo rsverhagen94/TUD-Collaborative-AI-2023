@@ -67,6 +67,8 @@ class BaselineAgent(ArtificialBrain):
         self._waiting = False
         self._rescue = None
         self._recentVic = None
+        self._receivedMessages = []
+        self._moving = False
 
     def initialize(self):
         # Initialization of the state tracker and navigation algorithm
@@ -83,11 +85,16 @@ class BaselineAgent(ArtificialBrain):
         for member in state['World']['team_members']:
             if member != agent_name and member not in self._teamMembers:
                 self._teamMembers.append(member)
+        # Create a list of received messages from the human team member
+        for mssg in self.received_messages:
+            for member in self._teamMembers:
+                if mssg.from_id == member and mssg.content not in self._receivedMessages:
+                    self._receivedMessages.append(mssg.content)
         # Process messages from team members
         self._processMessages(state, self._teamMembers, self._condition)
         # Initialize and update trust beliefs for team members
         trustBeliefs = self._loadBelief(self._teamMembers, self._folder)
-        self._trustBelief(self._teamMembers, trustBeliefs, self._folder)
+        self._trustBelief(self._teamMembers, trustBeliefs, self._folder, self._receivedMessages)
 
         # Check whether human is close in distance
         if state[{'is_human_agent': True}]:
@@ -112,7 +119,7 @@ class BaselineAgent(ArtificialBrain):
         # Check whether victims are currently being carried together by human and agent 
         for info in state.values():
             if 'is_human_agent' in info and self._humanName in info['name'] and len(info['is_carrying']) > 0 and 'critical' in info['is_carrying'][0]['obj_id'] or \
-                'is_human_agent' in info and self._humanName in info['name'] and len(info['is_carrying']) > 0 and 'mild' in info['is_carrying'][0]['obj_id'] and self._rescue=='together':
+                'is_human_agent' in info and self._humanName in info['name'] and len(info['is_carrying']) > 0 and 'mild' in info['is_carrying'][0]['obj_id'] and self._rescue=='together' and not self._moving:
                 # If victim is being carried, add to collected victims memory
                 if info['is_carrying'][0]['img_name'][8:-4] not in self._collectedVictims:
                     self._collectedVictims.append(info['is_carrying'][0]['img_name'][8:-4])
@@ -145,6 +152,8 @@ class BaselineAgent(ArtificialBrain):
                 self._answered = False
                 self._goalVic = None
                 self._goalLoc = None
+                self._rescue = None
+                self._moving = True
                 remainingZones = []
                 remainingVics = []
                 remaining = {}
@@ -184,6 +193,12 @@ class BaselineAgent(ArtificialBrain):
                     if vic in self._foundVictims and vic not in self._todo:
                         self._goalVic = vic
                         self._goalLoc = remaining[vic]
+                        # Rescue together when victim is critical or when the human is weak and the victim is mildly injured
+                        if 'critical' in vic or 'mild' in vic and self._condition=='weak':
+                            self._rescue = 'together'
+                        # Rescue alone if the victim is mildly injured and the human not weak
+                        if 'mild' in vic and self._condition!='weak':
+                            self._rescue = 'alone'
                         # Plan path to victim because the exact location is known (i.e., the agent found this victim)
                         if 'location' in self._foundVictimLocs[vic].keys():
                             self._phase = Phase.PLAN_PATH_TO_VICTIM
@@ -192,8 +207,9 @@ class BaselineAgent(ArtificialBrain):
                         if 'location' not in self._foundVictimLocs[vic].keys():
                             self._phase = Phase.PLAN_PATH_TO_ROOM
                             return Idle.__name__, {'duration_in_ticks': 25}
-                # If there are no target victims founds, visit an unsearched area to search for victims
-                self._phase = Phase.PICK_UNSEARCHED_ROOM
+                    # If there are no target victims found, visit an unsearched area to search for victims
+                    if vic not in self._foundVictims or vic in self._foundVictims and vic in self._todo and len(self._searchedRooms)>0:
+                        self._phase = Phase.PICK_UNSEARCHED_ROOM
 
             if Phase.PICK_UNSEARCHED_ROOM == self._phase:
                 agent_location = state[self.agent_id]['location']
@@ -451,6 +467,7 @@ class BaselineAgent(ArtificialBrain):
 
                             # Identify the exact location of the victim that was found by the human earlier
                             if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys():
+                                self._recentVic = vic
                                 # Add the exact victim location to the corresponding dictionary
                                 self._foundVictimLocs[vic] = {'location': info['location'],'room': self._door['room_name'], 'obj_id': info['obj_id']}
                                 if vic == self._goalVic:
@@ -498,6 +515,7 @@ class BaselineAgent(ArtificialBrain):
                     self._searchedRooms.append(self._door['room_name'])
                 # Make a plan to rescue a found critically injured victim if the human decides so
                 if self.received_messages_content and self.received_messages_content[-1] == 'Rescue' and 'critical' in self._recentVic:
+                    self._rescue = 'together'
                     self._answered = True
                     self._waiting = False
                     # Tell the human to come over and help carry the critically injured victim
@@ -505,9 +523,10 @@ class BaselineAgent(ArtificialBrain):
                         self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(self._recentVic) + ' together.', 'RescueBot')
                     # Tell the human to carry the critically injured victim together
                     if state[{'is_human_agent': True}]:
-                        self._sendMessage('Lets carry ' + str(self._recentVic) + ' together!', 'RescueBot')
+                        self._sendMessage('Lets carry ' + str(self._recentVic) + ' together! Please wait until I moved on top of ' + str(self._recentVic) + '.', 'RescueBot')
+                    self._goalVic = self._recentVic
                     self._recentVic = None
-                    self._phase = Phase.FIND_NEXT_GOAL
+                    self._phase = Phase.PLAN_PATH_TO_VICTIM
                 # Make a plan to rescue a found mildly injured victim together if the human decides so
                 if self.received_messages_content and self.received_messages_content[-1] == 'Rescue together' and 'mild' in self._recentVic:
                     self._rescue = 'together'
@@ -518,9 +537,10 @@ class BaselineAgent(ArtificialBrain):
                         self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(self._recentVic) + ' together.', 'RescueBot')
                     # Tell the human to carry the mildly injured victim together
                     if state[{'is_human_agent': True}]:
-                        self._sendMessage('Lets carry ' + str(self._recentVic) + ' together!', 'RescueBot')
+                        self._sendMessage('Lets carry ' + str(self._recentVic) + ' together! Please wait until I moved on top of ' + str(self._recentVic) + '.', 'RescueBot')
+                    self._goalVic = self._recentVic
                     self._recentVic = None
-                    self._phase = Phase.FIND_NEXT_GOAL
+                    self._phase = Phase.PLAN_PATH_TO_VICTIM
                 # Make a plan to rescue the mildly injured victim alone if the human decides so, and communicate this to the human
                 if self.received_messages_content and self.received_messages_content[-1] == 'Rescue alone' and 'mild' in self._recentVic:
                     self._sendMessage('Picking up ' + self._recentVic + ' in ' + self._door['room_name'] + '.','RescueBot')
@@ -539,7 +559,8 @@ class BaselineAgent(ArtificialBrain):
                 # Remain idle untill the human communicates to the agent what to do with the found victim
                 if self.received_messages_content and self._waiting and self.received_messages_content[-1] != 'Rescue' and self.received_messages_content[-1] != 'Continue':
                     return None, {}
-                if not self._waiting:
+                # Find the next area to search when the agent is not waiting for an answer from the human or occupied with rescuing a victim
+                if not self._waiting and not self._rescue:
                     self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 return Idle.__name__, {'duration_in_ticks': 25}
@@ -572,6 +593,7 @@ class BaselineAgent(ArtificialBrain):
                              and info['room_name'] == self._foundVictimLocs[self._goalVic]['room']]
                 self._roomtiles = roomTiles
                 objects = []
+                # When the victim has to be carried by human and agent together, check whether human has arrived at the victim's location
                 for info in state.values():
                     # When the victim has to be carried by human and agent together, check whether human has arrived at the victim's location
                     if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id'] and info['location'] in self._roomtiles or \
@@ -579,17 +601,19 @@ class BaselineAgent(ArtificialBrain):
                         self._goalVic in self._foundVictims and self._goalVic in self._todo and len(self._searchedRooms)==0 and 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id'] and info['location'] in self._roomtiles or \
                         self._goalVic in self._foundVictims and self._goalVic in self._todo and len(self._searchedRooms)==0 and 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'mild' in info['obj_id'] and info['location'] in self._roomtiles:
                         objects.append(info)
-                        if self._goalVic not in self._collectedVictims:
-                            self._collectedVictims.append(self._goalVic)
                         # Remain idle when the human has not arrived at the location
                         if not self._humanName in info['name']:
+                            self._waiting = True
+                            self._moving = False
                             return None, {}
                 # Add the victim to the list of rescued victims when it has been picked up
                 if len(objects) == 0 and 'critical' in self._goalVic or len(objects) == 0 and 'mild' in self._goalVic and self._rescue=='together':
+                    self._waiting = False
                     if self._goalVic not in self._collectedVictims:
                         self._collectedVictims.append(self._goalVic)
-                    # Start planning the path to the drop zone
-                    self._phase = Phase.PLAN_PATH_TO_DROPPOINT
+                    self._carryingTogether = True
+                    # Determine the next victim to rescue or search
+                    self._phase = Phase.FIND_NEXT_GOAL
                 # When rescuing mildly injured victims alone, pick the victim up and plan the path to the drop zone
                 if 'mild' in self._goalVic and self._rescue=='alone':
                     self._phase = Phase.PLAN_PATH_TO_DROPPOINT
@@ -647,6 +671,7 @@ class BaselineAgent(ArtificialBrain):
         '''
         process incoming messages received from the team members
         '''
+        
         receivedMessages = {}
         # Create a dictionary with a list of received messages from each team member
         for member in teamMembers:
@@ -722,6 +747,7 @@ class BaselineAgent(ArtificialBrain):
                         # Clear received messages (bug fix)
                         self.received_messages = []
                         self.received_messages_content = []
+                        self._moving = True
                         self._remove = True
                         if self._waiting and self._recentVic:
                             self._todo.append(self._recentVic)
@@ -756,36 +782,27 @@ class BaselineAgent(ArtificialBrain):
                     trustfile_header=row
                     continue
                 # Retrieve trust values 
-                if row[0]==self._humanName:
+                if row and row[0]==self._humanName:
                     name = row[0]
                     competence = float(row[1])
                     willingness = float(row[2])
                     trustBeliefs[name] = {'competence': competence, 'willingness': willingness}
                 # Initialize default trust values
-                if row[0]!=self._humanName:
+                if row and row[0]!=self._humanName:
                     competence = default
                     willingness = default
                     trustBeliefs[self._humanName] = {'competence': competence, 'willingness': willingness}
         return trustBeliefs
 
-    def _trustBelief(self, members, trustBeliefs, folder):
+    def _trustBelief(self, members, trustBeliefs, folder, receivedMessages):
         '''
         Baseline implementation of a trust belief. Creates a dictionary with trust belief scores for each team member, for example based on the received messages.
         '''
-        receivedMessages = {}
-        # Create a dictionary with a list of received messages from each team member
-        for member in members:
-            receivedMessages[member] = []
-        for mssg in self.received_messages:
-            for member in members:
-                if mssg.from_id == member:
-                    receivedMessages[member].append(mssg.content)
         # Update the trust value based on for example the received messages
-        for member in receivedMessages.keys():
-            for message in receivedMessages[member]:
-                # Increase agent trust in a team member that rescued a victim
-                if 'Collect' in message:
-                    trustBeliefs[member]['competence']+=0.25
+        for message in receivedMessages:
+            # Increase agent trust in a team member that rescued a victim
+            if 'Collect' in message:
+                trustBeliefs[self._humanName]['competence']+=0.25
         # Save current trust belief values so we can later use and retrieve them to add to a csv file with all the logged trust belief values
         with open(folder + '/beliefs/currentTrustBelief.csv', mode='w') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)

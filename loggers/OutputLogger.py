@@ -37,8 +37,9 @@ def output_logger(fld):
             if trustfile_header==[]:
                 trustfile_header=row
                 continue
-            res = {trustfile_header[i] : row[i] for i in range(len(trustfile_header))}
-            trustfile_contents.append(res)
+            if row:
+                res = {trustfile_header[i] : row[i] for i in range(len(trustfile_header))}
+                trustfile_contents.append(res)
     # Retrieve the stored trust belief values
     name = trustfile_contents[-1]['name']
     competence = trustfile_contents[-1]['competence']
