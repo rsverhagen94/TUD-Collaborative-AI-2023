@@ -47,6 +47,7 @@ class BaselineAgent(ArtificialBrain):
         self._phase = Phase.INTRO
         self._roomVics = []
         self._searchedRooms = []
+        self._searchedRoomsHuman = []
         self._foundVictims = []
         self._collectedVictims = []
         self._foundVictimLocs = {}
@@ -295,6 +296,18 @@ class BaselineAgent(ArtificialBrain):
                     # Retrieve move actions to execute
                     action = self._navigator.get_move_action(self._state_tracker)
                     if action != None:
+                        for info in state.values():
+                            # Observe obstacles on the sides to catch a human lie.
+                            if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance']:
+                                obstacleLoc = info["location"]
+                                for area in self._searchedRoomsHuman:
+                                    areaDoorLoc = state.get_room_doors(area)[0]["location"]
+                                    if areaDoorLoc == obstacleLoc:
+                                        trustBeliefs[self._humanName]["willingness"] -= 0.1
+                                        self._trustBelief(self._teamMembers, trustBeliefs, self._folder, self._receivedMessages)
+                                        self._searchedRoomsHuman.remove(area)
+                                        self._searchedRooms.remove(area)
+
                         # Remove obstacles blocking the path to the area 
                         for info in state.values():
                             if 'class_inheritance' in info and 'ObstacleObject' in info[
@@ -689,6 +702,7 @@ class BaselineAgent(ArtificialBrain):
                     area = 'area ' + msg.split()[-1]
                     if area not in self._searchedRooms:
                         self._searchedRooms.append(area)
+                        self._searchedRoomsHuman.append(area)
                 # If a received message involves team members finding victims, add these victims and their locations to memory
                 if msg.startswith("Found:"):
                     # Identify which victim and area it concerns
@@ -700,6 +714,7 @@ class BaselineAgent(ArtificialBrain):
                     # Add the area to the memory of searched areas
                     if loc not in self._searchedRooms:
                         self._searchedRooms.append(loc)
+                        self._searchedRoomsHuman.append(loc)
                     # Add the victim and its location to memory
                     if foundVic not in self._foundVictims:
                         self._foundVictims.append(foundVic)
@@ -776,7 +791,7 @@ class BaselineAgent(ArtificialBrain):
         trustfile_header = []
         trustfile_contents = []
         # Check if agent already collaborated with this human before, if yes: load the corresponding trust values, if no: initialize using default trust values
-        with open(folder+'/beliefs/allTrustBeliefs.csv') as csvfile:
+        with open(folder+'/beliefs/currentTrustBelief.csv') as csvfile:
             reader = csv.reader(csvfile, delimiter=';', quotechar="'")
             for row in reader:
                 if trustfile_header==[]:

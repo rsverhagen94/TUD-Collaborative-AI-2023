@@ -25,7 +25,7 @@ random_seed = 1
 verbose = False
 # Tick duration determines the speed of the world. A tick duration of 0.1 means 10 ticks are executed in a second. 
 # You can speed up or slow down the world by changing this value without changing behavior. Leave this value at 0.1 during evaluations.
-tick_duration = 0.1
+tick_duration = 0.05
 # Define the keyboarc controls for the human agent
 key_action_map = {
         'ArrowUp': MoveNorth.__name__,
