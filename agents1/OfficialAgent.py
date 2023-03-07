@@ -527,6 +527,7 @@ class BaselineAgent(ArtificialBrain):
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
                     self._roomVics = []
+                    self._decrementWillingness(trustBeliefs)
                     # Reset received messages (bug fix)
                     self.received_messages = []
                     self.received_messages_content = []
