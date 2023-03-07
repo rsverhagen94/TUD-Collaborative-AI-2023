@@ -67,6 +67,7 @@ class BaselineAgent(ArtificialBrain):
         self._recentVic = None
         self._receivedMessages = []
         self._moving = False
+        self._humanClaimRemove = False
 
     def initialize(self):
         # Initialization of the state tracker and navigation algorithm
@@ -323,6 +324,7 @@ class BaselineAgent(ArtificialBrain):
                 agent_location = state[self.agent_id]['location']
                 # Identify which obstacle is blocking the entrance
                 for info in state.values():
+                    self._humanClaimRemove = False
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
                         objects.append(info)
                         # Communicate which obstacle is blocking the entrance
@@ -427,6 +429,10 @@ class BaselineAgent(ArtificialBrain):
                     self._answered = False
                     self._remove = False
                     self._waiting = False
+                    #if human asked for help from robot to remove an obstacle and there is no obstacle, then human's willingness will be decremented
+                    if self._humanClaimRemove:
+                        self._decrementWillingness(trustBeliefs)
+                        self._humanClaimRemove = False
                     self._phase = Phase.ENTER_ROOM
 
             if Phase.ENTER_ROOM == self._phase:
@@ -700,7 +706,7 @@ class BaselineAgent(ArtificialBrain):
                 if msg.startswith("Search:"):
                     area = 'area ' + msg.split()[-1]
                     if area not in self._searchedRooms:
-                        self._searchedRooms.append(area)
+                        # self._searchedRooms.append(area)
                         self._searchedRoomsHuman.append(area)
                 # If a received message involves team members finding victims, add these victims and their locations to memory
                 if msg.startswith("Found:"):
@@ -736,6 +742,7 @@ class BaselineAgent(ArtificialBrain):
                     loc = 'area ' + msg.split()[-1]
                     # Add the area to the memory of searched areas
                     if loc not in self._searchedRooms:
+                        self._searchedRoomsHuman.append(loc)
                         self._searchedRooms.append(loc)
                     # Add the victim and location to the memory of found victims
                     if collectVic not in self._foundVictims:
@@ -770,6 +777,7 @@ class BaselineAgent(ArtificialBrain):
                         # Let the human know that the agent is coming over to help
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.','RescueBot')
                         # Plan the path to the relevant area
+                        self._humanClaimRemove = True
                         self._phase = Phase.PLAN_PATH_TO_ROOM
                     # Come over to help after dropping a victim that is currently being carried by the agent
                     else:
@@ -853,6 +861,12 @@ class BaselineAgent(ArtificialBrain):
                 dists[room] = utils.get_distance(agent_location, loc)
 
         return min(dists, key=dists.get)
+
+    def _decrementWillingness(self, trustBeliefs):
+        print("bababababba")
+        trustBeliefs[self._humanName]["willingness"] -= 0.1
+        self._saveBelief(trustBeliefs, self._folder)
+
 
     def _efficientSearch(self, tiles):
         '''
