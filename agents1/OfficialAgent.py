@@ -432,6 +432,7 @@ class BaselineAgent(ArtificialBrain):
                     # the if human asked for help from robot to remove an obstacle but there is no obstacle, the human's
                     # willingness will be decremented
                     if self._humanClaimRemove:
+                        print("remove-non-existent-object lie detected")
                         self._updateWillingness(trustBeliefs, -0.1)
                         self._humanClaimRemove = False
                     self._phase = Phase.ENTER_ROOM
@@ -528,7 +529,7 @@ class BaselineAgent(ArtificialBrain):
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
                     self._roomVics = []
-                    self._decrementWillingness(trustBeliefs)
+                    self._updateWillingness(trustBeliefs, -0.1)
                     # Reset received messages (bug fix)
                     self.received_messages = []
                     self.received_messages_content = []
