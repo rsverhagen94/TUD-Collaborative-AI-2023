@@ -324,9 +324,9 @@ class BaselineAgent(ArtificialBrain):
                 agent_location = state[self.agent_id]['location']
                 # Identify which obstacle is blocking the entrance
                 for info in state.values():
-                    self._humanClaimRemove = False
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
                         objects.append(info)
+                        self._humanClaimRemove = False
                         # Communicate which obstacle is blocking the entrance
                         if self._answered is False and not self._remove and not self._waiting:
                             self._sendMessage('Found rock blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \n \n \
@@ -429,9 +429,10 @@ class BaselineAgent(ArtificialBrain):
                     self._answered = False
                     self._remove = False
                     self._waiting = False
-                    #if human asked for help from robot to remove an obstacle and there is no obstacle, then human's willingness will be decremented
+                    # the if human asked for help from robot to remove an obstacle but there is no obstacle, the human's
+                    # willingness will be decremented
                     if self._humanClaimRemove:
-                        self._decrementWillingness(trustBeliefs)
+                        self._updateWillingness(trustBeliefs, -0.1)
                         self._humanClaimRemove = False
                     self._phase = Phase.ENTER_ROOM
 
@@ -824,8 +825,7 @@ class BaselineAgent(ArtificialBrain):
             if 'Collect' in message:
                 trustBeliefs[self._humanName]['competence'] += 0.10
                 # Restrict the competence belief to a range of -1 to 1
-                trustBeliefs[self._humanName]['competence'] = np.clip(trustBeliefs[self._humanName]['competence'], -1,
-                                                                      1)
+                trustBeliefs[self._humanName]['competence'] = np.clip(trustBeliefs[self._humanName]['competence'], -1, 1)
 
     def _saveBelief(self, trustBeliefs, folder):
         with open(folder + '/beliefs/currentTrustBelief.csv', mode='w') as csv_file:
@@ -833,6 +833,10 @@ class BaselineAgent(ArtificialBrain):
             csv_writer.writerow(['name', 'competence', 'willingness'])
             csv_writer.writerow([self._humanName, trustBeliefs[self._humanName]['competence'],
                                  trustBeliefs[self._humanName]['willingness']])
+
+    def _updateWillingness(self, trustBeliefs, updateVal):
+        trustBeliefs[self._humanName]["willingness"] += updateVal
+        self._saveBelief(trustBeliefs, self._folder)
 
     def _sendMessage(self, mssg, sender):
         '''
@@ -862,12 +866,6 @@ class BaselineAgent(ArtificialBrain):
                 dists[room] = utils.get_distance(agent_location, loc)
 
         return min(dists, key=dists.get)
-
-    def _decrementWillingness(self, trustBeliefs):
-        print("bababababba")
-        trustBeliefs[self._humanName]["willingness"] -= 0.1
-        self._saveBelief(trustBeliefs, self._folder)
-
 
     def _efficientSearch(self, tiles):
         '''
