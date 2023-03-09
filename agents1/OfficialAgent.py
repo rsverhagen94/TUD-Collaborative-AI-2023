@@ -7,7 +7,6 @@ from matrx.agents.agent_utils.navigator import Navigator
 from matrx.agents.agent_utils.state_tracker import StateTracker
 from matrx.actions.object_actions import RemoveObject
 from matrx.messages.message import Message
-from actions1.CustomActions import CarryObject, Drop
 
 
 class Phase(enum.Enum):
@@ -67,6 +66,7 @@ class BaselineAgent(ArtificialBrain):
         self._recentVic = None
         self._receivedMessages = []
         self._moving = False
+        self._humanClaimRemove = False
 
     def initialize(self):
         # Initialization of the state tracker and navigation algorithm
@@ -320,6 +320,7 @@ class BaselineAgent(ArtificialBrain):
                 for info in state.values():
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
                         objects.append(info)
+                        self._humanClaimRemove = False
                         # Communicate which obstacle is blocking the entrance
                         if self._answered is False and not self._remove and not self._waiting:
                             self._sendMessage('Found rock blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \n \n \
@@ -422,6 +423,12 @@ class BaselineAgent(ArtificialBrain):
                     self._answered = False
                     self._remove = False
                     self._waiting = False
+                    # the if human asked for help from robot to remove an obstacle but there is no obstacle, the human's
+                    # willingness will be decremented
+                    if self._humanClaimRemove:
+                        print("remove-non-existent-object lie detected")
+                        self._updateWillingness(trustBeliefs, -0.1)
+                        self._humanClaimRemove = False
                     self._phase = Phase.ENTER_ROOM
 
             if Phase.ENTER_ROOM == self._phase:
@@ -516,7 +523,7 @@ class BaselineAgent(ArtificialBrain):
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
                     self._roomVics = []
-                    # TODO buraya lie detection eklemisler zaten, trust update leyek
+                    self._updateWillingness(trustBeliefs, -0.1)
                     # Reset received messages (bug fix)
                     self.received_messages = []
                     self.received_messages_content = []
@@ -699,7 +706,6 @@ class BaselineAgent(ArtificialBrain):
                         continue
                     # TODO (trust high -> not in searchedRooms -> add to searched rooms)
                     if area not in self._searchedRoomsHuman:
-                        # self._searchedRooms.append(area)
                         self._searchedRoomsHuman.append(area)
                 # If a received message involves team members finding victims, add these victims and their locations to memory
                 if msg.startswith("Found:"):
@@ -712,7 +718,6 @@ class BaselineAgent(ArtificialBrain):
                     # Add the area to the memory of searched areas
                     # TODO (trust high -> not in searchedRooms -> add to searched rooms)
                     if loc not in self._searchedRoomsHuman:
-                        # self._searchedRooms.append(loc)
                         self._searchedRoomsHuman.append(loc)
                     # Add the victim and its location to memory
                     if foundVic not in self._foundVictims:
@@ -737,10 +742,10 @@ class BaselineAgent(ArtificialBrain):
                     # Add the area to the memory of searched areas
                     # TODO if the search is taking place in an unsearched room
                     if loc not in self._searchedRoomsHuman:
-                        # self._searchedRooms.append(loc)
                         self._searchedRoomsHuman.append(loc)
                     # Add the victim and location to the memory of found victims
                     if collectVic not in self._foundVictims:
+                        # TODO the victims should also be added to the tentative human list
                         self._foundVictims.append(collectVic)
                         self._foundVictimLocs[collectVic] = {'room': loc}
                     if collectVic in self._foundVictims and self._foundVictimLocs[collectVic]['room'] != loc:
@@ -770,6 +775,7 @@ class BaselineAgent(ArtificialBrain):
                         # Let the human know that the agent is coming over to help
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.','RescueBot')
                         # Plan the path to the relevant area
+                        self._humanClaimRemove = True
                         self._phase = Phase.PLAN_PATH_TO_ROOM
                     # Come over to help after dropping a victim that is currently being carried by the agent
                     else:
@@ -815,8 +821,7 @@ class BaselineAgent(ArtificialBrain):
             if 'Collect' in message:
                 trustBeliefs[self._humanName]['competence'] += 0.10
                 # Restrict the competence belief to a range of -1 to 1
-                trustBeliefs[self._humanName]['competence'] = np.clip(trustBeliefs[self._humanName]['competence'], -1,
-                                                                      1)
+                trustBeliefs[self._humanName]['competence'] = np.clip(trustBeliefs[self._humanName]['competence'], -1, 1)
 
     def _saveBelief(self, trustBeliefs, folder):
         with open(folder + '/beliefs/currentTrustBelief.csv', mode='w') as csv_file:
@@ -824,6 +829,10 @@ class BaselineAgent(ArtificialBrain):
             csv_writer.writerow(['name', 'competence', 'willingness'])
             csv_writer.writerow([self._humanName, trustBeliefs[self._humanName]['competence'],
                                  trustBeliefs[self._humanName]['willingness']])
+
+    def _updateWillingness(self, trustBeliefs, updateVal):
+        trustBeliefs[self._humanName]["willingness"] += updateVal
+        self._saveBelief(trustBeliefs, self._folder)
 
     def _sendMessage(self, mssg, sender):
         '''
