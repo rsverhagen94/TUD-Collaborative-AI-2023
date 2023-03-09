@@ -762,6 +762,11 @@ class BaselineAgent(ArtificialBrain):
                         area = 'area ' + msg.split()[-1]
                         self._door = state.get_room_doors(area)[0]
                         self._doormat = state.get_room(area)[-1]['doormat']
+                        # TODO bunu simdilik siliyorum cunku biz zaten oda tam search lenmeden odayi searchedRooms a
+                        #  eklemiyoruz. ama comment olarak dursun cunku baska bi yerde buna rely eden bi kod olabilir,
+                        #  mevzuyu hatirlamak lazim
+                        # if area in self._searchedRooms:
+                        #     self._searchedRooms.remove(area)
                         # Clear received messages (bug fix)
                         self.received_messages = []
                         self.received_messages_content = []
