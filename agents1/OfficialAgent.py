@@ -305,11 +305,8 @@ class BaselineAgent(ArtificialBrain):
                                 self._sendMessage('Reaching ' + str(self._door['room_name']) + ' will take a bit longer because I found stones blocking my path.', 'RescueBot')
                                 return RemoveObject.__name__, {'object_id': info['obj_id']}
                         return action, {}
-                    # If obstacle lie is not detected, we add the room to the verified searced room list.
                     # TODO burda aslinda search ten sonra dogru victimlari buldugunu soylemis mi bakabiliriz.
-                    obstacle_lie_detected = self._look_for_obstacle_lies(state, trustBeliefs)
-                    if not obstacle_lie_detected:
-                        self._searchedRooms.append(self._door['room_name'])
+                    self._look_for_obstacle_lies(state, trustBeliefs)
                     # Identify and remove obstacles if they are blocking the entrance of the area
                     self._phase = Phase.REMOVE_OBSTACLE_IF_NEEDED
 
@@ -426,7 +423,7 @@ class BaselineAgent(ArtificialBrain):
                     # the if human asked for help from robot to remove an obstacle but there is no obstacle, the human's
                     # willingness will be decremented
                     if self._humanClaimRemove:
-                        print("remove-non-existent-object lie detected")
+                        print("    LIE DETECTED: remove-non-existent-object lie detected")
                         self._updateWillingness(trustBeliefs, -0.1)
                         self._humanClaimRemove = False
                     self._phase = Phase.ENTER_ROOM
@@ -489,6 +486,7 @@ class BaselineAgent(ArtificialBrain):
                                 if vic == self._goalVic:
                                     # Communicate which victim was found
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + ' because you told me ' + vic + ' was located here.','RescueBot')
+                                    self._updateWillingness(trustBeliefs, 0.1)
                                     # Add the area to the list with searched areas
                                     if self._door['room_name'] not in self._searchedRooms:
                                         self._searchedRooms.append(self._door['room_name'])
@@ -883,20 +881,16 @@ class BaselineAgent(ArtificialBrain):
         return locs
 
     def _look_for_obstacle_lies(self, state, trust_beliefs):
-        lie_detected = False
         nearby_obstacle_locs = [obstacle["location"] for obstacle in self._get_nearby_obstacles(state)]
         for area in self._searchedRoomsHuman:
             area_door_loc = state.get_room_doors(area)[0]["location"]
             for obstacle_loc in nearby_obstacle_locs:
                 if obstacle_loc == area_door_loc:
-                    if not lie_detected:
-                        lie_detected = True
                     trust_beliefs[self._humanName]["willingness"] -= 0.1
                     self._saveBelief(trust_beliefs, self._folder)
-                    print(self._searchedRooms, self._searchedRoomsHuman)
+                    print("searchedRooms, searchedRoomsHuman: ", self._searchedRooms, self._searchedRoomsHuman)
                     self._searchedRoomsHuman.remove(area)
-                    print("entrance obstacle lie detected")
-        return lie_detected
+                    print("    LIE DETECTED: entrance-obstacle-lie detected")
 
     @staticmethod
     def _get_nearby_obstacles(state):
