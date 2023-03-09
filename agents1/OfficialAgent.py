@@ -295,19 +295,9 @@ class BaselineAgent(ArtificialBrain):
                     self._currentDoor = self._door['location']
                     # Retrieve move actions to execute
                     action = self._navigator.get_move_action(self._state_tracker)
-                    if action != None:
-                        for info in state.values():
-                            # Observe obstacles on the sides to catch a human lie.
-                            if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance']:
-                                obstacleLoc = info["location"]
-                                for area in self._searchedRoomsHuman:
-                                    areaDoorLoc = state.get_room_doors(area)[0]["location"]
-                                    if areaDoorLoc == obstacleLoc:
-                                        trustBeliefs[self._humanName]["willingness"] -= 0.1
-                                        self._saveBelief(trustBeliefs, self._folder)
-                                        self._searchedRoomsHuman.remove(area)
-                                        self._searchedRooms.remove(area)
-
+                    if action is not None:
+                        # Detect lies if possible
+                        self._look_for_obstacle_lies(state, trustBeliefs)
                         # Remove obstacles blocking the path to the area 
                         for info in state.values():
                             if 'class_inheritance' in info and 'ObstacleObject' in info[
@@ -315,6 +305,11 @@ class BaselineAgent(ArtificialBrain):
                                 self._sendMessage('Reaching ' + str(self._door['room_name']) + ' will take a bit longer because I found stones blocking my path.', 'RescueBot')
                                 return RemoveObject.__name__, {'object_id': info['obj_id']}
                         return action, {}
+                    # If obstacle lie is not detected, we add the room to the verified searced room list.
+                    # TODO burda aslinda search ten sonra dogru victimlari buldugunu soylemis mi bakabiliriz.
+                    obstacle_lie_detected = self._look_for_obstacle_lies(state, trustBeliefs)
+                    if not obstacle_lie_detected:
+                        self._searchedRooms.append(self._door['room_name'])
                     # Identify and remove obstacles if they are blocking the entrance of the area
                     self._phase = Phase.REMOVE_OBSTACLE_IF_NEEDED
 
@@ -521,6 +516,7 @@ class BaselineAgent(ArtificialBrain):
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
                     self._roomVics = []
+                    # TODO buraya lie detection eklemisler zaten, trust update leyek
                     # Reset received messages (bug fix)
                     self.received_messages = []
                     self.received_messages_content = []
@@ -570,7 +566,7 @@ class BaselineAgent(ArtificialBrain):
                     self._todo.append(self._recentVic)
                     self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
-                # Remain idle untill the human communicates to the agent what to do with the found victim
+            # Remain idle until the human communicates to the agent what to do with the found victim
                 if self.received_messages_content and self._waiting and self.received_messages_content[-1] != 'Rescue' and self.received_messages_content[-1] != 'Continue':
                     return None, {}
                 # Find the next area to search when the agent is not waiting for an answer from the human or occupied with rescuing a victim
@@ -699,8 +695,11 @@ class BaselineAgent(ArtificialBrain):
                 # If a received message involves team members searching areas, add these areas to the memory of areas that have been explored
                 if msg.startswith("Search:"):
                     area = 'area ' + msg.split()[-1]
-                    if area not in self._searchedRooms:
-                        self._searchedRooms.append(area)
+                    if area in self._searchedRooms:
+                        continue
+                    # TODO (trust high -> not in searchedRooms -> add to searched rooms)
+                    if area not in self._searchedRoomsHuman:
+                        # self._searchedRooms.append(area)
                         self._searchedRoomsHuman.append(area)
                 # If a received message involves team members finding victims, add these victims and their locations to memory
                 if msg.startswith("Found:"):
@@ -711,8 +710,9 @@ class BaselineAgent(ArtificialBrain):
                         foundVic = ' '.join(msg.split()[1:5])
                     loc = 'area ' + msg.split()[-1]
                     # Add the area to the memory of searched areas
-                    if loc not in self._searchedRooms:
-                        self._searchedRooms.append(loc)
+                    # TODO (trust high -> not in searchedRooms -> add to searched rooms)
+                    if loc not in self._searchedRoomsHuman:
+                        # self._searchedRooms.append(loc)
                         self._searchedRoomsHuman.append(loc)
                     # Add the victim and its location to memory
                     if foundVic not in self._foundVictims:
@@ -735,8 +735,10 @@ class BaselineAgent(ArtificialBrain):
                         collectVic = ' '.join(msg.split()[1:5])
                     loc = 'area ' + msg.split()[-1]
                     # Add the area to the memory of searched areas
-                    if loc not in self._searchedRooms:
-                        self._searchedRooms.append(loc)
+                    # TODO if the search is taking place in an unsearched room
+                    if loc not in self._searchedRoomsHuman:
+                        # self._searchedRooms.append(loc)
+                        self._searchedRoomsHuman.append(loc)
                     # Add the victim and location to the memory of found victims
                     if collectVic not in self._foundVictims:
                         self._foundVictims.append(collectVic)
@@ -757,8 +759,6 @@ class BaselineAgent(ArtificialBrain):
                         area = 'area ' + msg.split()[-1]
                         self._door = state.get_room_doors(area)[0]
                         self._doormat = state.get_room(area)[-1]['doormat']
-                        if area in self._searchedRooms:
-                            self._searchedRooms.remove(area)
                         # Clear received messages (bug fix)
                         self.received_messages = []
                         self.received_messages_content = []
@@ -872,3 +872,28 @@ class BaselineAgent(ArtificialBrain):
             else:
                 locs.append((x[i], max(y)))
         return locs
+
+    def _look_for_obstacle_lies(self, state, trust_beliefs):
+        lie_detected = False
+        nearby_obstacle_locs = [obstacle["location"] for obstacle in self._get_nearby_obstacles(state)]
+        for area in self._searchedRoomsHuman:
+            area_door_loc = state.get_room_doors(area)[0]["location"]
+            for obstacle_loc in nearby_obstacle_locs:
+                if obstacle_loc == area_door_loc:
+                    if not lie_detected:
+                        lie_detected = True
+                    trust_beliefs[self._humanName]["willingness"] -= 0.1
+                    self._saveBelief(trust_beliefs, self._folder)
+                    print(self._searchedRooms, self._searchedRoomsHuman)
+                    self._searchedRoomsHuman.remove(area)
+                    print("entrance obstacle lie detected")
+        return lie_detected
+
+    @staticmethod
+    def _get_nearby_obstacles(state):
+        return [
+            info for info in state.values()
+            if "class_inheritance" in info
+               and "ObstacleObject" in info["class_inheritance"]
+        ]
+

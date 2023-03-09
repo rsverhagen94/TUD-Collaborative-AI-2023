@@ -104,7 +104,7 @@ def create_builder(task_type, condition, name, folder):
     # Set numpy's random generator
     np.random.seed(random_seed)
     # Create the collection goal
-    goal = CollectionGoal(max_nr_ticks=np.inf)
+    goal = CollectionGoal(max_nr_ticks=6000)
     # Create the world builder
     if task_type=="official":
         builder = WorldBuilder(shape=[25,24], tick_duration=tick_duration, run_matrx_api=True, run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#9a9083')
