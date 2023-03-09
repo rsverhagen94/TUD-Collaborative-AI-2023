@@ -571,7 +571,7 @@ class BaselineAgent(ArtificialBrain):
                     self._todo.append(self._recentVic)
                     self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
-            # Remain idle until the human communicates to the agent what to do with the found victim
+                # Remain idle until the human communicates to the agent what to do with the found victim
                 if self.received_messages_content and self._waiting and self.received_messages_content[-1] != 'Rescue' and self.received_messages_content[-1] != 'Continue':
                     return None, {}
                 # Find the next area to search when the agent is not waiting for an answer from the human or occupied with rescuing a victim
