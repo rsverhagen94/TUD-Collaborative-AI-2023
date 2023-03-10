@@ -357,7 +357,7 @@ class BaselineAgent(ArtificialBrain):
                         self._found_obstacle_to_remove = True
                         self._checkRemoveLies(trustBeliefs, 0.1)
                         # Communicate which obstacle is blocking the entrance
-                        if self._answered == False and not self._remove and not self._waiting:
+                        if self._answered is False and not self._remove and not self._waiting:
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \n \n \
                                 Important features to consider are: \n safe - victims rescued: ' + str(self._collectedVictims) + '\n explore - areas searched: area ' + str(self._searchedRooms).replace('area ','') + ' \
                                 \n clock - removal time: 10 seconds','RescueBot')
@@ -387,7 +387,7 @@ class BaselineAgent(ArtificialBrain):
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
                         objects.append(info)
                         self._found_obstacle_to_remove = True
-                        self._checkRemoveLies(trustBeliefs,0.1)
+                        self._checkRemoveLies(trustBeliefs, 0.1)
                         # Communicate which obstacle is blocking the entrance
                         if self._answered == False and not self._remove and not self._waiting:
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '. Please decide whether to "Remove together", "Remove alone", or "Continue" searching. \n \n \
@@ -925,7 +925,7 @@ class BaselineAgent(ArtificialBrain):
                and "ObstacleObject" in info["class_inheritance"]
         ]
 
-    def _checkRemoveLies(self,trustBeliefs,updateVal):
+    def _checkRemoveLies(self, trustBeliefs, updateVal):
         if self._humanClaimRemove:
             if self._found_obstacle_to_remove:
                 print("    TRUTH DETECTED: found object to remove")
