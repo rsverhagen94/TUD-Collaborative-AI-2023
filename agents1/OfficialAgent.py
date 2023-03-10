@@ -67,6 +67,9 @@ class BaselineAgent(ArtificialBrain):
         self._receivedMessages = []
         self._moving = False
         self._humanClaimRemove = False
+        self._found_obstacle_to_remove = False
+        self._last_claim_was_lie = False
+        self._recurring_truthfulness_count = 0  # Counts the number of successive truth/lie count
 
     def initialize(self):
         # Initialization of the state tracker and navigation algorithm
@@ -311,13 +314,14 @@ class BaselineAgent(ArtificialBrain):
                     self._phase = Phase.REMOVE_OBSTACLE_IF_NEEDED
 
             if Phase.REMOVE_OBSTACLE_IF_NEEDED == self._phase:
+                print(self._found_obstacle_to_remove)
                 objects = []
                 agent_location = state[self.agent_id]['location']
                 # Identify which obstacle is blocking the entrance
                 for info in state.values():
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
                         objects.append(info)
-                        self._humanClaimRemove = False
+                        self._found_obstacle_to_remove = True
                         # Communicate which obstacle is blocking the entrance
                         if self._answered is False and not self._remove and not self._waiting:
                             self._sendMessage('Found rock blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \n \n \
@@ -335,7 +339,7 @@ class BaselineAgent(ArtificialBrain):
                         if self.received_messages_content and self.received_messages_content[-1] == 'Remove' or self._remove:
                             if not self._remove:
                                 self._answered = True
-                            # Tell the human to come over and be idle untill human arrives
+                            # Tell the human to come over and be idle until human arrives
                             if not state[{'is_human_agent': True}]:
                                 self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove rock.','RescueBot')
                                 return None, {}
@@ -343,12 +347,13 @@ class BaselineAgent(ArtificialBrain):
                             if state[{'is_human_agent': True}]:
                                 self._sendMessage('Lets remove rock blocking ' + str(self._door['room_name']) + '!','RescueBot')
                                 return None, {}
-                        # Remain idle untill the human communicates what to do with the identified obstacle 
+                        # Remain idle until the human communicates what to do with the identified obstacle
                         else:
                             return None, {}
 
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id']:
                         objects.append(info)
+                        self._found_obstacle_to_remove = True
                         # Communicate which obstacle is blocking the entrance
                         if self._answered == False and not self._remove and not self._waiting:
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \n \n \
@@ -373,12 +378,13 @@ class BaselineAgent(ArtificialBrain):
                             self._phase = Phase.ENTER_ROOM
                             self._remove = False
                             return RemoveObject.__name__, {'object_id': info['obj_id']}
-                        # Remain idle untill the human communicates what to do with the identified obstacle
+                        # Remain idle until the human communicates what to do with the identified obstacle
                         else:
                             return None, {}
 
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
                         objects.append(info)
+                        self._found_obstacle_to_remove = True
                         # Communicate which obstacle is blocking the entrance
                         if self._answered == False and not self._remove and not self._waiting:
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '. Please decide whether to "Remove together", "Remove alone", or "Continue" searching. \n \n \
@@ -415,17 +421,23 @@ class BaselineAgent(ArtificialBrain):
                         # Remain idle until the human communicates what to do with the identified obstacle
                         else:
                             return None, {}
+                print("self._humanClaimRemove: ", self._humanClaimRemove)
+                if self._humanClaimRemove:
+                    if len(objects) > 0:
+                        print("    TRUTH DETECTED: found object to remove")
+                        self._updateWillingness(trustBeliefs, 0.1)
+                        self._found_obstacle_to_remove = False
+                    else:
+                        print("    LIE DETECTED: remove non-existent object")
+                        self._updateWillingness(trustBeliefs, -0.1)
+                    self._humanClaimRemove = False
+                self._found_obstacle_to_remove = False
+
                 # If no obstacles are blocking the entrance, enter the area
                 if len(objects) == 0:
                     self._answered = False
                     self._remove = False
                     self._waiting = False
-                    # the if human asked for help from robot to remove an obstacle but there is no obstacle, the human's
-                    # willingness will be decremented
-                    if self._humanClaimRemove:
-                        print("    LIE DETECTED: remove-non-existent-object lie detected")
-                        self._updateWillingness(trustBeliefs, -0.1)
-                        self._humanClaimRemove = False
                     self._phase = Phase.ENTER_ROOM
 
             if Phase.ENTER_ROOM == self._phase:
@@ -486,6 +498,7 @@ class BaselineAgent(ArtificialBrain):
                                 if vic == self._goalVic:
                                     # Communicate which victim was found
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + ' because you told me ' + vic + ' was located here.','RescueBot')
+                                    print("   TRUTH DETECTED: victim found in the claimed room")
                                     self._updateWillingness(trustBeliefs, 0.1)
                                     # Add the area to the list with searched areas
                                     if self._door['room_name'] not in self._searchedRooms:
@@ -521,6 +534,7 @@ class BaselineAgent(ArtificialBrain):
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
                     self._roomVics = []
+                    print("    LIE DETECTED: no victim in the claimed area")
                     self._updateWillingness(trustBeliefs, -0.1)
                     # Reset received messages (bug fix)
                     self.received_messages = []
@@ -834,7 +848,23 @@ class BaselineAgent(ArtificialBrain):
                                  trustBeliefs[self._humanName]['willingness']])
 
     def _updateWillingness(self, trustBeliefs, updateVal):
-        trustBeliefs[self._humanName]["willingness"] += updateVal
+        if updateVal > 0:
+            if self._last_claim_was_lie:
+                self._recurring_truthfulness_count = 1
+                self._last_claim_was_lie = False
+            else:
+                self._recurring_truthfulness_count += 1
+        elif updateVal < 0:
+            if self._last_claim_was_lie:
+                self._recurring_truthfulness_count += 1
+            else:
+                self._recurring_truthfulness_count = 1
+                self._last_claim_was_lie = True
+        else:
+            return  # We return as no update is necessary
+        change_in_willingness = updateVal * self._recurring_truthfulness_count
+        trustBeliefs[self._humanName]["willingness"] += change_in_willingness
+        print("    CHANGE IN WILLINGNESS: ", change_in_willingness)
         self._saveBelief(trustBeliefs, self._folder)
 
     def _sendMessage(self, mssg, sender):
@@ -891,11 +921,9 @@ class BaselineAgent(ArtificialBrain):
             area_door_loc = state.get_room_doors(area)[0]["location"]
             for obstacle_loc in nearby_obstacle_locs:
                 if obstacle_loc == area_door_loc:
-                    trust_beliefs[self._humanName]["willingness"] -= 0.1
-                    self._saveBelief(trust_beliefs, self._folder)
-                    print("searchedRooms, searchedRoomsHuman: ", self._searchedRooms, self._searchedRoomsHuman)
+                    print("    LIE DETECTED: entrance obstacle at searched room")
+                    self._updateWillingness(trust_beliefs, -0.1)
                     self._searchedRoomsHuman.remove(area)
-                    print("    LIE DETECTED: entrance-obstacle-lie detected")
 
     @staticmethod
     def _get_nearby_obstacles(state):
