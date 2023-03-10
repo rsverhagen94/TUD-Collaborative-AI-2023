@@ -314,7 +314,7 @@ class BaselineAgent(ArtificialBrain):
                     self._phase = Phase.REMOVE_OBSTACLE_IF_NEEDED
 
             if Phase.REMOVE_OBSTACLE_IF_NEEDED == self._phase:
-                print(self._found_obstacle_to_remove)
+                self._found_obstacle_to_remove = False
                 objects = []
                 agent_location = state[self.agent_id]['location']
                 # Identify which obstacle is blocking the entrance
@@ -322,6 +322,7 @@ class BaselineAgent(ArtificialBrain):
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id']:
                         objects.append(info)
                         self._found_obstacle_to_remove = True
+                        self._checkRemoveLies(trustBeliefs, 0.1)
                         # Communicate which obstacle is blocking the entrance
                         if self._answered is False and not self._remove and not self._waiting:
                             self._sendMessage('Found rock blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \n \n \
@@ -354,6 +355,7 @@ class BaselineAgent(ArtificialBrain):
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id']:
                         objects.append(info)
                         self._found_obstacle_to_remove = True
+                        self._checkRemoveLies(trustBeliefs, 0.1)
                         # Communicate which obstacle is blocking the entrance
                         if self._answered == False and not self._remove and not self._waiting:
                             self._sendMessage('Found tree blocking  ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \n \n \
@@ -385,6 +387,7 @@ class BaselineAgent(ArtificialBrain):
                     if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
                         objects.append(info)
                         self._found_obstacle_to_remove = True
+                        self._checkRemoveLies(trustBeliefs,0.1)
                         # Communicate which obstacle is blocking the entrance
                         if self._answered == False and not self._remove and not self._waiting:
                             self._sendMessage('Found stones blocking  ' + str(self._door['room_name']) + '. Please decide whether to "Remove together", "Remove alone", or "Continue" searching. \n \n \
@@ -421,18 +424,7 @@ class BaselineAgent(ArtificialBrain):
                         # Remain idle until the human communicates what to do with the identified obstacle
                         else:
                             return None, {}
-                print("self._humanClaimRemove: ", self._humanClaimRemove)
-                if self._humanClaimRemove:
-                    if len(objects) > 0:
-                        print("    TRUTH DETECTED: found object to remove")
-                        self._updateWillingness(trustBeliefs, 0.1)
-                        self._found_obstacle_to_remove = False
-                    else:
-                        print("    LIE DETECTED: remove non-existent object")
-                        self._updateWillingness(trustBeliefs, -0.1)
-                    self._humanClaimRemove = False
-                self._found_obstacle_to_remove = False
-
+                self._checkRemoveLies(trustBeliefs, 0.1)
                 # If no obstacles are blocking the entrance, enter the area
                 if len(objects) == 0:
                     self._answered = False
@@ -933,3 +925,12 @@ class BaselineAgent(ArtificialBrain):
                and "ObstacleObject" in info["class_inheritance"]
         ]
 
+    def _checkRemoveLies(self,trustBeliefs,updateVal):
+        if self._humanClaimRemove:
+            if self._found_obstacle_to_remove:
+                print("    TRUTH DETECTED: found object to remove")
+                self._updateWillingness(trustBeliefs, updateVal)
+            else:
+                print("    LIE DETECTED: remove non-existent object")
+                self._updateWillingness(trustBeliefs, -updateVal)
+            self._humanClaimRemove = False
