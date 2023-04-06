@@ -7,8 +7,9 @@ from matrx.agents.agent_utils.state import State
 from matrx.agents.agent_utils.state_tracker import StateTracker
 from matrx.agents import HumanAgentBrain
 from matrx.messages import Message
+from matrx.objects import EnvObject
 from matrx.actions.move_actions import MoveNorth, MoveNorthEast, MoveEast, MoveSouthEast, MoveSouth, MoveSouthWest, MoveWest, MoveNorthWest
-from actions1.CustomActions import RemoveObjectTogether, Idle, CarryObject, CarryObjectTogether, DropObjectTogether, Drop, RemoveObject
+from actions1.CustomActions import RemoveObjectTogether, Idle, CarryObject, CarryObjectTogether, DropObjectTogether, Drop, RemoveObject, AddObject
 
 class HumanBrain(HumanAgentBrain):
     """ Creates an Human Agent which is an agent that can be controlled by a human.
@@ -219,8 +220,27 @@ class HumanBrain(HumanAgentBrain):
             actual performed and the agent can perform a new action (a value
             of 0 is no wait, 1 means to wait 1 tick, etc.).
         """
+        #human = state.get_agents_with_property({"name": "human"})[0]
+        self._tick = state['World']['nr_ticks']
+
         action = None
         action_kwargs = {}
+
+        water_locs = []
+        if state[{"name": "water"}]:
+            for water in state[{"name": "water"}]:
+                if water['location'] not in water_locs:
+                    water_locs.append(water['location'])
+        if state[{"name": self.__name}]['location'] in water_locs and self._tick > 250 and self._tick < 350:
+            self.agent_properties["img_name"] = "/images/human-danger2.gif"
+            self.agent_properties["visualize_size"] = 2
+            #self.agent_properties["visualize_opacity"] = 0
+            return None, {}
+        
+        if state[{"name": self.__name}]['location'] in water_locs and self._tick == 350:
+            self.agent_properties["img_name"] = "/images/rescue-man-final3.svg"
+            self.agent_properties["visualize_size"] = 1
+            return AddObject.__name__, {'location':(22,13), 'img_name':"/images/pool20.svg"}
 
         # if no keys were pressed, do nothing
         if user_input is None or user_input == []:

@@ -3,8 +3,48 @@ from matrx.actions.action import Action, ActionResult
 from matrx.objects.agent_body import AgentBody
 from matrx.objects.standard_objects import AreaTile
 from matrx.actions.object_actions import _is_drop_poss, _act_drop, _possible_drop, _find_drop_loc, GrabObject, GrabObjectResult, RemoveObject, RemoveObjectResult, DropObject
+from matrx.objects import EnvObject
 from matrx.utils import get_distance
 import random
+
+class AddObject(Action):
+    """ An action that can add a product to the gridworld """
+
+    def __init__(self, duration_in_ticks=0):
+        super().__init__(duration_in_ticks)
+
+    def is_possible(self, grid_world, agent_id, **kwargs):
+        return AddObjectResult(AddObjectResult.ACTION_SUCCEEDED, True)
+
+    def mutate(self, grid_world, agent_id, **kwargs):
+        obj_body_args = {
+                "location": kwargs['location'],
+                "name": "water",
+                "class_callable": EnvObject,
+                "is_traversable": True,
+                "is_movable": False,
+                "visualize_size": 1,
+                "img_name": kwargs['img_name']
+            }
+
+        env_object = EnvObject(**obj_body_args)
+
+        grid_world._register_env_object(env_object)
+
+
+        return AddObjectResult(AddObjectResult.ACTION_SUCCEEDED, True)
+
+
+class AddObjectResult(ActionResult):
+    """ Result when assignment failed """
+    # failed
+    NO_AGENTBRAIN = "No object passed under the `agentbrain` key in kwargs"
+    NO_AGENTBODY = "No object passed under the `agentbody` key in kwargs"
+    # success
+    ACTION_SUCCEEDED = "Object was succesfully added to the gridworld."
+
+    def __init__(self, result, succeeded):
+        super().__init__(result, succeeded)
 
 class Idle(Action):
     """ Let's an agent be idle for a specified number of ticks.
