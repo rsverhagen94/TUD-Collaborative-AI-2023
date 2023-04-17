@@ -1,9 +1,5 @@
-matrx          == 2.2.0
-
 # all requirements below are 
 # additional libraries provided to do this assignment. 
-
-
 # libraries used by matrx and their versions, excl webserver stuff
 bidict         == 0.21.2
 chardet        == 4.0.0

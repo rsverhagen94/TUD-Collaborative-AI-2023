@@ -14,7 +14,7 @@ from actions1.CustomActions import RemoveObjectTogether, Idle, CarryObject, Carr
 class HumanBrain(HumanAgentBrain):
     """ Creates an Human Agent which is an agent that can be controlled by a human.
     """
-    def __init__(self, memorize_for_ticks=None, fov_occlusion=False, max_carry_objects=3, grab_range=1, drop_range=1, door_range=1, remove_range=1, strength='normal', name='human'):
+    def __init__(self, memorize_for_ticks=None, fov_occlusion=False, max_carry_objects=1, grab_range=1, drop_range=1, door_range=1, remove_range=1, condition='baseline'):
         super().__init__(memorize_for_ticks=memorize_for_ticks)
         self.__fov_occlusion = fov_occlusion
         if fov_occlusion:
@@ -26,8 +26,7 @@ class HumanBrain(HumanAgentBrain):
         self.__drop_range = drop_range
         self.__door_range = door_range
         self.__remove_range = remove_range
-        self.__strength = strength
-        self.__name = name
+        self.__condition = condition
 
     def _factory_initialise(self, agent_name, agent_id, action_set,
                             sense_capability, agent_properties,
@@ -70,6 +69,7 @@ class HumanBrain(HumanAgentBrain):
 
         # The name of the agent with which it is also known in the world
         self.agent_name = agent_name
+        self.image = "/images/rescue-man-final3.svg"
 
         # The id of the agent
         self.agent_id = agent_id
@@ -220,27 +220,47 @@ class HumanBrain(HumanAgentBrain):
             actual performed and the agent can perform a new action (a value
             of 0 is no wait, 1 means to wait 1 tick, etc.).
         """
-        #human = state.get_agents_with_property({"name": "human"})[0]
         self._tick = state['World']['nr_ticks']
-
         action = None
         action_kwargs = {}
+        area_tiles = []
 
-        water_locs = []
-        if state[{"name": "water"}]:
-            for water in state[{"name": "water"}]:
-                if water['location'] not in water_locs:
-                    water_locs.append(water['location'])
-        if state[{"name": self.__name}]['location'] in water_locs and self._tick > 250 and self._tick < 350:
+        for info in state.values():
+            if 'class_inheritance' in info and 'AreaTile' in info['class_inheritance'] and info['location'] not in area_tiles:
+                area_tiles.append(info['location'])
+
+        #if self._tick == 900 or self._tick == 1800 or self._tick == 2700:
+        if self._tick == 150 or self._tick == 300 or self._tick == 450:
+            self.image = self.agent_properties["img_name"]
+
+        #if state[{"name": 'human'}]['location'] in area_tiles and self._tick > 900 and self._tick < 1000 \ 
+        #or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 1800 and self._tick < 1900 \
+        #or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 2700 and self._tick < 2800:
+        if state[{"name": 'human'}]['location'] in area_tiles and self._tick > 150 and self._tick < 200 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 300 and self._tick < 350 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 450 and self._tick < 500:
+            self.image = self.agent_properties["img_name"]
+
+        #if state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 900 and self._tick < 1000 \
+        #or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 1800 and self._tick < 1900 \
+        #or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 2700 and self._tick < 2800:
+        if state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 150 and self._tick < 200 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 300 and self._tick < 350 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 450 and self._tick < 500:
             self.agent_properties["img_name"] = "/images/human-danger2.gif"
             self.agent_properties["visualize_size"] = 2
-            #self.agent_properties["visualize_opacity"] = 0
             return None, {}
         
-        if state[{"name": self.__name}]['location'] in water_locs and self._tick == 350:
-            self.agent_properties["img_name"] = "/images/rescue-man-final3.svg"
+        #if self._tick == 1000:
+        if self._tick == 200:
+            self.agent_properties["img_name"] = str(self.image)
             self.agent_properties["visualize_size"] = 1
-            return AddObject.__name__, {'location':(22,13), 'img_name':"/images/pool20.svg"}
+        
+        #if self._tick == 1900:
+        if self._tick == 350:
+            self.agent_properties["img_name"] = str(self.image)
+            self.agent_properties["visualize_size"] = 1
+        
+        #if self._tick == 2800:
+        if self._tick == 500:
+            self.agent_properties["img_name"] = str(self.image)
+            self.agent_properties["visualize_size"] = 1
 
         # if no keys were pressed, do nothing
         if user_input is None or user_input == []:
@@ -257,23 +277,19 @@ class HumanBrain(HumanAgentBrain):
             action_kwargs['grab_range'] = self.__grab_range
             # Set max amount of objects
             action_kwargs['max_objects'] = self.__max_carry_objects
-            action_kwargs['human_name'] = self.__name
+            action_kwargs['condition'] = self.__condition
 
             # grab the closest victim
             obj_id = self.__select_random_obj_in_range(state,
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
-            action_kwargs['strength'] = self.__strength
-            if obj_id and 'critical' in obj_id:
-                action_kwargs['object_id'] = obj_id
-            if obj_id and 'mild' in obj_id:
-                action_kwargs['object_id'] = obj_id            
+            if obj_id and 'critical' in obj_id or obj_id and 'mild' in obj_id or obj_id and 'healthy' in obj_id:
+                action_kwargs['object_id'] = obj_id       
 
         # If the user chose to drop an object in its inventory
         elif action == DropObjectTogether.__name__:
-            action_kwargs['strength'] = self.__strength
             action_kwargs['drop_range'] = self.__drop_range
-            action_kwargs['human_name'] = self.__name
+            action_kwargs['condition'] = self.__condition
             pass            
 
         if action == CarryObject.__name__:
@@ -283,24 +299,28 @@ class HumanBrain(HumanAgentBrain):
             # Set max amount of objects
             action_kwargs['max_objects'] = self.__max_carry_objects
             action_kwargs['object_id'] = None
-            action_kwargs['strength'] = self.__strength
-            action_kwargs['human_name'] = self.__name
+            action_kwargs['condition'] = self.__condition
 
             obj_id = \
                 self.__select_random_obj_in_range(state,
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
-            if obj_id and self.__strength!='weak':
+            if obj_id and 'healthy' in obj_id:
                 action_kwargs['object_id'] = obj_id
-            action_kwargs['action_type'] = 'alone'
+                action_kwargs['action_duration'] = 25
+            if obj_id and 'mild' in obj_id:
+                action_kwargs['object_id'] = obj_id
+                action_kwargs['action_duration'] = 50
+            if obj_id and 'critical' in obj_id:
+                action_kwargs['object_id'] = obj_id
+                action_kwargs['action_duration'] = 100
 
         # If the user chose to drop an object in its inventory
         elif action == Drop.__name__:
             # Assign it to the arguments list
             # Set drop range
-            action_kwargs['strength'] = self.__strength
             action_kwargs['drop_range'] = self.__drop_range
-            action_kwargs['human_name'] = self.__name
+            action_kwargs['condition'] = self.__condition
             pass
 
         # If the user chose to remove an object
@@ -308,7 +328,7 @@ class HumanBrain(HumanAgentBrain):
             # Assign it to the arguments list
             # Set drop range
             action_kwargs['remove_range'] = self.__remove_range
-            action_kwargs['human_name'] = self.__name
+            action_kwargs['condition'] = self.__condition
 
             obj_id = \
                 self.__select_random_obj_in_range(state,
@@ -319,22 +339,29 @@ class HumanBrain(HumanAgentBrain):
                 action_kwargs['action_duration'] = 25
             if obj_id and 'rock' in obj_id:
                 action_kwargs['action_duration'] = 50
+            if obj_id and 'tree' in obj_id:
+                action_kwargs['action_duration'] = 38
         
         # If the user chose to remove an object
         elif action == RemoveObject.__name__:
             # Assign it to the arguments list
             # Set drop range
             action_kwargs['remove_range'] = self.__remove_range
-            action_kwargs['human_name'] = self.__name
+            action_kwargs['condition'] = self.__condition
 
             obj_id = \
                 self.__select_random_obj_in_range(state,
                                                   range_=self.__remove_range,
                                                   property_to_check="is_movable")
-            if obj_id and 'stone' in obj_id and self.__strength!='weak':                           
+            if obj_id and 'critical' not in obj_id and 'mild' not in obj_id and 'healthy' not in obj_id:
                 action_kwargs['object_id'] = obj_id
-                action_kwargs['action_duration'] = 200
-
+                if 'stone' in obj_id:
+                    action_kwargs['action_duration'] = 100
+                if 'rock' in obj_id:
+                    action_kwargs['action_duration'] = 200
+                if 'tree' in obj_id:
+                    action_kwargs['action_duration'] = 150
+   
         # if the user chose to do an open or close door action, find a door to
         # open/close within range
         elif action == OpenDoorAction.__name__ \
@@ -367,9 +394,9 @@ class HumanBrain(HumanAgentBrain):
                 for water in state[{"name": "water"}]:
                     if water['location'] not in water_locs:
                         water_locs.append(water['location'])
-            if state[{"name": self.__name}]['location'] in water_locs and state[{"name": self.__name}]['location'] not in [(3,5),(9,5),(15,5),(21,5),(3,6),(9,6),(15,6),(3,17),(9,17),(15,17),(3,18),(9,18),(15,18),(21,18)]:
+            if state[{"name": 'human'}]['location'] in water_locs and state[{"name": 'human'}]['location'] not in [(3,5),(9,5),(15,5),(21,5),(3,6),(9,6),(15,6),(3,17),(9,17),(15,17),(3,18),(9,18),(15,18),(21,18)]:
                 action == Idle.__name__
-                action_kwargs['duration_in_ticks'] = 5
+                action_kwargs['duration_in_ticks'] = 2
 
         return action, action_kwargs
 

@@ -446,6 +446,8 @@ function add_message(chatroom_ID, mssg) {
     div.appendChild(document.createTextNode(mssg_content));
     */
     
+    mssg_content = mssg_content.replaceAll("floods", "<span style='font-weight:bold; >floods</span>");
+    mssg_content = mssg_content.replaceAll("floods", "<span style='font-size:1.5rem; >floods</span>");
     mssg_content = mssg_content.replaceAll("safe", "<img src='/static/images/safe.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("afstand", "<img src='/static/images/distance.svg' height= 30 width=30/>");
     mssg_content = mssg_content.replaceAll("clock", "<img src='/static/images/time.svg' height= 30 width=30/>");
@@ -522,6 +524,10 @@ function add_message(chatroom_ID, mssg) {
         score()
     }
 
+    //if (mssg_content.includes("Current tick is 210")) {
+    //    toggle_pause();
+    //}
+
     var div = document.createElement("div");
     div.className = "message_you"; // by default assume we sent this message
 
@@ -538,7 +544,7 @@ function add_message(chatroom_ID, mssg) {
     }
 
     // add the message text to the message div
-    if (!mssg_content.includes("Our score is") && !mssg_content.includes("You ignored me") && !mssg_content.includes("Your workload") && !mssg_content.includes("Your performance")) {
+    if (!mssg_content.includes("Our score is") && !mssg_content.includes("Current tick is")) {
     var content = document.createElement('span');
     content.className = "chat-content";
     content.innerHTML = mssg_content;

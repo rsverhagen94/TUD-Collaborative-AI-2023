@@ -1,5 +1,4 @@
 import sys, random, enum, ast, time
-from matrx import grid_world
 from brains1.ArtificialBrain import ArtificialBrain
 from actions1.CustomActions import *
 from matrx import utils

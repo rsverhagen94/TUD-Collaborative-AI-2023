@@ -615,7 +615,7 @@ class ArtificialBrain(ArtificialAgentBrain, ABC):
     This class is the obligatory base class for the agents.
     Agents must implement decide_on_action
     """
-    def __init__(self, slowdown, condition, name, folder):
+    def __init__(self, slowdown, condition):
         '''
         @param slowdown an integer. Basically this sets action_duration
         field to the given slowdown. 1 implies normal speed
@@ -624,8 +624,6 @@ class ArtificialBrain(ArtificialAgentBrain, ABC):
         '''
         self.__slowdown = slowdown
         self.__condition = condition
-        self.__name = name
-        self.__folder = folder
         super().__init__()
     
     def decide_on_action(self, state:State):
@@ -642,19 +640,25 @@ class ArtificialBrain(ArtificialAgentBrain, ABC):
                 if water['location'] not in water_locs:
                     water_locs.append(water['location'])
         # remove doormat from water_locs
-        if state[{"name": "RescueBot"}]['location'] in water_locs and state[{"name": "RescueBot"}]['location'] not in [(3,5),(9,5),(15,5),(21,5),(3,6),(9,6),(15,6),(3,17),(9,17),(15,17),(3,18),(9,18),(15,18),(21,18)]:
-            params['action_duration'] = 13
+        if state[{"name": "RescueBot"}] and state[{"name": "RescueBot"}]['location'] in water_locs and state[{"name": "RescueBot"}]['location'] not in [(3,5),(9,5),(15,5),(21,5),(3,6),(9,6),(15,6),(3,17),(9,17),(15,17),(3,18),(9,18),(15,18),(21,18)]:
+            params['action_duration'] = 10
         else:
             params['action_duration'] = self.__slowdown
         # define duration to remove stone object by agent only
         if act == 'RemoveObject' and 'stone' in params['object_id']:
-            params['action_duration'] = 200
+            params['action_duration'] = 100
         # define duration to remove tree object by agent only
         if act == 'RemoveObject' and 'tree' in params['object_id']:
-            params['action_duration'] = 100
+            params['action_duration'] = 150
+        # define duration to remove rock object by agent only
+        if act == 'RemoveObject' and 'rock' in params['object_id']:
+            params['action_duration'] = 200
         # define duration to pick up a mildly injured victim by agent
         if act == 'CarryObject' and 'mild' in params['object_id']:
-            params['action_duration'] = 150
+            params['action_duration'] = 50
+        # define duration to pick up a mildly injured victim by agent
+        if act == 'CarryObject' and 'critical' in params['object_id']:
+            params['action_duration'] = 100
 
         return act,params
     

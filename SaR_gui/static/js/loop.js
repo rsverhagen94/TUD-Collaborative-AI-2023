@@ -49,7 +49,6 @@ if (typeof chat_offsets !== 'undefined') {
     var chat_offsets = {};
 }
 
-
 console.log("lv_send_userinput_url:", lv_send_userinput_url);
 
 /*

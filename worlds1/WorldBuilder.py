@@ -8,13 +8,14 @@ from matrx import WorldBuilder
 from matrx.actions import MoveNorth, OpenDoorAction, CloseDoorAction, GrabObject
 from matrx.actions.move_actions import MoveEast, MoveSouth, MoveWest
 from matrx.agents import AgentBrain, HumanAgentBrain, SenseCapability
-from matrx.grid_world import GridWorld, AgentBody
+from matrx.grid_world import AgentBody
 from actions1.CustomActions import RemoveObjectTogether, DropObject, Idle, CarryObject, Drop, CarryObjectTogether, DropObjectTogether
 from matrx.actions.object_actions import RemoveObject
 from matrx.objects import EnvObject
 from matrx.world_builder import RandomProperty
 from matrx.goals import WorldGoal
-from agents1.OfficialAgent import BaselineAgent
+from agents1.ObjectAddingAgent import ObjectAddingAgent
+from agents1.OfficialAgent import OfficialAgent
 from agents1.TutorialAgent import TutorialAgent
 from actions1.CustomActions import RemoveObjectTogether
 from brains1.HumanBrain import HumanBrain
@@ -65,42 +66,40 @@ def add_drop_off_zones(builder, task_type):
             builder.add_area((17,7), width=1, height=4, name=f"Drop off {nr_zone}",visualize_opacity=0.5, visualize_colour=drop_off_color, drop_zone_nr=nr_zone, is_drop_zone=True, is_goal_block=False, is_collectable=False) 
 
 # Add the agents to the world
-def add_agents(builder, condition, task_type, name, folder):
+def add_agents(builder, task_type, condition):
     # Define the agent's sense capabilites
     sense_capability_agent = SenseCapability({AgentBody: agent_sense_range, CollectableBlock: object_sense_range, None: other_sense_range, ObstacleObject: 1})
-    # Define the human's sense capabilities based on the selected condition
-    if condition=='normal' or condition=='weak' or condition=='tutorial':
-        sense_capability_human = SenseCapability({AgentBody: agent_sense_range, CollectableBlock: object_sense_range, None: other_sense_range, ObstacleObject: 1})
-    if condition=='strong':
-        sense_capability_human = SenseCapability({AgentBody: agent_sense_range, CollectableBlock: object_sense_range, None: other_sense_range, ObstacleObject: 10})
+    # Define the human's sense capabilities
+    sense_capability_human = SenseCapability({AgentBody: agent_sense_range, CollectableBlock: object_sense_range, None: other_sense_range, ObstacleObject: 1})
 
     for team in range(nr_teams):
         team_name = f"Team {team}"
-        # Add the artificial agents based on condition
+        # Add the artificial agents based on task type
         nr_agents = agents_per_team - human_agents_per_team
         for agent_nr in range(nr_agents):
             if task_type=="official":
-                brain = BaselineAgent(slowdown=8, condition=condition, name=name, folder=folder) # Slowdown makes the agent a bit slower, do not change value during evaluations
+                brain = OfficialAgent(slowdown=8, condition=condition) # Slowdown makes the agent a bit slower, do not change value during evaluations
+                brain2 = ObjectAddingAgent(slowdown=1, condition=condition)
                 loc = (22,11)
-            if task_type=="tutorial":
-                brain = TutorialAgent(slowdown=8, condition=condition, name=name, folder=folder)
-                loc = (16,8)
-            builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score'], score=0, sense_capability=sense_capability_agent, is_traversable=True, img_name="/images/robot-final4.svg")
+                builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score'], score=0, sense_capability=sense_capability_agent, is_traversable=True, img_name="/images/robot-final4.svg")
+                builder.add_agent((22,10), brain2, team=team_name, name="ObjectAdder", sense_capability=sense_capability_agent, is_traversable=True, visualize_shape=1, visualize_opacity=0)
 
-        # Add human agents based on condition, do not change human brain values
+            if task_type=="tutorial":
+                brain = TutorialAgent(slowdown=8)
+                loc = (16,8)
+                builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score'], score=0, sense_capability=sense_capability_agent, is_traversable=True, img_name="/images/robot-final4.svg")
+
+        # Add human agents based on task type, do not change human brain values
         for human_agent_nr in range(human_agents_per_team):
-            if condition=='strong':
-                brain = HumanBrain(max_carry_objects=np.inf, grab_range=1, drop_range=0, remove_range=1, fov_occlusion=fov_occlusion, strength=condition, name=name)
-            else:
-                brain = HumanBrain(max_carry_objects=1, grab_range=1, drop_range=0, remove_range=1, fov_occlusion=fov_occlusion, strength=condition, name=name)
+            brain = HumanBrain(max_carry_objects=1, grab_range=1, drop_range=0, remove_range=1, fov_occlusion=fov_occlusion, condition=condition)
             if task_type=="official":
                 loc = (22,12)
             else:
                 loc = (16,9)
-            builder.add_human_agent(loc, brain, team=team_name, name=name, key_action_map=key_action_map, sense_capability=sense_capability_human, is_traversable=True, img_name="/images/rescue-man-final3.svg", visualize_when_busy=True)
+            builder.add_human_agent(loc, brain, team=team_name, name='human', key_action_map=key_action_map, sense_capability=sense_capability_human, is_traversable=True, img_name="/images/rescue-man-final3.svg", visualize_when_busy=True)
 
 # Create the world
-def create_builder(task_type, condition, name, folder):
+def create_builder(task_type, condition):
     # Set numpy's random generator
     np.random.seed(random_seed)
     # Create the collection goal
@@ -123,11 +122,11 @@ def create_builder(task_type, condition, name, folder):
         builder.add_room(top_left_location=(7,13), width=5, height=4, name='area 7', door_locations=[(9,16)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(9,17)})
         builder.add_room(top_left_location=(13,13), width=5, height=4, name='area 8', door_locations=[(15,16)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(15,17)})
 
-        builder.add_object((3,4), 'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+        builder.add_object((3,4), 'stones',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
         builder.add_object((3,7),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
         builder.add_object((3,16),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
         builder.add_object((9,16),'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
-        builder.add_object((15,16),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+        builder.add_object((15,16),'stones',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
         builder.add_object((9,7),'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
 
         builder.add_object((16,3),'critically injured elderly woman in area 3', callable_class=CollectableBlock, visualize_shape='img',img_name="/images/critically injured elderly woman.svg")
@@ -169,7 +168,7 @@ def create_builder(task_type, condition, name, folder):
 
     # Create folders where the logs are stored during the official condition
     if task_type=="official":
-        current_exp_folder = datetime.now().strftime("exp_"+condition+"_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
+        current_exp_folder = datetime.now().strftime("exp_at_time_%Hh-%Mm-%Ss_date_%dd-%mm-%Yy")
         logger_save_folder = os.path.join("logs", current_exp_folder)
         builder.add_logger(ActionLogger, log_strategy=1, save_path=logger_save_folder, file_name_prefix="actions_")
         
@@ -192,19 +191,17 @@ def create_builder(task_type, condition, name, folder):
         builder.add_room(top_left_location=(19,19), width=5, height=4, name='area 14', door_locations=[(21,19)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(21,18)})
 
         builder.add_object((3,4), 'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
-        builder.add_object((9,4),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+        builder.add_object((9,4),'stones',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
         builder.add_object((9,16),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
         builder.add_object((15, 7),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
         builder.add_object((15,19),'tree',ObstacleObject,visualize_shape='img',img_name="/images/tree-fallen2.svg")
         builder.add_object((3,16),'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
         builder.add_object((15,4),'rock',ObstacleObject,visualize_shape='img',img_name="/images/stone.svg")
-        builder.add_object((21,19),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
-        builder.add_object((9,19),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
-        builder.add_object((9,7),'stone',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
-
+        builder.add_object((21,19),'stones',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+        builder.add_object((9,19),'stones',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+        builder.add_object((9,7),'stones',ObstacleObject,visualize_shape='img',img_name="/images/stone-small.svg")
+        
         builder.add_object((1,12),'plant',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/tree.svg", visualize_size=3)
-        builder.add_object((21,7),'heli',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/helicopter.svg", visualize_size=3) 
-        builder.add_object((21,16),'ambulance',EnvObject,is_traversable=False,is_movable=False,visualize_shape='img',img_name="/images/ambulance.svg", visualize_size=2.3) 
     
         builder.add_object((23,8),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured girl.svg",drop_zone_nr=0)
         builder.add_object((23,9),name="Collect Block", callable_class=GhostBlock,visualize_shape='img',img_name="/images/critically injured elderly woman.svg",drop_zone_nr=0)
@@ -287,20 +284,11 @@ def create_builder(task_type, condition, name, folder):
                     (11,11),(18,17),(17,17),(16,17),(15,17),(14,17),(14,18),(13,18),(12,18),(10,18),(11,18)]:
             builder.add_object(loc,'water', EnvObject,is_traversable=True, is_movable=False, visualize_shape='img', img_name="/images/lake2.svg")
 
-        for loc in [(11,5),(13,5),(14,5),(13,6),(14,6),(12,5),(15,5),(15,6),(16,5),(16,6),(17,5),(17,6),(18,5),
-                    (8,6),(7,6),(6,6),(5,6),(4,6),(3,6),(2,6),(1,6),(20,9),(21,9),(21,14),(20,14),(19,14),(9,6),
-                    (1,5),(2,5),(3,5),(4,5),(5,5),(22,11),(22,12),(19,18),(18,18),(17,18),(16,18),(15,18),(13,17),
-                    (11,17),(10,17),(8,18),(7,18),(6,18),(5,18),(4,18),(3,18),(2,18),(1,18),(12,17),(18,6)]:
-            builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final20.svg", visualize_size=1) 
-
         for loc in [(12,3),(12,4),(18,1),(18,2),(18,3),(18,4),(6,19),(6,20),(6,21),(18,19)]:
             builder.add_object(loc,'plant',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/tree.svg", visualize_size=1.25) 
             
-        for loc in [(21,10),(21,11),(21,12),(21,13),(19,15),(19,16)]:
-            builder.add_object(loc,'street',EnvObject,is_traversable=True,is_movable=False,visualize_shape='img',img_name="/images/paving-final15.svg", visualize_size=1) 
-    
     add_drop_off_zones(builder, task_type)
-    add_agents(builder, condition, task_type, name, folder)
+    add_agents(builder, task_type, condition)
 
     return builder
 
@@ -346,6 +334,7 @@ class CollectionGoal(WorldGoal):
         self.__drop_off_zone = {}
         self.__progress = 0
         self.__score = 0
+        self.__penalties = []
     
     def score(self, grid_world):
         return self.__score
@@ -469,6 +458,27 @@ class CollectionGoal(WorldGoal):
             # update our satisfied boolean
             is_satisfied = is_satisfied and zone_satisfied
         agent = grid_world.registered_agents['rescuebot']
-        agent.change_property('score',self.__score)
+        human = grid_world.registered_agents['human']
+        if human.properties['img_name'] == "/images/human-danger2.gif" and curr_tick not in self.__penalties:
+            self.__penalties.append(curr_tick)
+        
+        if 200 in self.__penalties and 350 in self.__penalties and 500 in self.__penalties:
+            penalty=30
+        if 200 in self.__penalties and 350 in self.__penalties and 500 not in self.__penalties:
+            penalty=20
+        if 200 not in self.__penalties and 350 in self.__penalties and 500 in self.__penalties:
+            penalty=20
+        if 200 in self.__penalties and 350 not in self.__penalties and 500 in self.__penalties:
+            penalty=20
+        if 200 in self.__penalties and 350 not in self.__penalties and 500 not in self.__penalties:
+            penalty=10
+        if 200 not in self.__penalties and 350 not in self.__penalties and 500 in self.__penalties:
+            penalty=10
+        if 200 not in self.__penalties and 350 in self.__penalties and 500 not in self.__penalties:
+            penalty=10
+        if 200 not in self.__penalties and 350 not in self.__penalties and 500 not in self.__penalties:
+            penalty = 0
+
+        agent.change_property('score',self.__score - penalty)
 
         return is_satisfied, progress
