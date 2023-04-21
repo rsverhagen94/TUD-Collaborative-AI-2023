@@ -25,7 +25,7 @@ if __name__ == "__main__":
     vis_thread = visualization_server.run_matrx_visualizer(verbose=False, media_folder=media_folder)
     world = builder.get_world()
     print("Started world...")
-    builder.api_info['matrx_paused'] = False
+    #builder.api_info['matrx_paused'] = False
     world.run(builder.api_info)
     print("DONE!")
     print("Shutting down custom visualizer")

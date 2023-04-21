@@ -1,6 +1,8 @@
 import warnings
 import copy
 import numpy as np
+from matrx.grid_world import AgentBody
+from matrx.agents import AgentBrain, HumanAgentBrain, SenseCapability
 from matrx.actions.object_actions import GrabObject, DropObject, RemoveObject
 from matrx.actions.door_actions import OpenDoorAction, CloseDoorAction
 from matrx.agents.agent_utils.state import State
@@ -229,36 +231,26 @@ class HumanBrain(HumanAgentBrain):
             if 'class_inheritance' in info and 'AreaTile' in info['class_inheritance'] and info['location'] not in area_tiles:
                 area_tiles.append(info['location'])
 
-        #if self._tick == 900 or self._tick == 1800 or self._tick == 2700:
-        if self._tick == 150 or self._tick == 300 or self._tick == 450:
+        if self._tick == 900 or self._tick == 1800 or self._tick == 2700:
             self.image = self.agent_properties["img_name"]
 
-        #if state[{"name": 'human'}]['location'] in area_tiles and self._tick > 900 and self._tick < 1000 \ 
-        #or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 1800 and self._tick < 1900 \
-        #or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 2700 and self._tick < 2800:
-        if state[{"name": 'human'}]['location'] in area_tiles and self._tick > 150 and self._tick < 200 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 300 and self._tick < 350 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 450 and self._tick < 500:
+        if state[{"name": 'human'}]['location'] in area_tiles and self._tick > 900 and self._tick < 1000 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 1800 and self._tick < 1900 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 2700 and self._tick < 2800:
             self.image = self.agent_properties["img_name"]
 
-        #if state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 900 and self._tick < 1000 \
-        #or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 1800 and self._tick < 1900 \
-        #or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 2700 and self._tick < 2800:
-        if state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 150 and self._tick < 200 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 300 and self._tick < 350 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 450 and self._tick < 500:
+        if state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 900 and self._tick < 1000 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 1800 and self._tick < 1900 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 2700 and self._tick < 2800:
             self.agent_properties["img_name"] = "/images/human-danger2.gif"
             self.agent_properties["visualize_size"] = 2
             return None, {}
         
-        #if self._tick == 1000:
-        if self._tick == 200:
+        if self._tick == 1000:
             self.agent_properties["img_name"] = str(self.image)
             self.agent_properties["visualize_size"] = 1
         
-        #if self._tick == 1900:
-        if self._tick == 350:
+        if self._tick == 1900:
             self.agent_properties["img_name"] = str(self.image)
             self.agent_properties["visualize_size"] = 1
         
-        #if self._tick == 2800:
-        if self._tick == 500:
+        if self._tick == 2800:
             self.agent_properties["img_name"] = str(self.image)
             self.agent_properties["visualize_size"] = 1
 
@@ -307,13 +299,12 @@ class HumanBrain(HumanAgentBrain):
                                                   property_to_check="is_movable")
             if obj_id and 'healthy' in obj_id:
                 action_kwargs['object_id'] = obj_id
-                action_kwargs['action_duration'] = 25
             if obj_id and 'mild' in obj_id:
                 action_kwargs['object_id'] = obj_id
-                action_kwargs['action_duration'] = 50
+                action_kwargs['action_duration'] = 40
             if obj_id and 'critical' in obj_id:
                 action_kwargs['object_id'] = obj_id
-                action_kwargs['action_duration'] = 100
+                action_kwargs['action_duration'] = 80
 
         # If the user chose to drop an object in its inventory
         elif action == Drop.__name__:
@@ -336,11 +327,11 @@ class HumanBrain(HumanAgentBrain):
                                                   property_to_check="is_movable")
             action_kwargs['object_id'] = obj_id
             if obj_id and 'stone' in obj_id:
-                action_kwargs['action_duration'] = 25
+                action_kwargs['action_duration'] = 10
             if obj_id and 'rock' in obj_id:
-                action_kwargs['action_duration'] = 50
+                action_kwargs['action_duration'] = 30
             if obj_id and 'tree' in obj_id:
-                action_kwargs['action_duration'] = 38
+                action_kwargs['action_duration'] = 20
         
         # If the user chose to remove an object
         elif action == RemoveObject.__name__:
@@ -356,11 +347,11 @@ class HumanBrain(HumanAgentBrain):
             if obj_id and 'critical' not in obj_id and 'mild' not in obj_id and 'healthy' not in obj_id:
                 action_kwargs['object_id'] = obj_id
                 if 'stone' in obj_id:
-                    action_kwargs['action_duration'] = 100
+                    action_kwargs['action_duration'] = 30
                 if 'rock' in obj_id:
-                    action_kwargs['action_duration'] = 200
+                    action_kwargs['action_duration'] = 90
                 if 'tree' in obj_id:
-                    action_kwargs['action_duration'] = 150
+                    action_kwargs['action_duration'] = 60
    
         # if the user chose to do an open or close door action, find a door to
         # open/close within range
@@ -602,3 +593,23 @@ class HumanBrain(HumanAgentBrain):
             object_id = None
 
         return object_id
+    
+class CollectableBlock(EnvObject):
+    '''
+    Objects that can be collected by agents.
+    '''
+    def __init__(self, location, name, visualize_shape, img_name):
+        super().__init__(location, name, is_traversable=True, is_movable=True,
+                         visualize_shape=visualize_shape,img_name=img_name,
+                         visualize_size=object_size, class_callable=CollectableBlock,
+                         is_drop_zone=False, is_goal_block=False, is_collectable=True)
+
+class ObstacleObject(EnvObject):
+    '''
+    Obstacles that can be removed by agents
+    '''
+    def __init__(self, location, name, visualize_shape, img_name):
+        super().__init__(location, name, is_traversable=False, is_movable=True,
+                         visualize_shape=visualize_shape,img_name=img_name,
+                         visualize_size=1.25, class_callable=ObstacleObject,
+                         is_drop_zone=False, is_goal_block=False, is_collectable=False)

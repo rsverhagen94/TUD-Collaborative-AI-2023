@@ -102,12 +102,14 @@ def add_agents(builder, task_type, condition):
 def create_builder(task_type, condition):
     # Set numpy's random generator
     np.random.seed(random_seed)
-    # Create the collection goal
-    goal = CollectionGoal(max_nr_ticks=np.inf)
     # Create the world builder
     if task_type=="official":
+        # Create the collection goal
+        goal = CollectionGoal(max_nr_ticks=5000)
         builder = WorldBuilder(shape=[25,24], tick_duration=tick_duration, run_matrx_api=True, run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#9a9083')
     else:
+        # Create the collection goal
+        goal = CollectionGoal(max_nr_ticks=np.inf)
         builder = WorldBuilder(shape=[19,19], tick_duration=tick_duration, run_matrx_api=True,random_seed=random_seed, run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#9a9083')
 
     # Add all areas and objects to the tutorial world
@@ -174,7 +176,7 @@ def create_builder(task_type, condition):
         
     # Add all area and objects to the official world
     if task_type == "official":
-        builder.add_room(top_left_location=(0, 0), width=25, height=24, name="world_bounds", wall_visualize_colour="#1F262A")
+        builder.add_room(top_left_location=(0, 0), width=25, height=24, name="world_bounds", wall_visualize_colour="#343a40")
         builder.add_room(top_left_location=(1,1), width=5, height=4, name='area 1', door_locations=[(3,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0, door_open_colour='#9a9083', area_custom_properties={'doormat':(3,5)})
         builder.add_room(top_left_location=(7,1), width=5, height=4, name='area 2', door_locations=[(9,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(9,5)})
         builder.add_room(top_left_location=(13,1), width=5, height=4, name='area 3', door_locations=[(15,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(15,5)})
@@ -337,7 +339,23 @@ class CollectionGoal(WorldGoal):
         self.__penalties = []
     
     def score(self, grid_world):
-        return self.__score
+        if 1000 in self.__penalties and 1900 in self.__penalties and 2800 in self.__penalties:
+            penalty=30
+        if 1000 in self.__penalties and 1900 in self.__penalties and 2800 not in self.__penalties:
+            penalty=20
+        if 1000 not in self.__penalties and 1900 in self.__penalties and 2800 in self.__penalties:
+            penalty=20
+        if 1000 in self.__penalties and 1900 not in self.__penalties and 2800 in self.__penalties:
+            penalty=20
+        if 1000 in self.__penalties and 1900 not in self.__penalties and 2800 not in self.__penalties:
+            penalty=10
+        if 1000 not in self.__penalties and 1900 not in self.__penalties and 2800 in self.__penalties:
+            penalty=10
+        if 1000 not in self.__penalties and 1900 in self.__penalties and 2800 not in self.__penalties:
+            penalty=10
+        if 1000 not in self.__penalties and 1900 not in self.__penalties and 2800 not in self.__penalties:
+            penalty = 0
+        return self.__score - penalty
 
     def goal_reached(self, grid_world):
         if grid_world.current_nr_ticks >= self.max_nr_ticks:
@@ -462,21 +480,21 @@ class CollectionGoal(WorldGoal):
         if human.properties['img_name'] == "/images/human-danger2.gif" and curr_tick not in self.__penalties:
             self.__penalties.append(curr_tick)
         
-        if 200 in self.__penalties and 350 in self.__penalties and 500 in self.__penalties:
+        if 1000 in self.__penalties and 1900 in self.__penalties and 2800 in self.__penalties:
             penalty=30
-        if 200 in self.__penalties and 350 in self.__penalties and 500 not in self.__penalties:
+        if 1000 in self.__penalties and 1900 in self.__penalties and 2800 not in self.__penalties:
             penalty=20
-        if 200 not in self.__penalties and 350 in self.__penalties and 500 in self.__penalties:
+        if 1000 not in self.__penalties and 1900 in self.__penalties and 2800 in self.__penalties:
             penalty=20
-        if 200 in self.__penalties and 350 not in self.__penalties and 500 in self.__penalties:
+        if 1000 in self.__penalties and 1900 not in self.__penalties and 2800 in self.__penalties:
             penalty=20
-        if 200 in self.__penalties and 350 not in self.__penalties and 500 not in self.__penalties:
+        if 1000 in self.__penalties and 1900 not in self.__penalties and 2800 not in self.__penalties:
             penalty=10
-        if 200 not in self.__penalties and 350 not in self.__penalties and 500 in self.__penalties:
+        if 1000 not in self.__penalties and 1900 not in self.__penalties and 2800 in self.__penalties:
             penalty=10
-        if 200 not in self.__penalties and 350 in self.__penalties and 500 not in self.__penalties:
+        if 1000 not in self.__penalties and 1900 in self.__penalties and 2800 not in self.__penalties:
             penalty=10
-        if 200 not in self.__penalties and 350 not in self.__penalties and 500 not in self.__penalties:
+        if 1000 not in self.__penalties and 1900 not in self.__penalties and 2800 not in self.__penalties:
             penalty = 0
 
         agent.change_property('score',self.__score - penalty)

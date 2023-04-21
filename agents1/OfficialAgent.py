@@ -81,38 +81,32 @@ class OfficialAgent(ArtificialBrain):
         # Provide suggestions
         self._tick = state['World']['nr_ticks']
         self._second = state['World']['tick_duration'] * state['World']['nr_ticks']
-        #if self._tick == 900 or self._tick == 1800 or self._tick == 2700:
-        if self._tick == 150 or self._tick == 300 or self._tick == 450:
+        if self._tick == 900 or self._tick == 1800 or self._tick == 2700:
             self._score = state['rescuebot']['score']
-        #if self._tick >= 800:
-        if self._tick >= 100 and self._tick < 150:
-            self._sendMessage('Please seek shelter in one of the areas because there is some extreme rain and predicted floods arriving in 5 seconds.', 'RescueBot')
+
+        if self._tick >= 800 and self._tick < 850:
+            self._sendMessage('I have detected extreme rain arriving soon and predict it will cause new floods, so I advise you to take shelter in one of the areas as soon as possible and until the rain is over.', 'RescueBot')
         
-        #if self._tick >= 1000:
-        if self._tick >= 200 and self._tick < 250:
+        if self._tick >= 1000 and self._tick < 1050:
             if self._score == state['rescuebot']['score']:
-                self._sendMessage('The advice I gave you was correct, that weather was extreme! If you had not taken shelter, you would have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
+                self._sendMessage('My advice was correct, that weather was extreme! If you had not taken shelter, you would have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
             if self._score > state['rescuebot']['score']:
-                self._sendMessage('The advice I gave you was correct, that weather was extreme! If you had taken shelter, you would not have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
+                self._sendMessage('My advice was correct, that weather was extreme! If you had taken shelter, you would not have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
         
-        #if self._tick >= 1700:
-        if self._tick >= 250 and self._tick < 300:
-            self._sendMessage('There is some moderate rain arriving in 5 seconds but no need to take shelter this time because it will not cause new floods.', 'RescueBot')
+        if self._tick >= 1700 and self._tick < 1750:
+            self._sendMessage('I have detected moderate rain arriving soon but predict it will cause no floods, so I advise you to continue searching and rescuing victims.', 'RescueBot')
         
-        #if self._tick >= 1900:
-        if self._tick >= 350 and self._tick < 400:
-            self._sendMessage('The advice I gave you was wrong. The amount of rain was heavy instead of moderate and because of that my flood prediction was incorrect. I am really sorry.', 'RescueBot')
+        if self._tick >= 1900 and self._tick < 1950:
+            self._sendMessage('My advice was wrong. The amount of rain was heavy instead of moderate and because of that my flood prediction was incorrect. I am really sorry.', 'RescueBot')
         
-        #if self._tick >= 2600:
-        if self._tick >= 400 and self._tick < 450:
-            self._sendMessage('Please seek shelter again in one of the areas because there is some extreme rain and predicted floods arriving in 5 seconds.', 'RescueBot')
+        if self._tick >= 2600 and self._tick < 2650:
+            self._sendMessage('I have detected extreme rain arriving soon and predict it will cause new floods, so I again advise you to take shelter in one of the areas as soon as possible and until the rain is over.', 'RescueBot')
         
-        #if self._tick >= 2800:
-        if self._tick >= 500 and self._tick < 550:
+        if self._tick >= 2800 and self._tick < 2850:
             if self._score == state['rescuebot']['score']:
-                self._sendMessage('The advice I gave you was correct now, that weather was extreme! If you had not taken shelter, you would have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
+                self._sendMessage('My advice was correct now, that weather was extreme! If you had not taken shelter, you would have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
             if self._score > state['rescuebot']['score']:
-                self._sendMessage('The advice I gave you was correct now, that weather was extreme! If you had taken shelter, you would not have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
+                self._sendMessage('My advice was correct now, that weather was extreme! If you had taken shelter, you would not have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
        
         # Identify team members
         agent_name = state[self.agent_id]['obj_id']
@@ -163,15 +157,14 @@ class OfficialAgent(ArtificialBrain):
 
         # Send the hidden score message for displaying and logging the score during the task, DO NOT REMOVE THIS
         self._sendMessage('Our score is ' + str(state['rescuebot']['score']) + '.', 'RescueBot')
-        self._sendMessage('Current tick is ' + str(self._tick) + '.', 'RescueBot')
 
         # Ongoing loop untill the task is terminated, using different phases for defining the agent's behavior
         while True:
             if Phase.INTRO == self._phase:
                 # Send introduction message
-                self._sendMessage('Hello! My name is RescueBot. Together we will collaborate and try to search and rescue the 8 victims on our right as quickly as possible. \
+                self._sendMessage('Hello! My name is RescueBot. Together we will collaborate and try to search and rescue as many of the 8 victims on our right as possible. \
                 Each critical victim (critically injured girl/critically injured elderly woman/critically injured man/critically injured dog) adds 6 points to our score, \
-                each mild victim (mildly injured boy/mildly injured elderly man/mildly injured woman/mildly injured cat) 3 points. \
+                each mild victim (mildly injured boy/mildly injured elderly man/mildly injured woman/mildly injured cat) 3 points. We will have 8 minutes for our mission. \
                 If you are ready to begin our mission, you can simply start moving.', 'RescueBot')
                 # Wait untill the human starts moving before going to the next phase, otherwise remain idle
                 if not state[{'is_human_agent': True}]:
@@ -210,7 +203,7 @@ class OfficialAgent(ArtificialBrain):
                     if vic in self._foundVictims and vic in self._todo and len(self._searchedRooms)==0:
                         self._goalVic = vic
                         self._goalLoc = remaining[vic]
-                        # Move to target victim and ask for help depending on condition
+                        # Move to target victim and ask for help depending on condition. EDIT BASED ON YOUR CONDITION
                         if self._condition == 'required':# or self._condition == 'opportunistic' or self._condition == 'mixed':
                             self._rescue = 'together'
                             self._sendMessage('Moving to ' + self._foundVictimLocs[vic]['room'] + ' to pick up ' + self._goalVic +'. Please come there as well to help me carry ' + self._goalVic + ' to the drop zone.', 'RescueBot')
@@ -261,7 +254,7 @@ class OfficialAgent(ArtificialBrain):
                     self._sendMessages = []
                     self.received_messages = []
                     self.received_messages_content = []
-                    self._sendMessage('Going to re-search all areas.', 'RescueBot')
+                    self._sendMessage('Going to re-explore the areas again because we explored them all but did not complete our mission yet.', 'RescueBot')
                     self._phase = Phase.FIND_NEXT_GOAL
                 # If there are still areas to search, define which one to search next
                 else:
@@ -322,7 +315,7 @@ class OfficialAgent(ArtificialBrain):
                         # CAN BE EDITED TO BETTER FIT YOUR CONDITION E.G. "TO PICK UP TOGETHER WITH YOU"
                         self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic + '.', 'RescueBot')
                     if self._goalVic not in self._foundVictims and not self._remove or not self._goalVic and not self._remove :
-                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' because it is the closest unsearched area.', 'RescueBot')
+                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' because it is the closest unexplored area.', 'RescueBot')
                     self._currentDoor = self._door['location']
                     # Retrieve move actions to execute
                     action = self._navigator.get_move_action(self._state_tracker)
@@ -343,13 +336,13 @@ class OfficialAgent(ArtificialBrain):
                         # Communicate which obstacle is blocking the entrance (EDIT TO ACCOUNT FOR YOUR CONDITIONS)
                         if self._answered == False and not self._remove and not self._waiting:
                             if self._condition == 'baseline': 
-                                self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \n \n \
-                                    Important features to consider are: \n safe - victims rescued: ' + str(self._collectedVictims) + ' \n explore - areas searched: area ' + str(self._searchedRooms).replace('area ','') + ' \
-                                    \n clock - removal time: 5 seconds \n afstand - distance between us: ' + self._distanceHuman ,'RescueBot')
+                                self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \
+                                    Here is some information that might support you in deciding: \n • Explored: area ' + str(self._searchedRooms).replace('area ','') + ' \n • Found: ' + str(self._foundVictims) +  ' \
+                                    \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
                             if self._condition == 'opportunisitc':
-                                self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove alone", "Remove together" or "Continue" searching. \n \n \
-                                    Important features to consider are: \n safe - victims rescued: ' + str(self._collectedVictims) + ' \n explore - areas searched: area ' + str(self._searchedRooms).replace('area ','') + ' \
-                                    \n clock - removal time: 5 seconds \n afstand - distance between us: ' + self._distanceHuman ,'RescueBot')
+                                self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove alone", "Remove together" or "Continue" searching. \
+                                    Here is some information that might support you in deciding: \n • Explored: area ' + str(self._searchedRooms).replace('area ','') + ' \n • Found: ' + str(self._foundVictims) +  ' \
+                                    \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
                             self._waiting = True     
                         # Determine the next area to explore if the human tells the agent not to remove the obstacle
                         if self.received_messages_content and self.received_messages_content[-1] == 'Continue' and not self._remove:
@@ -463,22 +456,22 @@ class OfficialAgent(ArtificialBrain):
                                 self._foundVictimLocs[vic] = {'location': info['location'],'room': self._door['room_name'], 'obj_id': info['obj_id']}
                                 # Communicate which victim the agent found and ask the human whether to rescue the victim now or at a later stage (EDIT BELOW TO ACCOUNT FOR YOUR CONDITIONS)
                                 if self._condition == 'baseline' and self._answered == False and not self._waiting:
-                                    self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. Please decide whether to "Rescue" or "Continue" searching. \n\n \
-                                        Important features to consider are: \n explore - areas searched: area ' + str(self._searchedRooms).replace('area','') + ' \n safe - victims rescued: ' + str(self._collectedVictims) + '\n \
-                                        afstand - distance between us: ' + self._distanceHuman,'RescueBot')
+                                    self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. Please decide whether to "Rescue" or "Continue" searching. \
+                                        Here is some information that might support you in deciding: \n • Explored: area ' + str(self._searchedRooms).replace('area ','') + ' \n • Found: ' + str(self._foundVictims) +  ' \
+                                        \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
                                     self._waiting = True  
 
                                 if self._condition == 'opportunistic' and self._answered == False and not self._waiting:
-                                    self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. Please decide whether to "Rescue together", "Rescue alone", or "Continue" searching. \n \n \
-                                        Important features to consider are: \n safe - victims rescued: ' + str(self._collectedVictims) + '\n explore - areas searched: area ' + str(self._searchedRooms).replace('area ','') + '\n \
-                                        clock - extra time when rescuing alone: 15 seconds \n afstand - distance between us: ' + self._distanceHuman,'RescueBot')
+                                    self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. Please decide whether to "Rescue together", "Rescue alone", or "Continue" searching. \
+                                        Here is some information that might support you in deciding: \n • Explored: area ' + str(self._searchedRooms).replace('area ','') + ' \n • Found: ' + str(self._foundVictims) +  ' \
+                                        \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
                                     self._waiting = True  
                     # Execute move actions to explore the area
                     return action, {}
 
                 # Communicate that the agent did not find the target victim in the area while the human previously communicated the victim was located here
                 if self._goalVic in self._foundVictims and self._goalVic not in self._roomVics and self._foundVictimLocs[self._goalVic]['room'] == self._door['room_name']:
-                    self._sendMessage(self._goalVic + ' not present in ' + str(self._door['room_name']) + ' because I searched the whole area without finding ' + self._goalVic + '.','RescueBot')
+                    self._sendMessage(self._goalVic + ' not present in ' + str(self._door['room_name']) + ' because I explored the whole area without finding ' + self._goalVic + '.','RescueBot')
                     # Remove the victim location from memory
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)

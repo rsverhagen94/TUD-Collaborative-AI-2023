@@ -117,38 +117,29 @@ html {
 }
 
 .contact {
-  background-color: #f8f9fa;
-  color: #212529;
-  text-align: center;
-  vertical-align: middle;
-  border: 1px solid transparent;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.25rem;
-  transition: color 0.05s ease-in-out, background-color 0.05s ease-in-out, border-color 0.05s ease-in-out, box-shadow 0.05s ease-in-out;
-  margin-bottom: 0.5em;
-  word-break: break-word;
+  background-color:  rgb(229 221 213 / 95%);
+  color:  rgb(229 221 213 / 95%);
 }
 
 .contact:hover {
-  cursor: pointer;
-  background-color: #424649;
-  color: white;
+  background-color:  rgb(229 221 213 / 95%);
+  color:  rgb(229 221 213 / 95%);
 }
 
 .contact_active {
-  background-color: #424649;
-  color: white;
+  background-color:  rgb(229 221 213 / 95%);
+  color:  rgb(229 221 213 / 95%);
 }
 
 #messages {
     overflow-y: auto;
-    max-height: 35vh;
+    max-height: 50vh;
 }
 
 .message_you {
     color: #fff;
     position: relative;
-    background: #00aabb;
+    background: #414950;
     border-radius: .4em;
     padding: 0.375rem 0.75rem;
     margin-bottom: 0.5em;
@@ -166,7 +157,7 @@ html {
 	width: 0;
 	height: 0;
 	border: 8px solid transparent;
-	border-left-color: #00aabb;
+	border-left-color: #414950;
 	border-right: 0;
 	border-top: 0;
 	margin-top: -4px;
@@ -224,7 +215,7 @@ h5 {
 }
 
 #chatrooms_list {
-     max-height: 90vh;
+     max-height: 10vh;
 }
 
 .object:hover {
@@ -263,15 +254,17 @@ h5 {
 
 #chat_form_submit {
     border: none;
-    background-color: #0795bb;
+    background-color: #414950;
+    color: white;
 
 }
 
 #chat_form_submit:hover {
-    background-color: #056681;
+    background-color:#6c757d;
     -webkit-transition: background-color 100ms linear;
     -ms-transition: background-color 100ms linear;
     transition: background-color 100ms linear;
+    border: none;
 }
 
 /* subtile + context menu bug fix. Subtile objects only block when exactly on top of eachother. */
@@ -294,8 +287,8 @@ h5 {
 
 /* Dropdown Button */
 .dropbtn {
-  background-color: #04AA6D;
-  color: #056681;
+  background-color: #414950;
+  color: #414950;
   border: none;
 }
 
@@ -313,9 +306,9 @@ h5 {
 .dropdown-content {
   display: none;
   position: relative;
-  background-color: #0795bb;
+  background-color: #414950;
   min-width: 60px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: #414950;
   z-index: 1;
   border: none;
 }
@@ -330,11 +323,34 @@ h5 {
 }
 
 /* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color:#056681;color: white;}
+.dropdown-content a:hover {background-color:#6c757d;color: white;}
 
 /* Show the dropdown menu on hover */
 .dropdown:hover .dropdown-content {display: block;}
 
 /* Change the background color of the dropdown button when the dropdown content is shown */
-.dropdown:hover .dropbtn {background-color: #056681;}
+.dropdown:hover .dropbtn {background-color: #6c757d;}
 
+.btn-primary:hover{color:#fff;background-color:#6c757d;border-color:#6c757d}
+.btn-primary:focus,.btn-primary.focus{box-shadow:0 0 0 .2rem #6c757d}
+.btn-primary.disabled,
+.btn-primary:disabled{color:#fff;background-color:#6c757d;border-color:#6c757d}
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active,
+.show>.btn-primary.dropdown-toggle{color:#fff;background-color:#6c757d;border-color:#6c757d}
+.btn-primary:not(:disabled):not(.disabled):active:focus,
+.btn-primary:not(:disabled):not(.disabled).active:focus,
+.show>.btn-primary.dropdown-toggle:focus{box-shadow:0 0 0 .2rem #6c757d}
+
+.btn-outline-primary{color:#6c757d;background-color:transparent;background-image:none;border-color:#6c757d}
+.btn-outline-primary:hover{color:#6c757d;background-color:#6c757d;border-color:#6c757d}
+.btn-outline-primary:focus,
+.btn-outline-primary.focus{box-shadow:0 0 0 .2rem #6c757d}
+.btn-outline-primary.disabled,
+.btn-outline-primary:disabled{color:#6c757d;background-color:transparent}
+.btn-outline-primary:not(:disabled):not(.disabled):active,
+.btn-outline-primary:not(:disabled):not(.disabled).active,
+.show>.btn-outline-primary.dropdown-toggle{color:#fff;background-color:#6c757d;border-color:#6c757d}
+.btn-outline-primary:not(:disabled):not(.disabled):active:focus,
+.btn-outline-primary:not(:disabled):not(.disabled).active:focus,
+.show>.btn-outline-primary.dropdown-toggle:focus{box-shadow:0 0 0 .2rem #6c757d}

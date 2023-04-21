@@ -683,8 +683,8 @@ class GridWorld:
                                    agent_inheritence_chain=agent_obj.class_inheritance,
                                    world_settings=world_state['World'])
 
-            if not agent_obj._check_agent_busy(curr_tick=self.__current_nr_ticks) or self.__current_nr_ticks > 150 and self.__current_nr_ticks < 200 and self.human_loc not in area_tiles or \
-                    self.__current_nr_ticks > 300 and self.__current_nr_ticks < 350 and self.human_loc not in area_tiles or self.__current_nr_ticks > 450 and self.__current_nr_ticks < 500 and self.human_loc not in area_tiles:
+            if not agent_obj._check_agent_busy(curr_tick=self.__current_nr_ticks) or 'human' in agent_id and self.__current_nr_ticks > 900 and self.__current_nr_ticks < 1000 and self.human_loc not in area_tiles or \
+                    'human' in agent_id and self.__current_nr_ticks > 1800 and self.__current_nr_ticks < 1900 and self.human_loc not in area_tiles or 'human' in agent_id and self.__current_nr_ticks > 2700 and self.__current_nr_ticks < 2800 and self.human_loc not in area_tiles:
 
                 # Any received data from the api for this HumanAgent is send along to the get_action function
                 if agent_obj.is_human_agent:

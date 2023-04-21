@@ -446,12 +446,34 @@ function add_message(chatroom_ID, mssg) {
     div.appendChild(document.createTextNode(mssg_content));
     */
     
-    mssg_content = mssg_content.replaceAll("floods", "<span style='font-weight:bold; >floods</span>");
-    mssg_content = mssg_content.replaceAll("floods", "<span style='font-size:1.5rem; >floods</span>");
-    mssg_content = mssg_content.replaceAll("safe", "<img src='/static/images/safe.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("afstand", "<img src='/static/images/distance.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("clock", "<img src='/static/images/time.svg' height= 30 width=30/>");
-    mssg_content = mssg_content.replaceAll("explore", "<img src='/static/images/search.svg' height= 30 width=30/>");
+    mssg_content = mssg_content.replaceAll("take shelter", "<span style='font-weight:bold; >take shelter</span>");
+    mssg_content = mssg_content.replaceAll("take shelter", "<span style='color:blue; >take shelter</span>");
+
+    mssg_content = mssg_content.replaceAll("continue", "<span style='font-weight:bold; >continue</span>");
+    mssg_content = mssg_content.replaceAll("continue", "<span style='color:blue; >continue</span>");
+
+    mssg_content = mssg_content.replaceAll("advice was correct", "<span style='font-weight:bold; >advice was correct</span>");
+    mssg_content = mssg_content.replaceAll("advice was correct", "<span style='color:green; >advice was correct</span>");
+    
+    mssg_content = mssg_content.replaceAll("advice was wrong", "<span style='font-weight:bold; >advice was wrong</span>");
+    mssg_content = mssg_content.replaceAll("advice was wrong", "<span style='color:red; >advice was wrong</span>");
+
+    mssg_content = mssg_content.replaceAll("extreme rain", "<span style='font-weight:bold; >extreme rain</span>");
+    mssg_content = mssg_content.replaceAll("extreme rain", "<span style='color:red; >extreme rain</span>");
+    
+    mssg_content = mssg_content.replaceAll("new floods", "<span style='font-weight:bold; >new floods</span>");
+    mssg_content = mssg_content.replaceAll("new floods", "<span style='color:red; >new floods</span>");
+    
+    mssg_content = mssg_content.replaceAll("no floods", "<span style='font-weight:bold; >no floods</span>");
+    mssg_content = mssg_content.replaceAll("no floods", "<span style='color:green; >no floods</span>");
+    
+    mssg_content = mssg_content.replaceAll("moderate rain", "<span style='font-weight:bold; >moderate rain</span>");
+    mssg_content = mssg_content.replaceAll("moderate rain", "<span style='color:green; >moderate rain</span>");
+    
+    mssg_content = mssg_content.replaceAll("I am really sorry", "<span style='font-weight:bold; >I am really sorry</span>");
+    mssg_content = mssg_content.replaceAll("I am really sorry", "<span style='color:green; >I am really sorry</span>");
+
+
     mssg_content = mssg_content.replaceAll("]","");
     mssg_content = mssg_content.replaceAll("[","");
     mssg_content = mssg_content.replaceAll("'","");
@@ -524,9 +546,17 @@ function add_message(chatroom_ID, mssg) {
         score()
     }
 
-    //if (mssg_content.includes("Current tick is 210")) {
-    //    toggle_pause();
-    //}
+    if (mssg_content.includes("Current tick is")) {
+        var tick = Number(mssg_content.split(/[, ]+/).pop());
+        if (tick == 4800) {
+            toggle_stop();
+    }}
+
+    if (mssg_content.includes("Current tick is")) {
+        var tick = Number(mssg_content.split(/[, ]+/).pop());
+        if (tick == 1100 || tick == 2000 || tick == 2900) { 
+            toggle_pause();
+    }}
 
     var div = document.createElement("div");
     div.className = "message_you"; // by default assume we sent this message

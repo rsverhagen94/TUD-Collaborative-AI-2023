@@ -20,11 +20,12 @@ class AddObject(Action):
         for i in range(len(kwargs['add_objects'])):
             obj_body_args = {
                 "location": kwargs['add_objects'][i]['location'],
-                "name": "water",
+                "name": kwargs['add_objects'][i]['name'],
                 "class_callable": EnvObject,
                 "is_traversable": True,
                 "is_movable": False,
-                "visualize_size": 1,
+                "visualize_size": kwargs['add_objects'][i]['visualize_size'],
+                "visualize_opacity": kwargs['add_objects'][i]['visualize_opacity'],
                 "img_name": kwargs['add_objects'][i]['img_name']
             }
         

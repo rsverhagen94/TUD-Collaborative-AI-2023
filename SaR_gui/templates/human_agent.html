@@ -27,7 +27,6 @@
     <div id="matrx-toolbar" class="row toolbar bg-dark">
       <div class="col-sm" align="left">
           <img src="/static/images/matrx_logo_light.svg" alt="MATRX" id="matrx_logo">
-          <button type="button" class="btn btn-dark" id="start_button" style="display:none;"><i class="fas fa-play text-light"></i></button>
           <button type="button" class="btn btn-dark hidden" id="pause_button" style="display:none;"><i class="fas fa-pause text-light"></i></button>
           <button type="button" class="btn btn-dark" id="stop_button" style="display:none;"><i class="fas fa-stop text-light"></i></button>
           <div class="btn-group" style="display:none;">
@@ -39,6 +38,7 @@
           <div id="score" class="btn btn-dark"></div>
       </div>
       <div class="col-sm" align="right">
+          <button type="button" class="btn btn-dark" id="start_button"><i class="fas fa-play text-light"></i></button>
           <button type="button" class="btn btn-dark" id="chat_button" onclick="chatToggle()" data-toggle="collapse" data-target="#chat" aria-expanded="false" aria-controls="chat"><i class="fas fa-comments text-light"></i></button>
       </div>
   </div>
@@ -54,21 +54,18 @@
         <!-- Chat -->
         <div class="collapse" id="chat">
             <div class="container-fluid">
-                <h5>Chats</h5>
                 <div class="row">
-                    <div class="col-md-3" id="chatrooms_list">
-                        <div class="contact" id="new_chat_button"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">+</div>
-                        <div id="new_chat_dropdown" class="dropdown-menu"></div>
-                    </div>
-                    <div class="col-md-9">
+                  <div class="col-md-3" id="chatrooms_list">
+                    <div id="new_chat_dropdown" class="dropdown-menu"></div>
+                </div>
+                    <div class="col-md-12">
                         <div id="messages">
                         </div>
                         <input class="form-control" id="chat_form_input" placeholder="Open a chatroom first..">
-                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="send_message(event)" disabled>Send</button>
-                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Continue')">Continue</button>
                         <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Rescue')">Rescue</button>
                         <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Rescue alone')">Rescue alone</button>
                         <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Rescue together')">Rescue together</button>
+                        <button type="button" id="chat_form_submit" class="btn btn-primary" onclick="my_send_message_function('Continue')">Continue</button>
                     </br>
                     <div>
                       <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-top: .2em" onclick="my_send_message_function('Remove')">Remove</button>
@@ -80,20 +77,16 @@
                         <a onclick="my_send_message_function('Remove: at 1')">at 01</a>
                         <a onclick="my_send_message_function('Remove: at 2')">at 02</a>
                         <a onclick="my_send_message_function('Remove: at 3')">at 03</a>
-                        <a onclick="my_send_message_function('Remove: at 4')">at 04</a>
-                      </br>
-                        
+                        <a onclick="my_send_message_function('Remove: at 4')">at 04</a>                        
                         <a onclick="my_send_message_function('Remove: at 5')">at 05</a>
                         <a onclick="my_send_message_function('Remove: at 6')">at 06</a>
                         <a onclick="my_send_message_function('Remove: at 7')">at 07</a>
-                        <a onclick="my_send_message_function('Remove: at 8')">at 08</a>
                       </br>
-                        
+                        <a onclick="my_send_message_function('Remove: at 8')">at 08</a>
                         <a onclick="my_send_message_function('Remove: at 9')">at 09</a>
                         <a onclick="my_send_message_function('Remove: at 10')">at 10</a>
                         <a onclick="my_send_message_function('Remove: at 11')">at 11</a>
                         <a onclick="my_send_message_function('Remove: at 12')">at 12</a>
-                      </br>
                         <a onclick="my_send_message_function('Remove: at 13')">at 13</a>
                         <a onclick="my_send_message_function('Remove: at 14')">at 14</a>
                       </div>
@@ -110,7 +103,6 @@
                         <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Search: 5')">05</button>
                         <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Search: 6')">06</button>
                         <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Search: 7')">07</button>
-                      </br>
                         <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Search: 8')">08</button>
                         <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Search: 9')">09</button>
                         <button type="button" id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em" onclick="my_send_message_function('Search: 10')">10</button>
@@ -128,20 +120,16 @@
                               <a onclick="my_send_message_function('Found: critically injured girl in 1')">in 01</a>
                               <a onclick="my_send_message_function('Found: critically injured girl in 2')">in 02</a>
                               <a onclick="my_send_message_function('Found: critically injured girl in 3')">in 03</a>
-                              <a onclick="my_send_message_function('Found: critically injured girl in 4')">in 04</a>
-                            </br>
-                              
+                              <a onclick="my_send_message_function('Found: critically injured girl in 4')">in 04</a>                              
                               <a onclick="my_send_message_function('Found: critically injured girl in 5')">in 05</a>
                               <a onclick="my_send_message_function('Found: critically injured girl in 6')">in 06</a>
                               <a onclick="my_send_message_function('Found: critically injured girl in 7')">in 07</a>
-                              <a onclick="my_send_message_function('Found: critically injured girl in 8')">in 08</a>
                             </br>
-                              
+                              <a onclick="my_send_message_function('Found: critically injured girl in 8')">in 08</a>
                               <a onclick="my_send_message_function('Found: critically injured girl in 9')">in 09</a>
                               <a onclick="my_send_message_function('Found: critically injured girl in 10')">in 10</a>
                               <a onclick="my_send_message_function('Found: critically injured girl in 11')">in 11</a>
                               <a onclick="my_send_message_function('Found: critically injured girl in 12')">in 12</a>
-                            </br>
                               <a onclick="my_send_message_function('Found: critically injured girl in 13')">in 13</a>
                               <a onclick="my_send_message_function('Found: critically injured girl in 14')">in 14</a>
                             </div>
@@ -154,17 +142,15 @@
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 2')">in 02</a>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 3')">in 03</a>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 4')">in 04</a>
-                            </br>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 5')">in 05</a>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 6')">in 06</a>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 7')">in 07</a>
-                              <a onclick="my_send_message_function('Found: critically injured elderly woman in 8')">in 08</a>
                             </br>
+                              <a onclick="my_send_message_function('Found: critically injured elderly woman in 8')">in 08</a>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 9')">in 09</a>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 10')">in 10</a>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 11')">in 11</a>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 12')">in 12</a>
-                            </br>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 13')">in 13</a>
                               <a onclick="my_send_message_function('Found: critically injured elderly woman in 14')">in 14</a>
                             </div>
@@ -176,20 +162,16 @@
                               <a onclick="my_send_message_function('Found: critically injured man in 1')">in 01</a>
                               <a onclick="my_send_message_function('Found: critically injured man in 2')">in 02</a>
                               <a onclick="my_send_message_function('Found: critically injured man in 3')">in 03</a>
-                              <a onclick="my_send_message_function('Found: critically injured man in 4')">in 04</a>
-                            </br>
-                              
+                              <a onclick="my_send_message_function('Found: critically injured man in 4')">in 04</a>                              
                               <a onclick="my_send_message_function('Found: critically injured man in 5')">in 05</a>
                               <a onclick="my_send_message_function('Found: critically injured man in 6')">in 06</a>
                               <a onclick="my_send_message_function('Found: critically injured man in 7')">in 07</a>
-                              <a onclick="my_send_message_function('Found: critically injured man in 8')">in 08</a>
                             </br>
-                              
+                              <a onclick="my_send_message_function('Found: critically injured man in 8')">in 08</a>
                               <a onclick="my_send_message_function('Found: critically injured man in 9')">in 09</a>
                               <a onclick="my_send_message_function('Found: critically injured man in 10')">in 10</a>
                               <a onclick="my_send_message_function('Found: critically injured man in 11')">in 11</a>
                               <a onclick="my_send_message_function('Found: critically injured man in 12')">in 12</a>
-                            </br>
                               <a onclick="my_send_message_function('Found: critically injured man in 13')">in 13</a>
                               <a onclick="my_send_message_function('Found: critically injured man in 14')">in 14</a>
                             </div>
@@ -202,19 +184,15 @@
                               <a onclick="my_send_message_function('Found: critically injured dog in 2')">in 02</a>
                               <a onclick="my_send_message_function('Found: critically injured dog in 3')">in 03</a>
                               <a onclick="my_send_message_function('Found: critically injured dog in 4')">in 04</a>
-                            </br>
-                              
                               <a onclick="my_send_message_function('Found: critically injured dog in 5')">in 05</a>
                               <a onclick="my_send_message_function('Found: critically injured dog in 6')">in 06</a>
                               <a onclick="my_send_message_function('Found: critically injured dog in 7')">in 07</a>
-                              <a onclick="my_send_message_function('Found: critically injured dog in 8')">in 08</a>
                             </br>
-                              
+                            <a onclick="my_send_message_function('Found: critically injured dog in 8')">in 08</a>
                               <a onclick="my_send_message_function('Found: critically injured dog in 9')">in 09</a>
                               <a onclick="my_send_message_function('Found: critically injured dog in 10')">in 10</a>
                               <a onclick="my_send_message_function('Found: critically injured dog in 11')">in 11</a>
                               <a onclick="my_send_message_function('Found: critically injured dog in 12')">in 12</a>
-                            </br>
                               <a onclick="my_send_message_function('Found: critically injured dog in 13')">in 13</a>
                               <a onclick="my_send_message_function('Found: critically injured dog in 14')">in 14</a>
                             </div>
@@ -227,19 +205,15 @@
                               <a onclick="my_send_message_function('Found: mildly injured boy in 2')">in 02</a>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 3')">in 03</a>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 4')">in 04</a>
-                            </br>
-                              
                               <a onclick="my_send_message_function('Found: mildly injured boy in 5')">in 05</a>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 6')">in 06</a>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 7')">in 07</a>
-                              <a onclick="my_send_message_function('Found: mildly injured boy in 8')">in 08</a>
                             </br>
-                              
+                            <a onclick="my_send_message_function('Found: mildly injured boy in 8')">in 08</a>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 9')">in 09</a>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 10')">in 10</a>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 11')">in 11</a>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 12')">in 12</a>
-                            </br>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 13')">in 13</a>
                               <a onclick="my_send_message_function('Found: mildly injured boy in 14')">in 14</a>
                             </div>
@@ -252,19 +226,15 @@
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 2')">in 02</a>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 3')">in 03</a>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 4')">in 04</a>
-                            </br>
-                              
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 5')">in 05</a>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 6')">in 06</a>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 7')">in 07</a>
-                              <a onclick="my_send_message_function('Found: mildly injured elderly man in 8')">in 08</a>
                             </br>
-                              
+                              <a onclick="my_send_message_function('Found: mildly injured elderly man in 8')">in 08</a>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 9')">in 09</a>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 10')">in 10</a>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 11')">in 11</a>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 12')">in 12</a>
-                            </br>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 13')">in 13</a>
                               <a onclick="my_send_message_function('Found: mildly injured elderly man in 14')">in 14</a>
                             </div>
@@ -277,19 +247,15 @@
                               <a onclick="my_send_message_function('Found: mildly injured woman in 2')">in 02</a>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 3')">in 03</a>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 4')">in 04</a>
-                            </br>
-                              
                               <a onclick="my_send_message_function('Found: mildly injured woman in 5')">in 05</a>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 6')">in 06</a>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 7')">in 07</a>
-                              <a onclick="my_send_message_function('Found: mildly injured woman in 8')">in 08</a>
                             </br>
-                              
+                              <a onclick="my_send_message_function('Found: mildly injured woman in 8')">in 08</a>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 9')">in 09</a>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 10')">in 10</a>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 11')">in 11</a>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 12')">in 12</a>
-                            </br>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 13')">in 13</a>
                               <a onclick="my_send_message_function('Found: mildly injured woman in 14')">in 14</a>
                             </div>
@@ -302,19 +268,15 @@
                               <a onclick="my_send_message_function('Found: mildly injured cat in 2')">in 02</a>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 3')">in 03</a>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 4')">in 04</a>
-                            </br>
-                              
                               <a onclick="my_send_message_function('Found: mildly injured cat in 5')">in 05</a>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 6')">in 06</a>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 7')">in 07</a>
-                              <a onclick="my_send_message_function('Found: mildly injured cat in 8')">in 08</a>
                             </br>
-                              
+                              <a onclick="my_send_message_function('Found: mildly injured cat in 8')">in 08</a>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 9')">in 09</a>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 10')">in 10</a>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 11')">in 11</a>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 12')">in 12</a>
-                            </br>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 13')">in 13</a>
                               <a onclick="my_send_message_function('Found: mildly injured cat in 14')">in 14</a>
                             </div>
@@ -326,136 +288,168 @@
                     <div class="dropdown">
                         <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/critically injured girl.svg' height=25 width=25/></button>
                         <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: critically injured girl in A1')">in A1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in A2')">in A2</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in A3')">in A3</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 1')">in 01</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 2')">in 02</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 3')">in 03</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 4')">in 04</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 5')">in 05</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 6')">in 06</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 7')">in 07</a>
                         </br>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in A4')">in A4</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in B1')">in B1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in B2')">in B2</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in C1')">in C1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in C2')">in C2</a>
-                          <a onclick="my_send_message_function('Collect: critically injured girl in C3')">in C3</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 8')">in 08</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 9')">in 09</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 10')">in 10</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 11')">in 11</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 12')">in 12</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 13')">in 13</a>
+                          <a onclick="my_send_message_function('Collect: critically injured girl in 14')">in 14</a>
                         </div>
                       </div>
 
                       <div class="dropdown">
                         <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/critically injured elderly woman.svg' height=25 width=25/></button>
                         <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in A1')">in A1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in A2')">in A2</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in A3')">in A3</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 1')">in 01</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 2')">in 02</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 3')">in 03</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 4')">in 04</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 5')">in 05</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 6')">in 06</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 7')">in 07</a>
                         </br>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in A4')">in A4</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in B1')">in B1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in B2')">in B2</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in C1')">in C1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in C2')">in C2</a>
-                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in C3')">in C3</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 8')">in 08</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 9')">in 09</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 10')">in 10</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 11')">in 11</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 12')">in 12</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 13')">in 13</a>
+                          <a onclick="my_send_message_function('Collect: critically injured elderly woman in 14')">in 14</a>
                         </div>
                       </div>
 
                       <div class="dropdown">
                         <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/critically injured man.svg' height=25 width=25/></button>
                         <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: critically injured man in A1')">in A1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in A2')">in A2</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in A3')">in A3</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 1')">in 01</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 2')">in 02</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 3')">in 03</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 4')">in 04</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 5')">in 05</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 6')">in 06</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 7')">in 07</a>
                         </br>
-                          <a onclick="my_send_message_function('Collect: critically injured man in A4')">in A4</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in B1')">in B1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in B2')">in B2</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: critically injured man in C1')">in C1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in C2')">in C2</a>
-                          <a onclick="my_send_message_function('Collect: critically injured man in C3')">in C3</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 8')">in 08</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 9')">in 09</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 10')">in 10</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 11')">in 11</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 12')">in 12</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 13')">in 13</a>
+                          <a onclick="my_send_message_function('Collect: critically injured man in 14')">in 14</a>
                         </div>
                       </div>
 
                       <div class="dropdown">
                         <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/critically injured dog.svg' height=25 width=25/></button>
                         <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: critically injured dog in A1')">in A1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in A2')">in A2</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in A3')">in A3</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 1')">in 01</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 2')">in 02</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 3')">in 03</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 4')">in 04</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 5')">in 05</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 6')">in 06</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 7')">in 07</a>
                         </br>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in A4')">in A4</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in B1')">in B1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in B2')">in B2</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in C1')">in C1</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in C2')">in C2</a>
-                          <a onclick="my_send_message_function('Collect: critically injured dog in C3')">in C3</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 8')">in 08</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 9')">in 09</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 10')">in 10</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 11')">in 11</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 12')">in 12</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 13')">in 13</a>
+                          <a onclick="my_send_message_function('Collect: critically injured dog in 14')">in 14</a>
                         </div>
                       </div>
                 
                       <div class="dropdown">
                         <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/mildly injured boy.svg' height=25 width=25/></button>
                         <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: mildly injured boy in A1')">in A1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured boy in A2')">in A2</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured boy in A3')">in A3</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: mildly injured boy in A4')">in A4</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured boy in B1')">in B1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured boy in B2')">in B2</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: mildly injured boy in C1')">in C1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured boy in C2')">in C2</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured boy in C3')">in C3</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 1')">in 01</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 2')">in 02</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 3')">in 03</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 4')">in 04</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 5')">in 05</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 6')">in 06</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 7')">in 07</a>
+                            </br>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 8')">in 08</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 9')">in 09</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 10')">in 10</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 11')">in 11</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 12')">in 12</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 13')">in 13</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured boy in 14')">in 14</a>
                         </div>
                       </div>       
                 
                       <div class="dropdown">
                         <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/mildly injured elderly man.svg' height=25 width=25/></button>
                         <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: mildly injured elderly man in A1')">in A1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured elderly man in A2')">in A2</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured elderly man in A3')">in A3</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: mildly injured elderly man in A4')">in A4</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured elderly man in B1')">in B1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured elderly man in B2')">in B2</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: mildly injured elderly man in C1')">in C1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured elderly man in C2')">in C2</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured elderly man in C3')">in C3</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 1')">in 01</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 2')">in 02</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 3')">in 03</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 4')">in 04</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 5')">in 05</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 6')">in 06</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 7')">in 07</a>
+                            </br>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 8')">in 08</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 9')">in 09</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 10')">in 10</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 11')">in 11</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 12')">in 12</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 13')">in 13</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured elderly man in 14')">in 14</a>
                         </div>
                       </div> 
 
                       <div class="dropdown">
                         <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/mildly injured woman.svg' height=25 width=25/></button>
                         <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: mildly injured woman in A1')">in A1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured woman in A2')">in A2</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured woman in A3')">in A3</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: mildly injured woman in A4')">in A4</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured woman in B1')">in B1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured woman in B2')">in B2</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: mildly injured woman in C1')">in C1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured woman in C2')">in C2</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured woman in C3')">in C3</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 1')">in 01</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 2')">in 02</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 3')">in 03</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 4')">in 04</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 5')">in 05</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 6')">in 06</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 7')">in 07</a>
+                            </br>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 8')">in 08</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 9')">in 09</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 10')">in 10</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 11')">in 11</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 12')">in 12</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 13')">in 13</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured woman in 14')">in 14</a>
                         </div>
                       </div>
                 
                       <div class="dropdown">
                         <button  id="chat_form_submit" class="btn btn-primary" style="margin-bottom: .2em"><img src='/static/images/mildly injured cat.svg' height=25 width=25/></button>
                         <div class="dropdown-content" >
-                          <a onclick="my_send_message_function('Collect: mildly injured cat in A1')">in A1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured cat in A2')">in A2</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured cat in A3')">in A3</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: mildly injured cat in A4')">in A4</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured cat in B1')">in B1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured cat in B2')">in B2</a>
-                        </br>
-                          <a onclick="my_send_message_function('Collect: mildly injured cat in C1')">in C1</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured cat in C2')">in C2</a>
-                          <a onclick="my_send_message_function('Collect: mildly injured cat in C3')">in C3</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 1')">in 01</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 2')">in 02</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 3')">in 03</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 4')">in 04</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 5')">in 05</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 6')">in 06</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 7')">in 07</a>
+                            </br>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 8')">in 08</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 9')">in 09</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 10')">in 10</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 11')">in 11</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 12')">in 12</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 13')">in 13</a>
+                              <a onclick="my_send_message_function('Collect: mildly injured cat in 14')">in 14</a>
                         </div>
                       </div>
 
