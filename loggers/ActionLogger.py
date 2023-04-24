@@ -16,7 +16,8 @@ class ActionLogger(GridWorldLogger):
         log_data['completeness'] = grid_world.simulation_goal.progress(grid_world)
         # For both human and agent, log their action and location per tick
         for agent_id, agent_body in grid_world.registered_agents.items():
-            log_data[agent_id + '_action'] = agent_body.current_action
-            log_data[agent_id + '_location'] = agent_body.location
+            if 'objectadder' not in agent_id:
+                log_data[agent_id + '_action'] = agent_body.current_action
+                log_data[agent_id + '_location'] = agent_body.location
                 
         return log_data

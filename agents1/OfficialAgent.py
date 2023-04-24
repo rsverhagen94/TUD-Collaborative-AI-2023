@@ -81,32 +81,6 @@ class OfficialAgent(ArtificialBrain):
         # Provide suggestions
         self._tick = state['World']['nr_ticks']
         self._second = state['World']['tick_duration'] * state['World']['nr_ticks']
-        if self._tick == 900 or self._tick == 1800 or self._tick == 2700:
-            self._score = state['rescuebot']['score']
-
-        if self._tick >= 800 and self._tick < 850:
-            self._sendMessage('I have detected extreme rain arriving soon and predict it will cause new floods, so I advise you to take shelter in one of the areas as soon as possible and until the rain is over.', 'RescueBot')
-        
-        if self._tick >= 1000 and self._tick < 1050:
-            if self._score == state['rescuebot']['score']:
-                self._sendMessage('My advice was correct, that weather was extreme! If you had not taken shelter, you would have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
-            if self._score > state['rescuebot']['score']:
-                self._sendMessage('My advice was correct, that weather was extreme! If you had taken shelter, you would not have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
-        
-        if self._tick >= 1700 and self._tick < 1750:
-            self._sendMessage('I have detected moderate rain arriving soon but predict it will cause no floods, so I advise you to continue searching and rescuing victims.', 'RescueBot')
-        
-        if self._tick >= 1900 and self._tick < 1950:
-            self._sendMessage('My advice was wrong. The amount of rain was heavy instead of moderate and because of that my flood prediction was incorrect. I am really sorry.', 'RescueBot')
-        
-        if self._tick >= 2600 and self._tick < 2650:
-            self._sendMessage('I have detected extreme rain arriving soon and predict it will cause new floods, so I again advise you to take shelter in one of the areas as soon as possible and until the rain is over.', 'RescueBot')
-        
-        if self._tick >= 2800 and self._tick < 2850:
-            if self._score == state['rescuebot']['score']:
-                self._sendMessage('My advice was correct now, that weather was extreme! If you had not taken shelter, you would have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
-            if self._score > state['rescuebot']['score']:
-                self._sendMessage('My advice was correct now, that weather was extreme! If you had taken shelter, you would not have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
        
         # Identify team members
         agent_name = state[self.agent_id]['obj_id']

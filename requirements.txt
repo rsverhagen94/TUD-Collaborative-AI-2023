@@ -1,6 +1,7 @@
 # all requirements below are 
 # additional libraries provided to do this assignment. 
 # libraries used by matrx and their versions, excl webserver stuff
+#matrx          == 2.2.0
 bidict         == 0.21.2
 chardet        == 4.0.0
 colour         == 0.1.5

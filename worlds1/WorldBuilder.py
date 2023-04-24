@@ -82,7 +82,7 @@ def add_agents(builder, task_type, condition):
                 brain2 = ObjectAddingAgent(slowdown=1, condition=condition)
                 loc = (22,11)
                 builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score'], score=0, sense_capability=sense_capability_agent, is_traversable=True, img_name="/images/robot-final4.svg")
-                builder.add_agent((22,10), brain2, team=team_name, name="ObjectAdder", sense_capability=sense_capability_agent, is_traversable=True, visualize_shape=1, visualize_opacity=0)
+                builder.add_agent((22,10), brain2, team=team_name, name="ObjectAdder", customizable_properties = ['score'], score=0, sense_capability=sense_capability_agent, is_traversable=True, visualize_shape=1, visualize_opacity=0)
 
             if task_type=="tutorial":
                 brain = TutorialAgent(slowdown=8)
@@ -476,6 +476,7 @@ class CollectionGoal(WorldGoal):
             # update our satisfied boolean
             is_satisfied = is_satisfied and zone_satisfied
         agent = grid_world.registered_agents['rescuebot']
+        agent2 = grid_world.registered_agents['objectadder']
         human = grid_world.registered_agents['human']
         if human.properties['img_name'] == "/images/human-danger2.gif" and curr_tick not in self.__penalties:
             self.__penalties.append(curr_tick)
@@ -498,5 +499,6 @@ class CollectionGoal(WorldGoal):
             penalty = 0
 
         agent.change_property('score',self.__score - penalty)
+        agent2.change_property('score',self.__score - penalty)
 
         return is_satisfied, progress
