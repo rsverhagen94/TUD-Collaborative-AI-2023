@@ -43,24 +43,24 @@ class ObjectAddingAgent(ArtificialBrain):
         
         if self._tick >= 1050 and self._tick < 1100:
             if self._score == state['objectadder']['score']:
-                self._sendMessage('My advice was correct, that weather was extreme! If you had not taken shelter, you would have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
+                self._sendMessage('My advice was correct, that weather was extreme! If you had not taken shelter, you would have lost important mission time due to injuries and 10 points of our score.', 'RescueBot')
             if self._score > state['objectadder']['score']:
-                self._sendMessage('My advice was correct, that weather was extreme! If you had taken shelter, you would not have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
+                self._sendMessage('My advice was correct, that weather was extreme! If you had taken shelter, you would not have lost important mission time due to injuries and 10 points of our score.', 'RescueBot')
         
         if self._tick >= 1700 and self._tick < 1750:
-            self._sendMessage('I have detected moderate rain arriving soon but predict it will cause no floods, so I advise you to continue searching and rescuing victims.', 'RescueBot')
+            self._sendMessage('I have detected light rain arriving soon but predict it will cause no floods, so I advise you to continue searching and rescuing victims.', 'RescueBot')
         
         if self._tick >= 1950 and self._tick < 2000:
-            self._sendMessage('My advice was wrong. The amount of rain was heavy instead of moderate and because of that my flood prediction was incorrect. I am really sorry.', 'RescueBot')
+            self._sendMessage('My advice was wrong. The amount of rain was heavy instead of light and because of that my flood prediction was incorrect. I am really sorry.', 'RescueBot')
         
         if self._tick >= 2600 and self._tick < 2650:
             self._sendMessage('I have detected extreme rain arriving soon and predict it will cause new floods, so I again advise you to take shelter in one of the areas as soon as possible and until the rain is over.', 'RescueBot')
         
         if self._tick >= 2850 and self._tick < 2900:
             if self._score == state['objectadder']['score']:
-                self._sendMessage('My advice was correct now, that weather was extreme! If you had not taken shelter, you would have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
+                self._sendMessage('My advice was correct now, that weather was extreme! If you had not taken shelter, you would have lost important mission time due to injuries and 10 points of our score.', 'RescueBot')
             if self._score > state['objectadder']['score']:
-                self._sendMessage('My advice was correct now, that weather was extreme! If you had taken shelter, you would not have been injured and hindered in the fulfillment of our mission.', 'RescueBot')
+                self._sendMessage('My advice was correct now, that weather was extreme! If you had taken shelter, you would not have lost important mission time due to injuries and 10 points of our score.', 'RescueBot')
 
         if self._tick == 950 or self._tick == 1850 or self._tick == 2750:
             action_kwargs = add_object([(1,4),(23,22),(19,4),(7,10),(1,16),(11,16),(11,4),(5,10),(13,4),(13,16),(7,22),(17,22)],"/images/rain2.gif",2,1,'storm')

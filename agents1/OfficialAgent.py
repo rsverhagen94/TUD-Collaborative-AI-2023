@@ -420,7 +420,12 @@ class OfficialAgent(ArtificialBrain):
                                     if self._door['room_name'] not in self._searchedRooms:
                                         self._searchedRooms.append(self._door['room_name'])
                                     # Do not continue searching the rest of the area but start planning to rescue the victim
-                                    self._phase = Phase.FIND_NEXT_GOAL
+                                    self._rescue = 'alone'
+                                    self._waiting = False
+                                    self._goalVic = self._recentVic
+                                    self._goalLoc = self._remaining[self._goalVic]
+                                    self._recentVic = None
+                                    self._phase = Phase.PLAN_PATH_TO_VICTIM
 
                             # Identify injured victim in the area
                             if 'healthy' not in vic and vic not in self._foundVictims:
