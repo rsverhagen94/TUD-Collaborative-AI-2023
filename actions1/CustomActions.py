@@ -132,7 +132,7 @@ class CarryObject(Action):
         max_objects = np.inf if 'max_objects' not in kwargs else kwargs['max_objects']
         condition = None if 'condition' not in kwargs else kwargs['condition']
         # EDIT BELOW TO ACCOUNT FOR YOUR CONDITION
-        if object_id and 'critical' in object_id and condition!='baseline':
+        if object_id and 'critical' in object_id and condition!='baseline' and condition!='tutorial':
             return GrabObjectResult(GrabObjectResult.RESULT_OBJECT_UNMOVABLE, False)
         if object_id and 'stone' in object_id and condition!='baseline' or object_id and 'rock' in object_id and condition!='baseline' or object_id and 'tree' in object_id and condition!='baseline':
             return GrabObjectResult(GrabObjectResult.RESULT_OBJECT_UNMOVABLE, False)
@@ -205,7 +205,7 @@ class Drop(Action):
             return DropObjectResult(DropObjectResult.RESULT_NO_OBJECT, False)
 
         # EDIT BELOW TO ACCOUNT FOR YOUR CONDITION
-        if 'critical' in obj_id and condition!='baseline' or 'mild' in obj_id and other_agent.properties['visualization']['opacity']==0 and condition!='baseline':
+        if 'critical' in obj_id and other_agent.properties['visualization']['opacity']==0 and condition!='baseline' or 'mild' in obj_id and other_agent.properties['visualization']['opacity']==0 and condition!='baseline':
             return DropObjectResult(DropObjectResult.RESULT_UNKNOWN_OBJECT_TYPE, False)            
         else:
             return _possible_drop(grid_world, agent_id=agent_id, obj_id=obj_id, drop_range=drop_range)

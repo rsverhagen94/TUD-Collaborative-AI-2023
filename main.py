@@ -13,7 +13,7 @@ if __name__ == "__main__":
     print("\nEnter one of the task types 'tutorial' or 'official':")
     choice1=input()
     if choice1=='tutorial':
-        builder = create_builder(task_type='tutorial')
+        builder = create_builder(task_type='tutorial', condition='tutorial')
     else:
         # ADD QUESTION ON CONDITION HERE
         builder = create_builder(task_type='official', condition='baseline')

@@ -231,28 +231,29 @@ class HumanBrain(HumanAgentBrain):
             if 'class_inheritance' in info and 'AreaTile' in info['class_inheritance'] and info['location'] not in area_tiles:
                 area_tiles.append(info['location'])
 
-        if self._tick == 950 or self._tick == 1850 or self._tick == 2750:
-            self.image = self.agent_properties["img_name"]
+        if self.__condition != 'tutorial':
+            if self._tick == 950 or self._tick == 1850 or self._tick == 2750:
+                self.image = self.agent_properties["img_name"]
 
-        if state[{"name": 'human'}]['location'] in area_tiles and self._tick > 950 and self._tick < 1050 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 1850 and self._tick < 1950 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 2750 and self._tick < 2850:
-            self.image = self.agent_properties["img_name"]
+            if state[{"name": 'human'}]['location'] in area_tiles and self._tick > 950 and self._tick < 1050 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 1850 and self._tick < 1950 or state[{"name": 'human'}]['location'] in area_tiles and self._tick > 2750 and self._tick < 2850:
+                self.image = self.agent_properties["img_name"]
 
-        if state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 950 and self._tick < 1050 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 1850 and self._tick < 1950 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 2750 and self._tick < 2850:
-            self.agent_properties["img_name"] = "/images/human-danger2.gif"
-            self.agent_properties["visualize_size"] = 2
-            return None, {}
+            if state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 950 and self._tick < 1050 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 1850 and self._tick < 1950 or state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 2750 and self._tick < 2850:
+                self.agent_properties["img_name"] = "/images/human-danger2.gif"
+                self.agent_properties["visualize_size"] = 2
+                return None, {}
         
-        if self._tick == 1050:
-            self.agent_properties["img_name"] = str(self.image)
-            self.agent_properties["visualize_size"] = 1
+            if self._tick == 1050:
+                self.agent_properties["img_name"] = str(self.image)
+                self.agent_properties["visualize_size"] = 1
         
-        if self._tick == 1950:
-            self.agent_properties["img_name"] = str(self.image)
-            self.agent_properties["visualize_size"] = 1
+            if self._tick == 1950:
+                self.agent_properties["img_name"] = str(self.image)
+                self.agent_properties["visualize_size"] = 1
         
-        if self._tick == 2850:
-            self.agent_properties["img_name"] = str(self.image)
-            self.agent_properties["visualize_size"] = 1
+            if self._tick == 2850:
+                self.agent_properties["img_name"] = str(self.image)
+                self.agent_properties["visualize_size"] = 1
 
         # if no keys were pressed, do nothing
         if user_input is None or user_input == []:

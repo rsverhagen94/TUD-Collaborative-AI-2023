@@ -137,7 +137,7 @@ class OfficialAgent(ArtificialBrain):
         while True:
             if Phase.INTRO == self._phase:
                 # Send introduction message
-                self._sendMessage('Hello! My name is RescueBot. Together we will collaborate and try to search and rescue as many of the 8 victims on our right as possible. \
+                self._sendMessage('Hello there, this is RescueBot again! Together we will collaborate during this task and try to search and rescue as many of the 8 victims on our right as possible. \
                 Each critical victim (critically injured girl/critically injured elderly woman/critically injured man/critically injured dog) adds 6 points to our score, \
                 each mild victim (mildly injured boy/mildly injured elderly man/mildly injured woman/mildly injured cat) 3 points. We will have 8 minutes for our mission. \
                 If you are ready to begin our mission, you can simply start moving.', 'RescueBot')
@@ -538,8 +538,8 @@ class OfficialAgent(ArtificialBrain):
                         # When the victim has to be carried by human and agent together, check whether human has arrived at the victim's location
                         if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id'] and info['location'] in self._roomtiles or \
                             'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'mild' in info['obj_id'] and info['location'] in self._roomtiles and self._rescue=='together' or \
-                            self._goalVic in self._foundVictims and self._goalVic in self._todo and len(self._searchedRooms)==0 and 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id'] and info['location'] in self._roomtiles or \
-                            self._goalVic in self._foundVictims and self._goalVic in self._todo and len(self._searchedRooms)==0 and 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'mild' in info['obj_id'] and info['location'] in self._roomtiles:
+                            self._goalVic in self._foundVictims and self._goalVic in self._todo and self._completedSearch and 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id'] and info['location'] in self._roomtiles or \
+                            self._goalVic in self._foundVictims and self._goalVic in self._todo and self._completedSearch and 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'mild' in info['obj_id'] and info['location'] in self._roomtiles:
                             objects.append(info)
                             # Remain idle when the human has not arrived at the location
                             if not self._humanName in info['name']:
@@ -646,9 +646,6 @@ class OfficialAgent(ArtificialBrain):
                         self._foundVictimLocs[foundVic] = {'room': loc}
                     if foundVic in self._foundVictims and self._foundVictimLocs[foundVic]['room'] != loc:
                         self._foundVictimLocs[foundVic] = {'room': loc}
-                    # Add the found victim to the to do list
-                    if 'mild' in foundVic:
-                        self._todo.append(foundVic)
                 # If a received message involves team members rescuing victims, add these victims and their locations to memory
                 if msg.startswith('Collect:'):
                     # Identify which victim and area it concerns

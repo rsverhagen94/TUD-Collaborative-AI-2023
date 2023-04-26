@@ -46,12 +46,10 @@ class Phase(enum.Enum):
     ENTER_ROOM=29
     
 class TutorialAgent(ArtificialBrain):
-    def __init__(self, slowdown, condition, name, folder):
-        super().__init__(slowdown, condition, name, folder)
+    def __init__(self, slowdown, condition):
+        super().__init__(slowdown, condition)
         # Initialization of some relevant variables
         self._slowdown = slowdown
-        self._humanName = name
-        self._folder = folder
         self._phase=Phase.INTRO0
         self._roomVics = []
         self._searchedRooms = []
@@ -118,18 +116,18 @@ class TutorialAgent(ArtificialBrain):
 
         # Check whether victims are currently being carried together by human and agent
         for info in state.values():
-            if 'is_human_agent' in info and self._humanName in info['name'] and len(info['is_carrying'])>0 and 'critical' in info['is_carrying'][0]['obj_id']:
+            if 'is_human_agent' in info and 'human' in info['name'] and len(info['is_carrying'])>0 and 'critical' in info['is_carrying'][0]['obj_id']:
                 # Add victim to colleced victims memory
                 self._collectedVictims.append(info['is_carrying'][0]['img_name'][8:-4])
                 self._carryingTogether = True
-            if 'is_human_agent' in info and self._humanName in info['name'] and len(info['is_carrying'])==0:
+            if 'is_human_agent' in info and 'human' in info['name'] and len(info['is_carrying'])==0:
                 self._carryingTogether = False
         # If carrying a victim together, let agent be idle (because joint actions are essentially carried out by the human)
         if self._carryingTogether == True:
             return None, {}
         
         # Send the hidden score message for displaying and logging the score during the task, DO NOT REMOVE THIS
-        self._sendMessage('Our score is ' + str(state['rescuebot']['score']) +'.', 'RescueBot')
+        #self._sendMessage('Our score is ' + str(state['rescuebot']['score']) +'.', 'RescueBot')
 
         # Ongoing loop untill the task is terminated, using different phases for defining the agent's behavior
         while True:           
@@ -137,12 +135,8 @@ class TutorialAgent(ArtificialBrain):
             if Phase.INTRO0==self._phase:
                 self._sendMessage('Hello! My name is RescueBot. During this task we will collaborate with each other to search and rescue the victims at the drop zone on our right. \
                 For this tutorial there are 4 victims and 3 injury types, during the official task there will be 8 victims to rescue. \
-                The red color refers to critically injured victims, yellow to mildly injured victims, and green to healthy victims. Healthy victims do not need to be rescued. \
-                The 8 victims are a girl (critically injured girl/mildly injured girl/healthy girl), boy (critically injured boy/mildly injured boy/healthy boy), \
-                woman (critically injured woman/mildly injured woman/healthy woman), man (critically injured man/mildly injured man/healthy man), \
-                elderly woman (critically injured elderly woman/mildly injured elderly woman/healthy elderly woman), \
-                elderly man (critically injured elderly man/mildly injured elderly man/healthy elderly man), dog (critically injured dog/mildly injured dog/healthy dog), \
-                and a cat (critically injured cat/mildly injured cat/healthy cat). The environment will also contain different obstacle types with varying removal times. \
+                The red color refers to critically injured victims (critically injured girl and critically injured elderly woman), yellow to mildly injured victims (mildly injured boy and mildly injured elderly man), and green to healthy victims. \
+                Healthy victims do not need to be rescued. Furthermore, the environment will contain different obstacle types with varying removal times. \
                 At the top of the world you can find the keyboard controls, for moving you can use the arrow keys. \
                 Press the "Continue" button to start the tutorial explaining everything.', 'RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
@@ -175,9 +169,7 @@ class TutorialAgent(ArtificialBrain):
 
             if Phase.INTRO3==self._phase:
                 self._sendMessage('If you search area 3, you will find one of the victims to rescue: critically injured elderly woman. \
-                There will be 3 different versions of the official task, manipulating your capabilities and resulting in different interdependence relationships between us. \
-                However, in all conditions the critically injured victims have to be carried together. \
-                So, let us carry critically injured elderly woman together! To do so, inform me that you found this victim by using the buttons below "I have found:" and selecting "critically injured elderly woman in 03". \
+                In this tutorial, let us carry critically injured elderly woman together. To do so, inform me that you found this victim by using the buttons below "I have found:" and selecting "critically injured elderly woman in 03". \
                 If you found critically injured elderly woman and informed me about it, press the "Continue" button. I will then come over to help.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
                     self._phase=Phase.FIND_NEXT_GOAL
@@ -201,8 +193,9 @@ class TutorialAgent(ArtificialBrain):
 
             if Phase.INTRO5==self._phase:
                 self._sendMessage('Nice job! Lets move to area 5 next. Remember to inform me about this. \
-                If you are in front of area 5, you see that it is blocked by rock. This is one of the three obstacle types, and can only be removed together. \
-                So, let us remove rock together! To do so, inform me that you found this obstacle by using the button "Help remove" and selecting "at 05". \
+                If you are in front of area 5, you see that it is blocked by rock. This is one of the three obstacle types. \
+                In this tutorial, let us remove rock together because executing actions jointly is faster than executing them alone. \
+                To remove rock together, inform me that you found this obstacle by using the button "Help remove" and selecting "at 05". \
                 I will then come over to help. If you informed me and I arrived at area 5 to help, press the "Continue" button.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
                     self._phase=Phase.INTRO6
@@ -212,7 +205,7 @@ class TutorialAgent(ArtificialBrain):
                     return None,{}
 
             if Phase.INTRO6==self._phase:
-                self._sendMessage('Let us remove rock together now! To do so, remain in front of rock and press "D" on your keyboard. \
+                self._sendMessage('Let us remove rock together. To do so, remain in front of rock and press "D" on your keyboard. \
                 Now, you will see a small busy icon untill rock is successfully removed. If the entrance is cleared, press the "Continue" button.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
                     self._phase=Phase.INTRO7
@@ -223,8 +216,8 @@ class TutorialAgent(ArtificialBrain):
 
             if Phase.INTRO7==self._phase:
                 self._sendMessage('Lets move to area 4 next. Remember to inform me about this. \
-                If you are in front of area 4, you see that it is blocked by tree. This is another obstacle type, and tree can only be removed by me. \
-                So, let me remove tree for you! To do so, inform me that you need help with removing by using the button "Help remove" and selecting "at 04". \
+                If you are in front of area 4, you see that it is blocked by tree. \
+                In this tutorial, let me remove tree for you. To do so, inform me that you need help with removing by using the button "Help remove" and selecting "at 04". \
                 I will then come over to remove tree for you.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
                     self._phase=Phase.INTRO8
@@ -234,10 +227,10 @@ class TutorialAgent(ArtificialBrain):
                     return None,{}
 
             if Phase.INTRO8==self._phase:
-                self._sendMessage('In area 4 you will find mildly injured elderly man. If you find mildly injured victims, it is recommended to inform me about this. \
+                self._sendMessage('In area 4 you will find mildly injured elderly man. If you find victims, it is recommended to inform me about this. \
                 You can do this using the buttons below "I have found:" and selecting "mildly injured elderly man in 04". \
-                Depending on the condition of the official task, you can rescue mildly injured victims alone or require my help. In this tutorial, you will carry mildly injured elderly man alone. \
-                If you decide to carry mildly injured victims, it is recommended to inform me about it. \
+                In this tutorial, I will let you carry mildly injured elderly man alone. \
+                If you decide to rescue victims, it is recommended to inform me about it. \
                 You can do this using the buttons below "I will pick up:" and selecting "mildly injured elderly man in 04." \
                 Next, you can pick up mildly injured elderly man by moving yourself on top, above, or next to mildly injured elderly man. \
                 Now, press "Q" on your keyboard and transport mildly injured elderly man to the drop zone. \
@@ -251,10 +244,9 @@ class TutorialAgent(ArtificialBrain):
                     return None,{}
 
             if Phase.INTRO9==self._phase:
-                self._sendMessage('Nice job! Lets move to area 8 now. Remember to inform me about this. \
+                self._sendMessage('Nice job! Finally, lets move to area 8 now. Remember to inform me about this. \
                 If you are in front of area 8, you see that it is blocked by stones. \
-                Depending on the condition of the official task, you might remove stones alone, require my help, or use my help to remove stones faster than doing it alone. \
-                However, when I find stones, removing them together will always be faster than when I remove stones alone. For this tutorial, you will remove stones alone. \
+                In this tutorial, I will let you remove stones alone. \
                 You can remove stones by pressing "E" on your keyboard. Now, you will see a small busy icon untill stones is successfully removed. \
                 When you are busy removing, you can send messages but they will only appear once the action is finished. \
                 So, no need to keep clicking buttons! If the entrance is cleared, press the "Continue" button.','RescueBot')
@@ -266,7 +258,7 @@ class TutorialAgent(ArtificialBrain):
                     return None,{}
 
             if Phase.INTRO10==self._phase:
-                self._sendMessage('This concludes the tutorial! You can now start the real task.','RescueBot')
+                self._sendMessage('This concludes the tutorial! You can now notify the experimenter to start the official task.','RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Found: critically injured girl in 5':
                     self._phase=Phase.FIND_NEXT_GOAL
                     self.received_messages_content=[]
@@ -556,7 +548,7 @@ class TutorialAgent(ArtificialBrain):
                         self._collectedVictims.append(self._goalVic)
                         self._phase=Phase.INTRO4
                         # Remain idle until the human arrives
-                        if not self._humanName in info['name']:
+                        if not 'human' in info['name']:
                             return None, {} 
                 # When a critically injured victim is picked up, start planning the path to the drop zone and add the victim to the list of rescued victims
                 if len(objects)==0 and 'critical' in self._goalVic:
@@ -566,7 +558,7 @@ class TutorialAgent(ArtificialBrain):
                 if 'mild' in self._goalVic:
                     self._phase=Phase.PLAN_PATH_TO_DROPPOINT
                     self._collectedVictims.append(self._goalVic)
-                    return CarryObject.__name__,{'object_id':self._foundVictimLocs[self._goalVic]['obj_id'], 'human_name': self._humanName}                
+                    return CarryObject.__name__,{'object_id':self._foundVictimLocs[self._goalVic]['obj_id'], 'human_name': 'human'}                
 
             if Phase.PLAN_PATH_TO_DROPPOINT==self._phase:
                 self._navigator.reset_full()
@@ -594,7 +586,7 @@ class TutorialAgent(ArtificialBrain):
                 self._currentDoor = None
                 self._tick = state['World']['nr_ticks']
                 # Drop the victim on the correct location on the drop zone
-                return Drop.__name__,{'human_name': self._humanName}
+                return Drop.__name__,{'human_name': 'human'}
 
             
     def _getDropZones(self,state:State):

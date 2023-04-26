@@ -85,7 +85,7 @@ def add_agents(builder, task_type, condition):
                 builder.add_agent((22,10), brain2, team=team_name, name="ObjectAdder", customizable_properties = ['score'], score=0, sense_capability=sense_capability_agent, is_traversable=True, visualize_shape=1, visualize_opacity=0)
 
             if task_type=="tutorial":
-                brain = TutorialAgent(slowdown=8)
+                brain = TutorialAgent(slowdown=8, condition=condition)
                 loc = (16,8)
                 builder.add_agent(loc, brain, team=team_name, name="RescueBot",customizable_properties = ['score'], score=0, sense_capability=sense_capability_agent, is_traversable=True, img_name="/images/robot-final4.svg")
 
@@ -114,7 +114,7 @@ def create_builder(task_type, condition):
 
     # Add all areas and objects to the tutorial world
     if task_type == "tutorial":
-        builder.add_room(top_left_location=(0, 0), width=19, height=19, name="world_bounds", wall_visualize_colour="#1F262A")
+        builder.add_room(top_left_location=(0, 0), width=19, height=19, name="world_bounds", wall_visualize_colour="#343a40")
         builder.add_room(top_left_location=(1,1), width=5, height=4, name='area 1', door_locations=[(3,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0, door_open_colour='#9a9083', area_custom_properties={'doormat':(3,5)})
         builder.add_room(top_left_location=(7,1), width=5, height=4, name='area 2', door_locations=[(9,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(9,5)})
         builder.add_room(top_left_location=(13,1), width=5, height=4, name='area 3', door_locations=[(15,4)],doors_open=True, wall_visualize_colour=wall_color, with_area_tiles=True, area_visualize_colour='#0008ff',area_visualize_opacity=0.0,door_open_colour='#9a9083', area_custom_properties={'doormat':(15,5)})
@@ -476,7 +476,9 @@ class CollectionGoal(WorldGoal):
             # update our satisfied boolean
             is_satisfied = is_satisfied and zone_satisfied
         agent = grid_world.registered_agents['rescuebot']
-        agent2 = grid_world.registered_agents['objectadder']
+        agent2 = None
+        if 'objectadder' in grid_world.registered_agents.keys():
+            agent2 = grid_world.registered_agents['objectadder']
         human = grid_world.registered_agents['human']
         if human.properties['img_name'] == "/images/human-danger2.gif" and curr_tick not in self.__penalties:
             self.__penalties.append(curr_tick)
@@ -499,6 +501,7 @@ class CollectionGoal(WorldGoal):
             penalty = 0
 
         agent.change_property('score',self.__score - penalty)
-        agent2.change_property('score',self.__score - penalty)
+        if agent2:
+            agent2.change_property('score',self.__score - penalty)
 
         return is_satisfied, progress
