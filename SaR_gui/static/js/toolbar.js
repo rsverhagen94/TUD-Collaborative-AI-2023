@@ -467,8 +467,8 @@ function add_message(chatroom_ID, mssg) {
     mssg_content = mssg_content.replaceAll("no floods", "<span style='font-weight:bold; >no floods</span>");
     mssg_content = mssg_content.replaceAll("no floods", "<span style='color:green; >no floods</span>");
     
-    mssg_content = mssg_content.replaceAll("moderate rain", "<span style='font-weight:bold; >moderate rain</span>");
-    mssg_content = mssg_content.replaceAll("moderate rain", "<span style='color:green; >moderate rain</span>");
+    mssg_content = mssg_content.replaceAll("light rain", "<span style='font-weight:bold; >light rain</span>");
+    mssg_content = mssg_content.replaceAll("light rain", "<span style='color:green; >light rain</span>");
     
     mssg_content = mssg_content.replaceAll("I am really sorry", "<span style='font-weight:bold; >I am really sorry</span>");
     mssg_content = mssg_content.replaceAll("I am really sorry", "<span style='color:green; >I am really sorry</span>");

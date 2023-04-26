@@ -97,28 +97,31 @@ class ObjectAddingAgent(ArtificialBrain):
             action_kwargs = add_object([(20,9),(20,10),(20,11),(20,12),(20,13),(20,14),(20,15),(20,16)],"/images/pool20.svg",1,1,'water')
             return AddObject.__name__, action_kwargs
 
-        if self._tick >= 600:
+        if self._tick == 600:
             self._sendMessage('We have 7 minutes left before our mission ends.', 'RescueBot')
         
-        if self._tick >= 1200:
+        if self._tick == 1200:
             self._sendMessage('We have 6 minutes left before our mission ends.', 'RescueBot')
 
-        if self._tick >= 1800:
+        if self._tick == 1800:
             self._sendMessage('We have 5 minutes left before our mission ends.', 'RescueBot')
 
-        if self._tick >= 2400:
+        if self._tick == 2400:
             self._sendMessage('We have 4 minutes left before our mission ends.', 'RescueBot')
 
-        if self._tick >= 3000:
+        if self._tick == 3000:
             self._sendMessage('We have 3 minutes left before our mission ends.', 'RescueBot')
 
-        if self._tick >= 3600:
+        if self._tick == 3600:
             self._sendMessage('We have 2 minutes left before our mission ends.', 'RescueBot')
 
-        if self._tick >= 4200:
+        if self._tick == 4200:
             self._sendMessage('We have 1 minute left before our mission ends.', 'RescueBot')
 
-        else: 
+        if self._tick == 4799:
+            self._sendMessage('Time up!', 'RescueBot')
+
+        while True:
             return None, {}
         
     def _sendMessage(self, mssg, sender):

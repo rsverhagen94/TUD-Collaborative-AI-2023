@@ -66,6 +66,7 @@ class OfficialAgent(ArtificialBrain):
         self._recentVic = None
         self._receivedMessages = []
         self._moving = False
+        self._completedSearch = False
         self._score = 0
 
     def initialize(self):
@@ -174,7 +175,7 @@ class OfficialAgent(ArtificialBrain):
                 # Check which victims can be rescued next because human or agent already found them             
                 for vic in remainingVics:
                     # Define a previously found victim as target victim because all areas have been searched
-                    if vic in self._foundVictims and vic in self._todo and len(self._searchedRooms)==0:
+                    if vic in self._foundVictims and vic in self._todo and self._completedSearch:
                         self._goalVic = vic
                         self._goalLoc = remaining[vic]
                         # Move to target victim and ask for help depending on condition. EDIT BASED ON YOUR CONDITION
@@ -223,6 +224,7 @@ class OfficialAgent(ArtificialBrain):
                                    and room['room_name'] not in self._tosearch]
                 # If all areas have been searched but the task is not finished, start searching areas again
                 if self._remainingZones and len(unsearchedRooms) == 0:
+                    self._completedSearch = True
                     self._tosearch = []
                     self._searchedRooms = []
                     self._sendMessages = []

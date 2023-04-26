@@ -275,8 +275,14 @@ class HumanBrain(HumanAgentBrain):
             obj_id = self.__select_random_obj_in_range(state,
                                                   range_=self.__grab_range,
                                                   property_to_check="is_movable")
-            if obj_id and 'critical' in obj_id or obj_id and 'mild' in obj_id or obj_id and 'healthy' in obj_id:
-                action_kwargs['object_id'] = obj_id       
+            if obj_id and 'healthy' in obj_id:
+                action_kwargs['object_id'] = obj_id
+            if obj_id and 'mild' in obj_id:
+                action_kwargs['object_id'] = obj_id
+                action_kwargs['action_duration'] = 10
+            if obj_id and 'critical' in obj_id:
+                action_kwargs['object_id'] = obj_id
+                action_kwargs['action_duration'] = 20      
 
         # If the user chose to drop an object in its inventory
         elif action == DropObjectTogether.__name__:
