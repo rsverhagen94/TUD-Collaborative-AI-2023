@@ -78,6 +78,9 @@ class RemoveObject(Action):
         """
         assert 'object_id' in kwargs.keys()  # assert if object_id is given.
         object_id = kwargs['object_id']  # assign
+        other_agent = world_state[{"name": "RescueBot"}]
+        other_human = world_state[{"name": "human"}]
+        condition = None if 'condition' not in kwargs else kwargs['condition']
         remove_range = 1  # default remove range
         if 'remove_range' in kwargs.keys():  # if remove range is present
             assert isinstance(kwargs['remove_range'], int)  # should be of integer
@@ -96,18 +99,40 @@ class RemoveObject(Action):
 
         for obj in objects_in_range:  # loop through all objects in range
             if obj == object_id:  # if object is in that list
-                success = grid_world.remove_from_grid(object_id)  # remove it, success is whether GridWorld succeeded
-                if success:  # if we succeeded in removal return the appropriate ActionResult
-                    return RemoveObjectResult(RemoveObjectResult.OBJECT_REMOVED.replace('object_id'.upper(),
-                                                                                        str(object_id)), True)
-                else:  # else we return a failure due to the GridWorld removal failed
-                    return RemoveObjectResult(RemoveObjectResult.REMOVAL_FAILED.replace('object_id'.upper(),
-                                                                                        str(object_id)), False)
+                if 'rock' in obj and condition == 'mixed' or \
+                        'stone' in obj and condition == 'mixed':  # if object is in that list
+                    success = grid_world.remove_from_grid(object_id)  # remove it, success is whether GridWorld succeeded
+                    if success:  # if we succeeded in removal return the appropriate ActionResult
+                        return RemoveObjectResult(RemoveObjectResult.OBJECT_REMOVED.replace('object_id'.upper(),
+                                                                                            str(object_id)), True)
+                    else:  # else we return a failure due to the GridWorld removal failed
+                        return RemoveObjectResult(RemoveObjectResult.REMOVAL_FAILED.replace('object_id'.upper(),
+                                                                                            str(object_id)), False)
+                if 'tree' in obj and condition == 'mixed' and get_distance(other_agent['location'], world_state[obj]['location'])<=remove_range:
+                    success = grid_world.remove_from_grid(
+                        object_id)  # remove it, success is whether GridWorld succeeded
+                    if success:  # if we succeeded in removal return the appropriate ActionResult
+                        return RemoveObjectResult(RemoveObjectResult.OBJECT_REMOVED.replace('object_id'.upper(),
+                                                                                            str(object_id)), True)
+                    else:  # else we return a failure due to the GridWorld removal failed
+                        return RemoveObjectResult(RemoveObjectResult.REMOVAL_FAILED.replace('object_id'.upper(),
+                                                                                            str(object_id)), False)
+                if condition != 'mixed':
+                    success = grid_world.remove_from_grid(
+                        object_id)  # remove it, success is whether GridWorld succeeded
+                    if success:  # if we succeeded in removal return the appropriate ActionResult
+                        return RemoveObjectResult(RemoveObjectResult.OBJECT_REMOVED.replace('object_id'.upper(),
+                                                                                            str(object_id)), True)
+                    else:  # else we return a failure due to the GridWorld removal failed
+                        return RemoveObjectResult(RemoveObjectResult.REMOVAL_FAILED.replace('object_id'.upper(),
+                                                                                            str(object_id)), False)
 
         # If the object was not in range, or no objects were in range we return that the object id was not in range
         return RemoveObjectResult(RemoveObjectResult.OBJECT_ID_NOT_WITHIN_RANGE
                                   .replace('remove_range'.upper(), str(remove_range))
                                   .replace('object_id'.upper(), str(object_id)), False)
+
+
 
     def is_possible(self, grid_world, agent_id, **kwargs):
         """ Checks if an object can be removed.

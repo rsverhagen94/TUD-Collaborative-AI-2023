@@ -11,7 +11,9 @@ from matrx.actions.object_actions import GrabObject, DropObject, RemoveObject
 from matrx.actions.move_actions import MoveNorth
 from matrx.messages.message import Message
 from matrx.messages.message_manager import MessageManager
-from actions1.CustomActions import RemoveObjectTogether, CarryObjectTogether, DropObjectTogether, CarryObject, Drop, AddObject
+from actions1.CustomActions import RemoveObjectTogether, CarryObjectTogether, DropObjectTogether, CarryObject, Drop, \
+    AddObject
+
 
 class Phase(enum.Enum):
     INTRO = 1,
@@ -33,6 +35,7 @@ class Phase(enum.Enum):
     FIX_ORDER_DROP = 17,
     REMOVE_OBSTACLE_IF_NEEDED = 18,
     ENTER_ROOM = 19
+
 
 class OfficialAgent(ArtificialBrain):
     def __init__(self, slowdown, condition):
@@ -72,7 +75,8 @@ class OfficialAgent(ArtificialBrain):
     def initialize(self):
         # Initialization of the state tracker and navigation algorithm
         self._state_tracker = StateTracker(agent_id=self.agent_id)
-        self._navigator = Navigator(agent_id=self.agent_id,action_set=self.action_set, algorithm=Navigator.A_STAR_ALGORITHM)
+        self._navigator = Navigator(agent_id=self.agent_id, action_set=self.action_set,
+                                    algorithm=Navigator.A_STAR_ALGORITHM)
 
     def filter_observations(self, state):
         # Filtering of the world state before deciding on an action 
@@ -82,7 +86,7 @@ class OfficialAgent(ArtificialBrain):
         # Provide suggestions
         self._tick = state['World']['nr_ticks']
         self._second = state['World']['tick_duration'] * state['World']['nr_ticks']
-       
+
         # Identify team members
         agent_name = state[self.agent_id]['obj_id']
         for member in state['World']['team_members']:
@@ -118,13 +122,16 @@ class OfficialAgent(ArtificialBrain):
 
         # Check whether victims are currently being carried together by human and agent 
         for info in state.values():
-            if 'is_human_agent' in info and 'human' in info['name'] and len(info['is_carrying']) > 0 and 'critical' in info['is_carrying'][0]['obj_id'] or \
-                'is_human_agent' in info and 'human' in info['name'] and len(info['is_carrying']) > 0 and 'mild' in info['is_carrying'][0]['obj_id'] and self._rescue=='together' and not self._moving:
+            if 'is_human_agent' in info and 'human' in info['name'] and len(info['is_carrying']) > 0 and 'critical' in \
+                    info['is_carrying'][0]['obj_id'] or \
+                    'is_human_agent' in info and 'human' in info['name'] and len(info['is_carrying']) > 0 and 'mild' in \
+                    info['is_carrying'][0]['obj_id'] and self._rescue == 'together' and not self._moving:
                 # If victim is being carried, add to collected victims memory
                 if info['is_carrying'][0]['img_name'][8:-4] not in self._collectedVictims:
                     self._collectedVictims.append(info['is_carrying'][0]['img_name'][8:-4])
                 self._carryingTogether = True
-            if 'is_human_agent' in info and 'human' in info['name'] and len(info['is_carrying']) == 0 or self._condition == 'baseline':
+            if 'is_human_agent' in info and 'human' in info['name'] and len(
+                    info['is_carrying']) == 0 or self._condition == 'baseline':
                 self._carryingTogether = False
         # If carrying a victim together, let agent be idle (because joint actions are essentially carried out by the human)
         if self._carryingTogether == True:
@@ -179,12 +186,15 @@ class OfficialAgent(ArtificialBrain):
                         self._goalVic = vic
                         self._goalLoc = remaining[vic]
                         # Move to target victim and ask for help depending on condition. EDIT BASED ON YOUR CONDITION
-                        if self._condition == 'required':# or self._condition == 'opportunistic' or self._condition == 'mixed':
+                        if self._condition == 'mixed':
                             self._rescue = 'together'
-                            self._sendMessage('Moving to ' + self._foundVictimLocs[vic]['room'] + ' to pick up ' + self._goalVic +'. Please come there as well to help me carry ' + self._goalVic + ' to the drop zone.', 'RescueBot')
+                            self._sendMessage('Moving to ' + self._foundVictimLocs[vic][
+                                'room'] + ' to pick up ' + self._goalVic + '. Please come there as well to help me carry ' + self._goalVic + ' to the drop zone.',
+                                              'RescueBot')
                         if self._condition == 'baseline' or self._condition == 'complementary':
                             self._rescue = 'alone'
-                            self._sendMessage('Moving to ' + self._foundVictimLocs[vic]['room'] + ' to pick up ' + self._goalVic +'.', 'RescueBot')                           
+                            self._sendMessage('Moving to ' + self._foundVictimLocs[vic][
+                                'room'] + ' to pick up ' + self._goalVic + '.', 'RescueBot')
                         # Plan path to victim because the exact location is known (i.e., the agent found this victim)
                         if 'location' in self._foundVictimLocs[vic].keys():
                             self._phase = Phase.PLAN_PATH_TO_VICTIM
@@ -198,7 +208,7 @@ class OfficialAgent(ArtificialBrain):
                         self._goalVic = vic
                         self._goalLoc = remaining[vic]
                         # Decide whether to rescue alone or together based on condition
-                        if self._condition == 'required':# or self._condition == 'opportunisitc' or self._condition == 'mixed'
+                        if self._condition == 'mixed':
                             self._rescue = 'together'
                         if self._condition == 'baseline' or self._condition == 'complementary':
                             self._recue = 'alone'
@@ -211,7 +221,8 @@ class OfficialAgent(ArtificialBrain):
                             self._phase = Phase.PLAN_PATH_TO_ROOM
                             return Idle.__name__, {'duration_in_ticks': 25}
                     # If there are no target victims found, visit an unsearched area to search for victims
-                    if vic not in self._foundVictims or vic in self._foundVictims and vic in self._todo and len(self._searchedRooms)>0:
+                    if vic not in self._foundVictims or vic in self._foundVictims and vic in self._todo and len(
+                            self._searchedRooms) > 0:
                         self._phase = Phase.PICK_UNSEARCHED_ROOM
 
             if Phase.PICK_UNSEARCHED_ROOM == self._phase:
@@ -230,15 +241,19 @@ class OfficialAgent(ArtificialBrain):
                     self._sendMessages = []
                     self.received_messages = []
                     self.received_messages_content = []
-                    self._sendMessage('Going to re-explore the areas again because we explored them all but did not complete our mission yet.', 'RescueBot')
+                    self._sendMessage(
+                        'Going to re-explore the areas again because we explored them all but did not complete our mission yet.',
+                        'RescueBot')
                     self._phase = Phase.FIND_NEXT_GOAL
                 # If there are still areas to search, define which one to search next
                 else:
                     # Identify the closest door when the agent did not search any areas yet
                     if self._currentDoor == None:
                         # Find all area entrance locations
-                        self._door = state.get_room_doors(self._getClosestRoom(state, unsearchedRooms, agent_location))[0]
-                        self._doormat = state.get_room(self._getClosestRoom(state, unsearchedRooms, agent_location))[-1]['doormat']
+                        self._door = state.get_room_doors(self._getClosestRoom(state, unsearchedRooms, agent_location))[
+                            0]
+                        self._doormat = \
+                            state.get_room(self._getClosestRoom(state, unsearchedRooms, agent_location))[-1]['doormat']
                         # Workaround for one area because of some bug
                         if self._door['room_name'] == 'area 1':
                             self._doormat = (3, 5)
@@ -246,8 +261,11 @@ class OfficialAgent(ArtificialBrain):
                         self._phase = Phase.PLAN_PATH_TO_ROOM
                     # Identify the closest door when the agent just searched another area
                     if self._currentDoor != None:
-                        self._door = state.get_room_doors(self._getClosestRoom(state, unsearchedRooms, self._currentDoor))[0]
-                        self._doormat = state.get_room(self._getClosestRoom(state, unsearchedRooms, self._currentDoor))[-1]['doormat']
+                        self._door = \
+                            state.get_room_doors(self._getClosestRoom(state, unsearchedRooms, self._currentDoor))[0]
+                        self._doormat = \
+                            state.get_room(self._getClosestRoom(state, unsearchedRooms, self._currentDoor))[-1][
+                                'doormat']
                         if self._door['room_name'] == 'area 1':
                             self._doormat = (3, 5)
                         self._phase = Phase.PLAN_PATH_TO_ROOM
@@ -255,7 +273,8 @@ class OfficialAgent(ArtificialBrain):
             if Phase.PLAN_PATH_TO_ROOM == self._phase:
                 self._navigator.reset_full()
                 # Switch to a different area when the human found a victim
-                if self._goalVic and self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[self._goalVic].keys():
+                if self._goalVic and self._goalVic in self._foundVictims and 'location' not in self._foundVictimLocs[
+                    self._goalVic].keys():
                     self._door = state.get_room_doors(self._foundVictimLocs[self._goalVic]['room'])[0]
                     self._doormat = state.get_room(self._foundVictimLocs[self._goalVic]['room'])[-1]['doormat']
                     if self._door['room_name'] == 'area 1':
@@ -276,7 +295,8 @@ class OfficialAgent(ArtificialBrain):
                     self._currentDoor = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 # Identify which area to move to because the human found the previously identified target victim
-                if self._goalVic and self._goalVic in self._foundVictims and self._door['room_name'] != self._foundVictimLocs[self._goalVic]['room']:
+                if self._goalVic and self._goalVic in self._foundVictims and self._door['room_name'] != \
+                        self._foundVictimLocs[self._goalVic]['room']:
                     self._currentDoor = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 # Identify the next area to search if the human already searched the previously identified area
@@ -287,11 +307,22 @@ class OfficialAgent(ArtificialBrain):
                 else:
                     self._state_tracker.update(state)
                     # Explain why the agent is moving to the specific area, either because it containts the current target victim or because it is the closest unsearched area
-                    if self._goalVic in self._foundVictims and str(self._door['room_name']) == self._foundVictimLocs[self._goalVic]['room'] and not self._remove:
+                    if self._goalVic in self._foundVictims and str(self._door['room_name']) == \
+                            self._foundVictimLocs[self._goalVic]['room'] and not self._remove:
                         # CAN BE EDITED TO BETTER FIT YOUR CONDITION E.G. "TO PICK UP TOGETHER WITH YOU"
-                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic + '.', 'RescueBot')
-                    if self._goalVic not in self._foundVictims and not self._remove or not self._goalVic and not self._remove :
-                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' because it is the closest unexplored area.', 'RescueBot')
+                        if self._condition != 'mixed':
+                            self._sendMessage(
+                                'Moving to ' + str(self._door['room_name']) + ' to pick up ' + self._goalVic + '.',
+                                'RescueBot')
+                        if self._condition == 'mixed':
+                            self._sendMessage(
+                                'Moving to ' + str(
+                                    self._door['room_name']) + ' to pick up ' + self._goalVic + ' together with you.',
+                                'RescueBot')
+                    if self._goalVic not in self._foundVictims and not self._remove or not self._goalVic and not self._remove:
+                        self._sendMessage(
+                            'Moving to ' + str(self._door['room_name']) + ' because it is the closest unexplored area.',
+                            'RescueBot')
                     self._currentDoor = self._door['location']
                     # Retrieve move actions to execute
                     action = self._navigator.get_move_action(self._state_tracker)
@@ -305,52 +336,106 @@ class OfficialAgent(ArtificialBrain):
                 agent_location = state[self.agent_id]['location']
                 # Identify which obstacle is blocking the entrance
                 for info in state.values():
-                    if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info['obj_id'] \
-                    or 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'tree' in info['obj_id'] \
-                    or 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'stone' in info['obj_id']:
+                    if 'class_inheritance' in info and 'ObstacleObject' in info['class_inheritance'] and 'rock' in info[
+                        'obj_id'] \
+                            or 'class_inheritance' in info and 'ObstacleObject' in info[
+                        'class_inheritance'] and 'tree' in info['obj_id'] \
+                            or 'class_inheritance' in info and 'ObstacleObject' in info[
+                        'class_inheritance'] and 'stone' in info['obj_id']:
                         objects.append(info)
                         # Communicate which obstacle is blocking the entrance (EDIT TO ACCOUNT FOR YOUR CONDITIONS)
                         if self._answered == False and not self._remove and not self._waiting:
-                            if self._condition == 'baseline': 
-                                self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \
-                                    Here is some information that might support you in deciding: \n • Explored: area ' + str(self._searchedRooms).replace('area ','') + ' \n • Found: ' + str(self._foundVictims) +  ' \
+                            if self._condition == 'baseline':
+                                self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                    self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \
+                                    Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                    self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
+                                    self._foundVictims) + ' \
                                     \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
-                            if self._condition == 'opportunisitc':
-                                self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(self._door['room_name']) + '. Please decide whether to "Remove alone", "Remove together" or "Continue" searching. \
-                                    Here is some information that might support you in deciding: \n • Explored: area ' + str(self._searchedRooms).replace('area ','') + ' \n • Found: ' + str(self._foundVictims) +  ' \
+                            if self._condition == 'opportunistic':
+                                self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                    self._door['room_name']) + '. Please decide whether to "Remove alone", "Remove together" or "Continue" searching. \
+                                    Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                    self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
+                                    self._foundVictims) + ' \
                                     \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
-                            self._waiting = True     
+                            if self._condition == 'mixed':
+                                if 'tree' in info['obj_id']:
+                                    self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                        self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \
+                                        Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                        self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
+                                        self._foundVictims) + ' \
+                                        \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
+                                else:
+                                    self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                        self._door['room_name']) + '. Please decide whether to "Remove alone", "Remove together" or "Continue" searching. \
+                                                                    Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                        self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
+                                        self._foundVictims) + ' \
+                                                                    \n • Rescued: ' + str(self._collectedVictims),
+                                                      'RescueBot')
+                            self._waiting = True
                         # Determine the next area to explore if the human tells the agent not to remove the obstacle
-                        if self.received_messages_content and self.received_messages_content[-1] == 'Continue' and not self._remove:
+                        if self.received_messages_content and self.received_messages_content[
+                            -1] == 'Continue' and not self._remove:
                             self._answered = True
                             self._waiting = False
                             # Add area to the to do list
                             self._tosearch.append(self._door['room_name'])
                             self._phase = Phase.FIND_NEXT_GOAL
                         # Remove the obstacle if the human tells the agent to do so
-                        if self.received_messages_content and self.received_messages_content[-1] == 'Remove' or self._remove or self.received_messages_content and self.received_messages_content[-1] == 'Remove alone':
+                        if self.received_messages_content and self.received_messages_content[
+                            -1] == 'Remove' or self._remove or self.received_messages_content and \
+                                self.received_messages_content[-1] == 'Remove alone':
                             if not self._remove:
                                 self._answered = True
                                 self._waiting = False
-                                self._sendMessage('Removing ' + info['obj_id'].split('_')[0] + ' blocking ' + str(self._door['room_name']) + '.', 'RescueBot')
-                            if self._remove:
-                                self._sendMessage('Removing ' + info['obj_id'].split('_')[0] + ' blocking ' + str(self._door['room_name']) + ' because you asked me to.', 'RescueBot')
-                            self._phase = Phase.ENTER_ROOM
-                            self._remove = False
-                            return RemoveObject.__name__, {'object_id': info['obj_id'], 'condition': self._condition}
+                                self._sendMessage('Removing ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                    self._door['room_name']) + '.', 'RescueBot')
+
+                                self._phase = Phase.ENTER_ROOM
+                                self._remove = False
+                                return RemoveObject.__name__, {'object_id': info['obj_id'],
+                                                               'condition': self._condition}
+
+                            if self._remove and 'tree' in info['obj_id'] and self._condition == 'mixed':
+                                self._sendMessage('Removing ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                    self._door['room_name']) + ' because you asked me to.', 'RescueBot')
+                                self._phase = Phase.ENTER_ROOM
+                                self._remove = False
+                                return RemoveObject.__name__, {'object_id': info['obj_id'],
+                                                               'condition': self._condition}
+
+                            if self._remove and ('stone' in info['obj_id'] or 'rock' in info[
+                                'obj_id']) and self._condition == 'mixed':
+                                self._sendMessage(
+                                    'Helping you remove ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                        self._door['room_name']) + ' because you asked me to.', 'RescueBot')
+                                if state[{'is_human_agent': True}]:
+                                    self._sendMessage(
+                                        'Lets remove ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                            self._door['room_name']) + '!', 'RescueBot')
+                                    return None, {}
+
                         # Remove the obstacle together if the human decides so
-                        if self.received_messages_content and self.received_messages_content[-1] == 'Remove together' and self._condition == 'opportunistic' or self._remove and self._condition == 'opportunistic':
+                        if self.received_messages_content and self.received_messages_content[
+                            -1] == 'Remove together' and (
+                                self._condition == 'opportunistic' or self._condition == 'mixed') or self._remove and (
+                                self._condition == 'opportunistic' or self._condition == 'mixed'):
                             if not self._remove:
                                 self._answered = True
-                            # Tell the human to come over and be idle untill human arrives
+                            # Tell the human to come over and be idle until human arrives
                             if not state[{'is_human_agent': True}]:
-                                self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove ' + info['obj_id'].split('_')[0] + ' together.','RescueBot')
+                                self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove ' +
+                                                  info['obj_id'].split('_')[0] + ' together.', 'RescueBot')
                                 return None, {}
                             # Tell the human to remove the obstacle when he/she arrives
                             if state[{'is_human_agent': True}]:
-                                self._sendMessage('Lets remove ' + info['obj_id'].split('_')[0] + ' blocking ' + str(self._door['room_name']) + '!','RescueBot')
+                                self._sendMessage('Lets remove ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                    self._door['room_name']) + '!', 'RescueBot')
                                 return None, {}
-                        # Remain idle untill the human communicates what to do with the identified obstacle 
+                        # Remain idle until the human communicates what to do with the identified obstacle
                         else:
                             return None, {}
                 # If no obstacles are blocking the entrance, enter the area
@@ -367,7 +452,8 @@ class OfficialAgent(ArtificialBrain):
                     self._currentDoor = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 # If the target victim is found in a different area, start moving there
-                if self._goalVic in self._foundVictims and self._door['room_name'] != self._foundVictimLocs[self._goalVic]['room']:
+                if self._goalVic in self._foundVictims and self._door['room_name'] != \
+                        self._foundVictimLocs[self._goalVic]['room']:
                     self._currentDoor = None
                     self._phase = Phase.FIND_NEXT_GOAL
                 # If the human searched the same area, plan searching another area instead
@@ -414,10 +500,13 @@ class OfficialAgent(ArtificialBrain):
                             if vic in self._foundVictims and 'location' not in self._foundVictimLocs[vic].keys():
                                 self._recentVic = vic
                                 # Add the exact victim location to the corresponding dictionary
-                                self._foundVictimLocs[vic] = {'location': info['location'],'room': self._door['room_name'], 'obj_id': info['obj_id']}
+                                self._foundVictimLocs[vic] = {'location': info['location'],
+                                                              'room': self._door['room_name'], 'obj_id': info['obj_id']}
                                 if vic == self._goalVic:
                                     # Communicate which victim was found
-                                    self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + ' because you told me ' + vic + ' was located here.','RescueBot')
+                                    self._sendMessage('Found ' + vic + ' in ' + self._door[
+                                        'room_name'] + ' because you told me ' + vic + ' was located here.',
+                                                      'RescueBot')
                                     # Add the area to the list with searched areas
                                     if self._door['room_name'] not in self._searchedRooms:
                                         self._searchedRooms.append(self._door['room_name'])
@@ -434,25 +523,53 @@ class OfficialAgent(ArtificialBrain):
                                 self._recentVic = vic
                                 # Add the victim and the location to the corresponding dictionary
                                 self._foundVictims.append(vic)
-                                self._foundVictimLocs[vic] = {'location': info['location'],'room': self._door['room_name'], 'obj_id': info['obj_id']}
+                                self._foundVictimLocs[vic] = {'location': info['location'],
+                                                              'room': self._door['room_name'], 'obj_id': info['obj_id']}
                                 # Communicate which victim the agent found and ask the human whether to rescue the victim now or at a later stage (EDIT BELOW TO ACCOUNT FOR YOUR CONDITIONS)
                                 if self._condition == 'baseline' and self._answered == False and not self._waiting:
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. Please decide whether to "Rescue" or "Continue" searching. \
-                                        Here is some information that might support you in deciding: \n • Explored: area ' + str(self._searchedRooms).replace('area ','') + ' \n • Found: ' + str(self._foundVictims) +  ' \
+                                        Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                        self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
+                                        self._foundVictims) + ' \
                                         \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
-                                    self._waiting = True  
+                                    self._waiting = True
 
                                 if self._condition == 'opportunistic' and self._answered == False and not self._waiting:
                                     self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. Please decide whether to "Rescue together", "Rescue alone", or "Continue" searching. \
-                                        Here is some information that might support you in deciding: \n • Explored: area ' + str(self._searchedRooms).replace('area ','') + ' \n • Found: ' + str(self._foundVictims) +  ' \
+                                        Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                        self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
+                                        self._foundVictims) + ' \
                                         \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
-                                    self._waiting = True  
+                                    self._waiting = True
+
+                                if self._condition == 'mixed' and self._answered == False and not self._waiting:
+                                    if 'mild' in vic:
+                                        self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. Please decide whether to "Rescue together", "Rescue alone", or "Continue" searching. \n \n \
+                                                                             Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                            self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
+                                            self._foundVictims) + ' \
+                                        \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
+
+                                        self._waiting = True
+
+                                    if 'critical' in vic:
+                                        self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. Please decide whether to "Rescue" or "Continue" searching. \n\n \
+                                                                             Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                            self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
+                                            self._foundVictims) + ' \
+                                        \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
+
+                                        self._waiting = True
+
                     # Execute move actions to explore the area
                     return action, {}
 
                 # Communicate that the agent did not find the target victim in the area while the human previously communicated the victim was located here
-                if self._goalVic in self._foundVictims and self._goalVic not in self._roomVics and self._foundVictimLocs[self._goalVic]['room'] == self._door['room_name']:
-                    self._sendMessage(self._goalVic + ' not present in ' + str(self._door['room_name']) + ' because I explored the whole area without finding ' + self._goalVic + '.','RescueBot')
+                if self._goalVic in self._foundVictims and self._goalVic not in self._roomVics and \
+                        self._foundVictimLocs[self._goalVic]['room'] == self._door['room_name']:
+                    self._sendMessage(self._goalVic + ' not present in ' + str(self._door[
+                                                                                   'room_name']) + ' because I explored the whole area without finding ' + self._goalVic + '.',
+                                      'RescueBot')
                     # Remove the victim location from memory
                     self._foundVictimLocs.pop(self._goalVic, None)
                     self._foundVictims.remove(self._goalVic)
@@ -465,8 +582,9 @@ class OfficialAgent(ArtificialBrain):
                     self._searchedRooms.append(self._door['room_name'])
                 # Make a plan to rescue a found critically injured victim if the human decides so (EDIT BELOW TO ACCOUNT FOR YOUR CONDITIONS)
                 if self.received_messages_content and self.received_messages_content[-1] == 'Rescue' \
-                or self.received_messages_content and self.received_messages_content[-1] == 'Rescue alone':
-                    self._sendMessage('Picking up ' + self._recentVic + ' in ' + self._door['room_name'] + '.','RescueBot')
+                        or self.received_messages_content and self.received_messages_content[-1] == 'Rescue alone' and self._condition != 'mixed':
+                    self._sendMessage('Picking up ' + self._recentVic + ' in ' + self._door['room_name'] + '.',
+                                      'RescueBot')
                     self._rescue = 'alone'
                     self._answered = True
                     self._waiting = False
@@ -474,20 +592,75 @@ class OfficialAgent(ArtificialBrain):
                     self._goalLoc = self._remaining[self._goalVic]
                     self._recentVic = None
                     self._phase = Phase.PLAN_PATH_TO_VICTIM
+
                 # Make a plan to rescue a found injured victim together if the human decides so
-                if self.received_messages_content and self.received_messages_content[-1] == 'Rescue together' and self._condition == 'opportunistic':
+                if self.received_messages_content and self.received_messages_content[
+                    -1] == 'Rescue together' and self._condition == 'opportunistic':
                     self._rescue = 'together'
                     self._answered = True
                     self._waiting = False
                     # Tell the human to come over and help carry the mildly injured victim
                     if not state[{'is_human_agent': True}]:
-                        self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(self._recentVic) + ' together.', 'RescueBot')
+                        self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(
+                            self._recentVic) + ' together.', 'RescueBot')
                     # Tell the human to carry the mildly injured victim together
                     if state[{'is_human_agent': True}]:
-                        self._sendMessage('Lets carry ' + str(self._recentVic) + ' together! Please wait until I moved on top of ' + str(self._recentVic) + '.', 'RescueBot')
+                        self._sendMessage('Lets carry ' + str(
+                            self._recentVic) + ' together! Please wait until I moved on top of ' + str(
+                            self._recentVic) + '.', 'RescueBot')
                     self._goalVic = self._recentVic
                     self._recentVic = None
                     self._phase = Phase.PLAN_PATH_TO_VICTIM
+
+                # MIXED condition -> rescue a found mildly injured victim together if the human decides so
+                if self.received_messages_content and self.received_messages_content[
+                    -1] == 'Rescue together' and 'mild' in self._recentVic and self._condition == 'mixed':
+                    self._rescue = 'together'
+                    self._answered = True
+                    self._waiting = False
+                    # Tell the human to come over and help carry the mildly injured victim
+                    if not state[{'is_human_agent': True}]:
+                        self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(
+                            self._recentVic) + ' together.', 'RescueBot')
+                    # Tell the human to carry the mildly injured victim together
+                    if state[{'is_human_agent': True}]:
+                        self._sendMessage('Lets carry ' + str(
+                            self._recentVic) + ' together! Please wait until I moved on top of ' + str(
+                            self._recentVic) + '.', 'RescueBot')
+                    self._goalVic = self._recentVic
+                    self._recentVic = None
+                    self._phase = Phase.PLAN_PATH_TO_VICTIM
+
+                # MIXED condition -> rescue the mildly injured victim alone if the human decides so, and communicate this to the human
+                if self.received_messages_content and self.received_messages_content[
+                    -1] == 'Rescue alone' and 'mild' in self._recentVic and self._condition == 'mixed':
+                    self._sendMessage('Picking up ' + str(self._recentVic) + ' in ' + self._door['room_name'] + '.',
+                                      'RescueBot')
+                    self._rescue = 'alone'
+                    self._answered = True
+                    self._waiting = False
+                    self._recentVic = None
+                    self._phase = Phase.FIND_NEXT_GOAL
+
+                # Make a plan to rescue a found critically injured victim if the human decides so
+                if self.received_messages_content and self.received_messages_content[
+                    -1] == 'Rescue' and 'critical' in self._recentVic and self._condition == 'mixed':
+                    self._rescue = 'together'
+                    self._answered = True
+                    self._waiting = False
+                    # Tell the human to come over and help carry the critically injured victim
+                    if not state[{'is_human_agent': True}]:
+                        self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to help me carry ' + str(
+                            self._recentVic) + '.', 'RescueBot')
+                    # Tell the human to carry the critically injured victim together
+                    if state[{'is_human_agent': True}]:
+                        self._sendMessage('Lets carry ' + str(
+                            self._recentVic) + ' together! Please wait until I moved on top of ' + str(
+                            self._recentVic) + '.', 'RescueBot')
+                    self._goalVic = self._recentVic
+                    self._recentVic = None
+                    self._phase = Phase.PLAN_PATH_TO_VICTIM
+
                 # Continue searching other areas if the human decides so
                 if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
                     self._answered = True
@@ -495,8 +668,9 @@ class OfficialAgent(ArtificialBrain):
                     self._todo.append(self._recentVic)
                     self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
-                # Remain idle untill the human communicates to the agent what to do with the found victim
-                if self.received_messages_content and self._waiting and 'Rescue' not in self.received_messages_content[-1] and self.received_messages_content[-1] != 'Continue':
+                # Remain idle until the human communicates to the agent what to do with the found victim
+                if self.received_messages_content and self._waiting and 'Rescue' not in self.received_messages_content[
+                    -1] and self.received_messages_content[-1] != 'Continue':
                     return None, {}
                 # Find the next area to search when the agent is not waiting for an answer from the human or occupied with rescuing a victim
                 if not self._waiting and not self._rescue:
@@ -533,35 +707,45 @@ class OfficialAgent(ArtificialBrain):
                 self._roomtiles = roomTiles
                 objects = []
                 # When the victim has to be carried by human and agent together, check whether human has arrived at the victim's location
-                if self._condition == 'opportunisitc' or self._condition == 'required' or self._condition == 'mixed':
+                if self._condition == 'opportunistic' or self._condition == 'required' or self._condition == 'mixed':
                     for info in state.values():
                         # When the victim has to be carried by human and agent together, check whether human has arrived at the victim's location
-                        if 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id'] and info['location'] in self._roomtiles or \
-                            'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'mild' in info['obj_id'] and info['location'] in self._roomtiles and self._rescue=='together' or \
-                            self._goalVic in self._foundVictims and self._goalVic in self._todo and self._completedSearch and 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'critical' in info['obj_id'] and info['location'] in self._roomtiles or \
-                            self._goalVic in self._foundVictims and self._goalVic in self._todo and self._completedSearch and 'class_inheritance' in info and 'CollectableBlock' in info['class_inheritance'] and 'mild' in info['obj_id'] and info['location'] in self._roomtiles:
+                        if 'class_inheritance' in info and 'CollectableBlock' in info[
+                            'class_inheritance'] and 'critical' in info['obj_id'] and info[
+                            'location'] in self._roomtiles or \
+                                'class_inheritance' in info and 'CollectableBlock' in info[
+                            'class_inheritance'] and 'mild' in info['obj_id'] and info[
+                            'location'] in self._roomtiles and self._rescue == 'together' or \
+                                self._goalVic in self._foundVictims and self._goalVic in self._todo and self._completedSearch and 'class_inheritance' in info and 'CollectableBlock' in \
+                                info['class_inheritance'] and 'critical' in info['obj_id'] and info[
+                            'location'] in self._roomtiles or \
+                                self._goalVic in self._foundVictims and self._goalVic in self._todo and self._completedSearch and 'class_inheritance' in info and 'CollectableBlock' in \
+                                info['class_inheritance'] and 'mild' in info['obj_id'] and info[
+                            'location'] in self._roomtiles:
                             objects.append(info)
                             # Remain idle when the human has not arrived at the location
-                            if not self._humanName in info['name']:
+                            if not 'human' in info['name']:
                                 self._waiting = True
                                 self._moving = False
                                 return None, {}
                     # Add the victim to the list of rescued victims when it has been picked up
-                    if len(objects) == 0 and 'critical' in self._goalVic or len(objects) == 0 and 'mild' in self._goalVic and self._rescue=='together':
+                    if len(objects) == 0 and 'critical' in self._goalVic or len(
+                            objects) == 0 and 'mild' in self._goalVic and self._rescue == 'together':
                         self._waiting = False
                         if self._goalVic not in self._collectedVictims:
                             self._collectedVictims.append(self._goalVic)
                         self._carryingTogether = True
                         # Determine the next victim to rescue or search
                         self._phase = Phase.FIND_NEXT_GOAL
-                    
+
                 # When rescuing injured victims alone, pick the victim up and plan the path to the drop zone
-                if 'mild' in self._goalVic and self._rescue=='alone' or self._condition == 'baseline':
+                if 'mild' in self._goalVic and self._rescue == 'alone' or self._condition == 'baseline':
                     self._phase = Phase.PLAN_PATH_TO_DROPPOINT
                     if self._goalVic not in self._collectedVictims:
                         self._collectedVictims.append(self._goalVic)
                     self._carrying = True
-                    return CarryObject.__name__, {'object_id': self._foundVictimLocs[self._goalVic]['obj_id'], 'condition':self._condition}
+                    return CarryObject.__name__, {'object_id': self._foundVictimLocs[self._goalVic]['obj_id'],
+                                                  'condition': self._condition}
 
             if Phase.PLAN_PATH_TO_DROPPOINT == self._phase:
                 self._navigator.reset_full()
@@ -572,7 +756,7 @@ class OfficialAgent(ArtificialBrain):
 
             if Phase.FOLLOW_PATH_TO_DROPPOINT == self._phase:
                 # Communicate that the agent is transporting a mildly injured victim alone to the drop zone
-                if 'mild' in self._goalVic and self._rescue=='alone' or self._condition == 'baseline':
+                if 'mild' in self._goalVic and self._rescue == 'alone' or self._condition == 'baseline':
                     self._sendMessage('Transporting ' + self._goalVic + ' to the drop zone.', 'RescueBot')
                 self._state_tracker.update(state)
                 # Follow the path to the drop zone
@@ -584,7 +768,7 @@ class OfficialAgent(ArtificialBrain):
 
             if Phase.DROP_VICTIM == self._phase:
                 # Communicate that the agent delivered a mildly injured victim alone to the drop zone
-                if 'mild' in self._goalVic and self._rescue=='alone' or self._condition == 'baseline':
+                if 'mild' in self._goalVic and self._rescue == 'alone' or self._condition == 'baseline':
                     self._sendMessage('Delivered ' + self._goalVic + ' at the drop zone.', 'RescueBot')
                 # Identify the next target victim to rescue
                 self._phase = Phase.FIND_NEXT_GOAL
@@ -612,7 +796,7 @@ class OfficialAgent(ArtificialBrain):
         '''
         process incoming messages received from the team members
         '''
-        
+
         receivedMessages = {}
         # Create a dictionary with a list of received messages from each team member
         for member in teamMembers:
@@ -685,17 +869,20 @@ class OfficialAgent(ArtificialBrain):
                             self._todo.append(self._recentVic)
                         self._waiting = False
                         # Let the human know that the agent is coming over to help
-                        self._sendMessage('Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.','RescueBot')
+                        self._sendMessage(
+                            'Moving to ' + str(self._door['room_name']) + ' to help you remove an obstacle.',
+                            'RescueBot')
                         # Plan the path to the relevant area
                         self._phase = Phase.PLAN_PATH_TO_ROOM
                     # Come over to help after dropping a victim that is currently being carried by the agent
                     else:
                         area = 'area ' + msg.split()[-1]
-                        self._sendMessage('Will come to ' + area + ' after dropping ' + self._goalVic + '.','RescueBot')
+                        self._sendMessage('Will come to ' + area + ' after dropping ' + self._goalVic + '.',
+                                          'RescueBot')
             # Store the current location of the human in memory
-            if mssgs and mssgs[-1].split()[-1] in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14']:
+            if mssgs and mssgs[-1].split()[-1] in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13',
+                                                   '14']:
                 self._humanLoc = int(mssgs[-1].split()[-1])
-
 
     def _sendMessage(self, mssg, sender):
         '''
