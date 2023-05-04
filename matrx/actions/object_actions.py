@@ -117,7 +117,7 @@ class RemoveObject(Action):
                     else:  # else we return a failure due to the GridWorld removal failed
                         return RemoveObjectResult(RemoveObjectResult.REMOVAL_FAILED.replace('object_id'.upper(),
                                                                                             str(object_id)), False)
-                if condition != 'mixed':
+                if condition != 'mixed' or ('rock' not in obj and 'tree' not in obj and 'stone' not in obj):
                     success = grid_world.remove_from_grid(
                         object_id)  # remove it, success is whether GridWorld succeeded
                     if success:  # if we succeeded in removal return the appropriate ActionResult

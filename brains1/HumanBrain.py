@@ -326,7 +326,7 @@ class HumanBrain(HumanAgentBrain):
             if obj_id and 'critical' in obj_id:
                 action_kwargs['object_id'] = obj_id
                 if self.__condition == 'mixed':
-                    action_kwargs['action_duration'] = 20 # independence: critical can only be rescued
+                    action_kwargs['action_duration'] = 20 # independence: critical can only be rescued by human
                 else:
                     action_kwargs['action_duration'] = 80
 

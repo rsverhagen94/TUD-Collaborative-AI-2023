@@ -71,6 +71,7 @@ class OfficialAgent(ArtificialBrain):
         self._moving = False
         self._completedSearch = False
         self._score = 0
+        self._remaining = {}
 
     def initialize(self):
         # Initialization of the state tracker and navigation algorithm
@@ -205,13 +206,14 @@ class OfficialAgent(ArtificialBrain):
                             return Idle.__name__, {'duration_in_ticks': 25}
                     # Define a previously found victim as target victim
                     if vic in self._foundVictims and vic not in self._todo:
+                        if self._condition == 'mixed' and 'critical' in vic:
+                            self._phase = Phase.PICK_UNSEARCHED_ROOM
+                            continue
                         self._goalVic = vic
                         self._goalLoc = remaining[vic]
                         # Decide whether to rescue alone or together based on condition
-                        if self._condition == 'mixed':
-                            self._rescue = 'together'
-                        if self._condition == 'baseline' or self._condition == 'complementary':
-                            self._recue = 'alone'
+                        if self._condition == 'baseline' or self._condition == 'complementary' or self._condition == 'mixed':
+                            self._rescue = 'alone'
                         # Plan path to victim because the exact location is known (i.e., the agent found this victim)
                         if 'location' in self._foundVictimLocs[vic].keys():
                             self._phase = Phase.PLAN_PATH_TO_VICTIM
@@ -553,8 +555,8 @@ class OfficialAgent(ArtificialBrain):
                                         self._waiting = True
 
                                     if 'critical' in vic:
-                                        self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. Please decide whether to "Rescue" or "Continue" searching. \n\n \
-                                                                             Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                        self._sendMessage('Found ' + vic + ' in ' + self._door['room_name'] + '. You can come rescue the victim. \n\n \
+                                                                             Here is some information that might support you in deciding if you want to rescue now or later: \n • Explored: area ' + str(
                                             self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
                                             self._foundVictims) + ' \
                                         \n • Rescued: ' + str(self._collectedVictims), 'RescueBot')
@@ -581,8 +583,8 @@ class OfficialAgent(ArtificialBrain):
                 if self._door['room_name'] not in self._searchedRooms:
                     self._searchedRooms.append(self._door['room_name'])
                 # Make a plan to rescue a found critically injured victim if the human decides so (EDIT BELOW TO ACCOUNT FOR YOUR CONDITIONS)
-                if self.received_messages_content and self.received_messages_content[-1] == 'Rescue' \
-                        or self.received_messages_content and self.received_messages_content[-1] == 'Rescue alone' and self._condition != 'mixed':
+                if (self.received_messages_content and self.received_messages_content[-1] == 'Rescue' \
+                        or self.received_messages_content and self.received_messages_content[-1] == 'Rescue alone') and self._condition != 'mixed':
                     self._sendMessage('Picking up ' + self._recentVic + ' in ' + self._door['room_name'] + '.',
                                       'RescueBot')
                     self._rescue = 'alone'
@@ -639,27 +641,22 @@ class OfficialAgent(ArtificialBrain):
                     self._rescue = 'alone'
                     self._answered = True
                     self._waiting = False
-                    self._recentVic = None
-                    self._phase = Phase.FIND_NEXT_GOAL
-
-                # Make a plan to rescue a found critically injured victim if the human decides so
-                if self.received_messages_content and self.received_messages_content[
-                    -1] == 'Rescue' and 'critical' in self._recentVic and self._condition == 'mixed':
-                    self._rescue = 'together'
-                    self._answered = True
-                    self._waiting = False
-                    # Tell the human to come over and help carry the critically injured victim
-                    if not state[{'is_human_agent': True}]:
-                        self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to help me carry ' + str(
-                            self._recentVic) + '.', 'RescueBot')
-                    # Tell the human to carry the critically injured victim together
-                    if state[{'is_human_agent': True}]:
-                        self._sendMessage('Lets carry ' + str(
-                            self._recentVic) + ' together! Please wait until I moved on top of ' + str(
-                            self._recentVic) + '.', 'RescueBot')
                     self._goalVic = self._recentVic
+                    self._goalLoc = self._remaining[self._goalVic]
                     self._recentVic = None
                     self._phase = Phase.PLAN_PATH_TO_VICTIM
+
+                # # Make a plan to rescue a found critically injured victim if the human decides so
+                # if self.received_messages_content and self.received_messages_content[
+                #     -1] == 'Rescue' and 'critical' in self._recentVic and self._condition == 'mixed':
+                #     self._answered = True
+                #     self._waiting = False
+                #     # Tell the human to come over and help carry the critically injured victim
+                #     self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to carry ' + str(
+                #             self._recentVic) + ' alone.', 'RescueBot')
+                #     self._recentVic = None
+                #     self._phase = Phase.FIND_NEXT_GOAL
+
 
                 # Continue searching other areas if the human decides so
                 if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
@@ -668,6 +665,7 @@ class OfficialAgent(ArtificialBrain):
                     self._todo.append(self._recentVic)
                     self._recentVic = None
                     self._phase = Phase.FIND_NEXT_GOAL
+
                 # Remain idle until the human communicates to the agent what to do with the found victim
                 if self.received_messages_content and self._waiting and 'Rescue' not in self.received_messages_content[
                     -1] and self.received_messages_content[-1] != 'Continue':
