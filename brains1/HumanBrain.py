@@ -294,7 +294,8 @@ class HumanBrain(HumanAgentBrain):
                 action_kwargs['action_duration'] = 10
             if obj_id and 'critical' in obj_id:
                 action_kwargs['object_id'] = obj_id
-                action_kwargs['action_duration'] = 20
+                if self.__condition != 'mixed':
+                    action_kwargs['action_duration'] = 20
 
                 # If the user chose to drop an object in its inventory
         elif action == DropObjectTogether.__name__:
@@ -320,13 +321,13 @@ class HumanBrain(HumanAgentBrain):
             if obj_id and 'mild' in obj_id:
                 action_kwargs['object_id'] = obj_id
                 if self.__condition == 'mixed':
-                    action_kwargs['action_duration'] = 10  # no-constraints: if carried together does not improve time
+                    action_kwargs['action_duration'] = 10  # no-constraints: carried together does not improve time
                 else:
                     action_kwargs['action_duration'] = 40
             if obj_id and 'critical' in obj_id:
                 action_kwargs['object_id'] = obj_id
                 if self.__condition == 'mixed':
-                    action_kwargs['action_duration'] = 20 # independence: critical can only be rescued by human
+                    action_kwargs['action_duration'] = 20  # independence: critical can only be rescued by human
                 else:
                     action_kwargs['action_duration'] = 80
 
@@ -373,15 +374,13 @@ class HumanBrain(HumanAgentBrain):
             if obj_id and 'critical' not in obj_id and 'mild' not in obj_id and 'healthy' not in obj_id:
                 action_kwargs['object_id'] = obj_id
                 if 'stone' in obj_id:
-                    if self.__condition == 'mixed':  # human can remove stone alone
-                        action_kwargs['action_duration'] = 10
+                    if self.__condition == 'mixed':  # soft interdependence -> removing stone takes a lot alone
+                        action_kwargs['action_duration'] = 100
                     else:
                         action_kwargs['action_duration'] = 30
                 if 'rock' in obj_id:
-                    if self.__condition == 'mixed':  # hard interdependence -> removing stone takes a lot alone
-                        action_kwargs['action_duration'] = 200
-                    else:
-                        action_kwargs['action_duration'] = 90
+                    if self.__condition != 'mixed':  # hard interdependence -> removing rock can only be done together
+                       action_kwargs['action_duration'] = 90
                 if 'tree' in obj_id:
                     if self.__condition != 'mixed':  # user can not remove tree -> dependence on robot to remove it
                         action_kwargs['action_duration'] = 60

@@ -99,8 +99,7 @@ class RemoveObject(Action):
 
         for obj in objects_in_range:  # loop through all objects in range
             if obj == object_id:  # if object is in that list
-                if 'rock' in obj and condition == 'mixed' or \
-                        'stone' in obj and condition == 'mixed':  # if object is in that list
+                if 'stone' in obj and condition == 'mixed':  # if object is in that list
                     success = grid_world.remove_from_grid(object_id)  # remove it, success is whether GridWorld succeeded
                     if success:  # if we succeeded in removal return the appropriate ActionResult
                         return RemoveObjectResult(RemoveObjectResult.OBJECT_REMOVED.replace('object_id'.upper(),
@@ -108,7 +107,7 @@ class RemoveObject(Action):
                     else:  # else we return a failure due to the GridWorld removal failed
                         return RemoveObjectResult(RemoveObjectResult.REMOVAL_FAILED.replace('object_id'.upper(),
                                                                                             str(object_id)), False)
-                if 'tree' in obj and condition == 'mixed' and get_distance(other_agent['location'], world_state[obj]['location'])<=remove_range:
+                if ('tree' in obj or 'rock' in obj) and condition == 'mixed' and get_distance(other_agent['location'], world_state[obj]['location'])<=remove_range:
                     success = grid_world.remove_from_grid(
                         object_id)  # remove it, success is whether GridWorld succeeded
                     if success:  # if we succeeded in removal return the appropriate ActionResult

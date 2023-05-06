@@ -646,13 +646,17 @@ class ArtificialBrain(ArtificialAgentBrain, ABC):
             params['action_duration'] = self.__slowdown
         # define duration to remove stone object by agent only
         if act == 'RemoveObject' and 'stone' in params['object_id']:
-            params['action_duration'] = 30
+            if self.__condition == 'mixed':
+                params['action_duration'] = 100
+            else:
+                params['action_duration'] = 30
         # define duration to remove tree object by agent only
         if act == 'RemoveObject' and 'tree' in params['object_id']:
             params['action_duration'] = 60
         # define duration to remove rock object by agent only
         if act == 'RemoveObject' and 'rock' in params['object_id']:
-            params['action_duration'] = 90
+            if self.__condition != 'mixed':
+                params['action_duration'] = 90
         # define duration to pick up a mildly injured victim by agent
         if act == 'CarryObject' and 'mild' in params['object_id']:
             params['action_duration'] = 40

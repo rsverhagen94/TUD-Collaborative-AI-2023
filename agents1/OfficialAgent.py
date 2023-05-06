@@ -375,7 +375,15 @@ class OfficialAgent(ArtificialBrain):
                                         foundWithLoc) + ' \
                                                                         \n • Rescued: ' + str(self._collectedVictims),
                                                       'RescueBot')
-                                else:
+                                if 'rock' in info['obj_id']:
+                                    self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                        self._door['room_name']) + '. Please decide whether to "Remove" or "Continue" searching. \
+                                                                        Here is some information that might support you in deciding: \n • Explored: area ' + str(
+                                        self._searchedRooms).replace('area ', '') + ' \n • Found: ' + str(
+                                        foundWithLoc) + ' \
+                                                                        \n • Rescued: ' + str(self._collectedVictims),
+                                                      'RescueBot')
+                                if 'stone' in info['obj_id']:
                                     self._sendMessage('Found ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
                                         self._door['room_name']) + '. Please decide whether to "Remove alone", "Remove together" or "Continue" searching. \
                                                                         Here is some information that might support you in deciding: \n • Explored: area ' + str(
@@ -396,6 +404,22 @@ class OfficialAgent(ArtificialBrain):
                         if self.received_messages_content and self.received_messages_content[
                             -1] == 'Remove' or self._remove or self.received_messages_content and \
                                 self.received_messages_content[-1] == 'Remove alone':
+
+                            if not self._remove and 'rock' in info['obj_id'] and self._condition == 'mixed':
+                                self._answered = True
+                                self._waiting = False
+                                # Tell the human to come over and be idle until human arrives
+                                if not state[{'is_human_agent': True}]:
+                                    self._sendMessage('Please come to ' + str(self._door['room_name']) + ' to remove ' +
+                                                      info['obj_id'].split('_')[0] + ' together.', 'RescueBot')
+                                    return None, {}
+                                # Tell the human to remove the obstacle when he/she arrives
+                                if state[{'is_human_agent': True}]:
+                                    self._sendMessage(
+                                        'Lets remove ' + info['obj_id'].split('_')[0] + ' blocking ' + str(
+                                            self._door['room_name']) + '!', 'RescueBot')
+                                    return None, {}
+
                             if not self._remove:
                                 self._answered = True
                                 self._waiting = False
