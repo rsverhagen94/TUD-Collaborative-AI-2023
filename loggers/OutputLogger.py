@@ -21,6 +21,7 @@ def output_logger(fld):
     idle1 = 0
     idle2 = 0
     idle3 = 0
+    idle4 = 0
 
     area_tiles = ['(2, 2)', '(2, 3)', '(3, 2)', '(3, 3)', '(4, 2)', '(4, 3)', '(8, 2)', '(8, 3)', '(9, 2)', '(9, 3)', '(10, 2)', '(10, 3)', '(14, 2)', '(14, 3)', '(15, 2)', '(15, 3)', '(16, 2)', '(16, 3)', '(20, 2)', '(20, 3)',
                 '(21, 2)', '(21, 3)', '(22, 2)', '(22, 3)', '(2, 8)', '(2, 9)', '(3, 8)', '(3, 9)', '(4, 8)', '(4, 9)', '(8, 8)', '(8, 9)', '(9, 8)', '(9, 9)', '(10, 8)', '(10, 9)', '(14, 8)', '(14, 9)', '(15, 8)', '(15, 9)',
@@ -47,12 +48,14 @@ def output_logger(fld):
             if row[7] == '2750' and row[5] not in area_tiles:
                 shelter3 = False
 
-            if int(row[7]) < 50 and row[2:4] == "Idle":
+            if int(row[7]) < 50 and (row[2] == "Idle" or row[2] == ""):
                 idle1 += 1
-            elif int(row[7]) < 1850 and row[2:4] == "Idle":
+            elif int(row[7]) < 1850 and (row[2] == "Idle" or row[2] == ""):
                 idle2 += 1
-            elif row[2:4] == "Idle":
+            elif int(row[7]) < 2750 and (row[2] == "Idle" or row[2] == ""):
                 idle3 += 1
+            elif row[2] == "Idle" or row[2] == "":
+                idle4 += 1
 
             res = {action_header[i]: row[i] for i in range(len(action_header))}
             action_contents.append(res)
@@ -65,5 +68,5 @@ def output_logger(fld):
     print("Saving output...")
     with open(os.path.join(recent_dir,'world_1/output.csv'),mode='w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerow(['completeness','score','no_ticks','agent_actions','human_actions','shelter1','shelter2','shelter3','idle1','idle2','idle3'])
-        csv_writer.writerow([completeness,score,no_ticks,len(unique_agent_actions),len(unique_human_actions),shelter1,shelter2,shelter3,idle1,idle2,idle3])
+        csv_writer.writerow(['completeness','score','no_ticks','agent_actions','human_actions','shelter1','shelter2','shelter3','idle1','idle2','idle3','idle4'])
+        csv_writer.writerow([completeness,score,no_ticks,len(unique_agent_actions),len(unique_human_actions),shelter1,shelter2,shelter3,idle1,idle2,idle3,idle4])
