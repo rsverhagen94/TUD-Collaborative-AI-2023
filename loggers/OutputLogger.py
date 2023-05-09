@@ -13,6 +13,7 @@ def output_logger(fld):
     # Calculate the unique human and agent actions
     unique_agent_actions = []
     unique_human_actions = []
+    joint_actions =[]
     shelter1 = True
     shelter2 = True
     shelter3 = True
@@ -32,6 +33,8 @@ def output_logger(fld):
             if row[4:6] not in unique_human_actions and row[4]!="":
                 unique_human_actions.append(row[4:6])
             if row[4] == 'RemoveObjectTogether' or row[4] == 'CarryObjectTogether' or row[4] == 'DropObjectTogether':
+                if row[4:6] not in joint_actions:
+                    joint_actions.append(row[4:6])
                 if row[4:6] not in unique_agent_actions:
                     unique_agent_actions.append(row[4:6])
             if row[7] == '50' and row[5] not in area_tiles:
@@ -51,5 +54,5 @@ def output_logger(fld):
     print("Saving output...")
     with open(os.path.join(recent_dir,'world_1/output.csv'),mode='w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerow(['completeness','score','no_ticks','agent_actions','human_actions','shelter1','shelter2','shelter3'])
-        csv_writer.writerow([completeness,score,no_ticks,len(unique_agent_actions),len(unique_human_actions),shelter1,shelter2,shelter3])
+        csv_writer.writerow(['completeness','score','no_ticks','agent_actions','human_actions','shelter1','shelter2','shelter3', 'joint actions', 'number_joint'])
+        csv_writer.writerow([completeness,score,no_ticks,len(unique_agent_actions),len(unique_human_actions),shelter1,shelter2,shelter3, joint_actions, len(joint_actions)])
