@@ -48,13 +48,13 @@ def output_logger(fld):
             if row[7] == '2750' and row[5] not in area_tiles:
                 shelter3 = False
 
-            if int(row[7]) < 50 and (row[2] == "Idle" or row[2] == ""):
+            if int(row[7]) < 50 and (row[2] == "Idle"):
                 idle1 += 1
-            elif int(row[7]) < 1850 and (row[2] == "Idle" or row[2] == ""):
+            elif int(row[7]) < 1850 and (row[2] == "Idle"):
                 idle2 += 1
-            elif int(row[7]) < 2750 and (row[2] == "Idle" or row[2] == ""):
+            elif int(row[7]) < 2750 and (row[2] == "Idle"):
                 idle3 += 1
-            elif row[2] == "Idle" or row[2] == "":
+            elif row[2] == "Idle":
                 idle4 += 1
 
             res = {action_header[i]: row[i] for i in range(len(action_header))}
@@ -64,6 +64,12 @@ def output_logger(fld):
     no_ticks = action_contents[-1]['tick_nr']
     score = action_contents[-1]['score']
     completeness = action_contents[-1]['completeness']
+
+    idle1 = round((idle1 / 50), 2)
+    idle2 = round((idle2 / 1800), 2)
+    idle3 = round((idle3 / 900), 2)
+    idle4 = round((idle4 / (int(no_ticks) - 2750)), 2)
+
     # Save the output as a csv file
     print("Saving output...")
     with open(os.path.join(recent_dir,'world_1/output.csv'),mode='w') as csv_file:
