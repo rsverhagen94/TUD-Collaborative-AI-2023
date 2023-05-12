@@ -354,11 +354,11 @@ class HumanBrain(HumanAgentBrain):
             if obj_id and 'critical' not in obj_id and 'mild' not in obj_id and 'healthy' not in obj_id:
                 action_kwargs['object_id'] = obj_id
                 if 'stone' in obj_id:
-                    action_kwargs['action_duration'] = 30
+                    action_kwargs['action_duration'] = 40
                 if 'rock' in obj_id:
-                    action_kwargs['action_duration'] = 90
+                    action_kwargs['action_duration'] = 120
                 if 'tree' in obj_id:
-                    action_kwargs['action_duration'] = 60
+                    action_kwargs['action_duration'] = 80
    
         # if the user chose to do an open or close door action, find a door to
         # open/close within range
