@@ -12,11 +12,17 @@ if __name__ == "__main__":
     fld = os.getcwd()
     print("\nEnter one of the task types 'tutorial' or 'official':")
     choice1=input()
+    print("\nEnter one of the condition types 'baseline' or 'mixed':")
+    choice2 = input()
     if choice1=='tutorial':
         builder = create_builder(task_type='tutorial', condition='tutorial')
     else:
         # ADD QUESTION ON CONDITION HERE
-        builder = create_builder(task_type='official', condition='baseline')
+        if choice2 == 'baseline':
+            builder = create_builder(task_type='official', condition='baseline')
+        if choice2 == 'mixed':
+            builder = create_builder(task_type='official', condition='mixed')
+
 
     # Start overarching MATRX scripts and threads, such as the api and/or visualizer if requested. Here we also link our own media resource folder with MATRX.
     media_folder = pathlib.Path().resolve()
