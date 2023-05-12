@@ -240,7 +240,7 @@ class GridWorld:
         while not is_done:
 
             if self.__run_matrx_api and api.matrx_paused:
-                print("MATRX paused through api")
+                #print("MATRX paused through api")
                 gevent.sleep(1)
             else:
                 is_done, tick_duration = self.__step()
