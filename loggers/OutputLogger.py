@@ -17,11 +17,21 @@ def output_logger(fld):
     shelter2 = True
     shelter3 = True
 
-    # Count idle time of RescueBot
+    # Count the idle time of rescuebot
     idle1 = 0
     idle2 = 0
     idle3 = 0
     idle4 = 0
+
+    # Count the number of human and rescuebot sent messages
+    human_sent_messages_nr1 = 0
+    human_sent_messages_nr2 = 0
+    human_sent_messages_nr3 = 0
+    human_sent_messages_nr4 = 0
+    rescuebot_sent_messages_nr1 = 0
+    rescuebot_sent_messages_nr2 = 0
+    rescuebot_sent_messages_nr3 = 0
+    rescuebot_sent_messages_nr4 = 0
 
     area_tiles = ['(2, 2)', '(2, 3)', '(3, 2)', '(3, 3)', '(4, 2)', '(4, 3)', '(8, 2)', '(8, 3)', '(9, 2)', '(9, 3)', '(10, 2)', '(10, 3)', '(14, 2)', '(14, 3)', '(15, 2)', '(15, 3)', '(16, 2)', '(16, 3)', '(20, 2)', '(20, 3)',
                 '(21, 2)', '(21, 3)', '(22, 2)', '(22, 3)', '(2, 8)', '(2, 9)', '(3, 8)', '(3, 9)', '(4, 8)', '(4, 9)', '(8, 8)', '(8, 9)', '(9, 8)', '(9, 9)', '(10, 8)', '(10, 9)', '(14, 8)', '(14, 9)', '(15, 8)', '(15, 9)',
@@ -41,21 +51,34 @@ def output_logger(fld):
             if row[4] == 'RemoveObjectTogether' or row[4] == 'CarryObjectTogether' or row[4] == 'DropObjectTogether':
                 if row[4:6] not in unique_agent_actions:
                     unique_agent_actions.append(row[4:6])
-            if row[7] == '50' and row[5] not in area_tiles:
+            if row[9] == '50' and row[5] not in area_tiles:
                 shelter1 = False
-            if row[7] == '1850' and row[5] not in area_tiles:
+            if row[9] == '1850' and row[5] not in area_tiles:
                 shelter2 = False
-            if row[7] == '2750' and row[5] not in area_tiles:
+            if row[9] == '2750' and row[5] not in area_tiles:
                 shelter3 = False
 
-            if int(row[7]) < 50 and (row[2] == "Idle"):
+            if int(row[9]) < 50 and (row[2] == "Idle"):
                 idle1 += 1
-            elif int(row[7]) < 1850 and (row[2] == "Idle"):
+            elif int(row[9]) < 1850 and (row[2] == "Idle"):
                 idle2 += 1
-            elif int(row[7]) < 2750 and (row[2] == "Idle"):
+            elif int(row[9]) < 2750 and (row[2] == "Idle"):
                 idle3 += 1
             elif row[2] == "Idle":
                 idle4 += 1
+
+            if int(row[9]) <= 50:
+                human_sent_messages_nr1 += int(row[6])
+                rescuebot_sent_messages_nr1 += int(row[7])
+            if int(row[9]) > 50 and int(row[9]) <= 1805:
+                human_sent_messages_nr2 += int(row[6])
+                rescuebot_sent_messages_nr2 += int(row[7])
+            if int(row[9]) > 1805 and int(row[9]) <= 2750:
+                human_sent_messages_nr3 += int(row[6])
+                rescuebot_sent_messages_nr3 += int(row[7])
+            if int(row[9]) > 2750:
+                human_sent_messages_nr4 += int(row[6])
+                rescuebot_sent_messages_nr4 += int(row[7])
 
             res = {action_header[i]: row[i] for i in range(len(action_header))}
             action_contents.append(res)
@@ -74,5 +97,19 @@ def output_logger(fld):
     print("Saving output...")
     with open(os.path.join(recent_dir,'world_1/output.csv'),mode='w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerow(['completeness','score','no_ticks','agent_actions','human_actions','shelter1','shelter2','shelter3','idle1','idle2','idle3','idle4'])
-        csv_writer.writerow([completeness,score,no_ticks,len(unique_agent_actions),len(unique_human_actions),shelter1,shelter2,shelter3,idle1,idle2,idle3,idle4])
+        csv_writer.writerow(
+            [
+                'completeness','score','no_ticks','agent_actions','human_actions',
+                'shelter1','shelter2','shelter3',
+                'idle1','idle2','idle3','idle4',
+                'human_sent_messages_nr1','human_sent_messages_nr2','human_sent_messages_nr3','human_sent_messages_nr4',
+            ]
+        )
+        csv_writer.writerow(
+            [
+                completeness,score,no_ticks,len(unique_agent_actions),len(unique_human_actions),
+                shelter1,shelter2,shelter3,
+                idle1,idle2,idle3,idle4,
+                human_sent_messages_nr1,human_sent_messages_nr2,human_sent_messages_nr3,human_sent_messages_nr4,
+            ]
+        )
