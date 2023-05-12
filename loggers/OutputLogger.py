@@ -58,11 +58,11 @@ def output_logger(fld):
             if row[9] == '2750' and row[5] not in area_tiles:
                 shelter3 = False
 
-            if int(row[9]) < 50 and (row[2] == "Idle"):
+            if int(row[9]) <= 50 and (row[2] == "Idle"):
                 idle1 += 1
-            elif int(row[9]) < 1850 and (row[2] == "Idle"):
+            elif int(row[9]) <= 1850 and (row[2] == "Idle"):
                 idle2 += 1
-            elif int(row[9]) < 2750 and (row[2] == "Idle"):
+            elif int(row[9]) <= 2750 and (row[2] == "Idle"):
                 idle3 += 1
             elif row[2] == "Idle":
                 idle4 += 1
