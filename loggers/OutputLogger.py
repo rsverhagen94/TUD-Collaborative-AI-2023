@@ -19,6 +19,12 @@ def output_logger(fld):
     joint_actions_4 = []
     joint_actions = []
 
+    individual_actions_1 = []
+    individual_actions_2 = []
+    individual_actions_3 = []
+    individual_actions_4 = []
+    individual_actions = []
+
     shelter1 = True
     shelter2 = True
     shelter3 = True
@@ -51,6 +57,21 @@ def output_logger(fld):
 
                 if row[4:6] not in unique_agent_actions:
                     unique_agent_actions.append(row[4:6])
+
+            if row[4] == 'RemoveObject' or row[4] == 'CarryObject' or row[4] == 'Drop':
+                if row[4:6] not in individual_actions:
+                    individual_actions.append(row[4:6])
+                    if int(row[7]) <= 50:
+                        individual_actions_1.append(row[4:6])
+                    if 50 < int(row[7]) <= 1850:
+                        individual_actions_2.append(row[4:6])
+                    if 1850 < int(row[7]) <= 2750:
+                        individual_actions_3.append(row[4:6])
+                    if 2750 < int(row[7]):
+                        individual_actions_4.append(row[4:6])
+
+                if row[4:6] not in unique_agent_actions:
+                    unique_agent_actions.append(row[4:6])
             if row[7] == '50' and row[5] not in area_tiles:
                 shelter1 = False
             if row[7] == '1850' and row[5] not in area_tiles:
@@ -68,5 +89,6 @@ def output_logger(fld):
     print("Saving output...")
     with open(os.path.join(recent_dir,'world_1/output.csv'),mode='w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerow(['completeness','score','no_ticks','agent_actions','human_actions','shelter1','shelter2','shelter3', 'joint actions', 'number_joint', 'number_joint_1', 'number_joint_2', 'number_joint_3', 'number_joint_4'])
-        csv_writer.writerow([completeness,score,no_ticks,len(unique_agent_actions),len(unique_human_actions),shelter1,shelter2,shelter3, joint_actions, len(joint_actions), len(joint_actions_1), len(joint_actions_2), len(joint_actions_3), len(joint_actions_4)]
+        csv_writer.writerow(['completeness','score','no_ticks','agent_actions','human_actions','shelter1','shelter2','shelter3', 'number_joint', 'number_joint_1', 'number_joint_2', 'number_joint_3', 'number_joint_4', 'number_alone', 'number_alone_1', 'number_alone_2', 'number_alone_3', 'number_alone_4'])
+        csv_writer.writerow([completeness,score,no_ticks,len(unique_agent_actions),len(unique_human_actions),shelter1,shelter2,shelter3, len(joint_actions), len(joint_actions_1), len(joint_actions_2), len(joint_actions_3), len(joint_actions_4),
+                             len(individual_actions), len(individual_actions_1),  len(individual_actions_2),  len(individual_actions_3),  len(individual_actions_4)])
