@@ -29,6 +29,9 @@ def output_logger(fld):
     shelter2 = True
     shelter3 = True
 
+    # To keep track if the human has started moving
+    gameHasStarted = False
+
     # Count the idle time of rescuebot
     idle1 = 0
     idle2 = 0
@@ -54,6 +57,8 @@ def output_logger(fld):
     with open(action_file) as csvfile:
         reader = csv.reader(csvfile, delimiter=';', quotechar="'")
         for row in reader:
+            if not gameHasStarted and 'Move' in row[4]:
+                gameHasStarted = True
             if action_header==[]:
                 action_header=row
                 continue
@@ -98,13 +103,13 @@ def output_logger(fld):
             if row[9] == '3600' and row[5] not in area_tiles:
                 shelter3 = False
 
-            if int(row[9]) <= 1200 and (row[2] == "Idle"):
+            if gameHasStarted and int(row[9]) <= 1200 and (row[2] == "Idle" or row[2] == ""):
                 idle1 += 1
-            elif int(row[9]) <= 2400 and (row[2] == "Idle"):
+            elif gameHasStarted and int(row[9]) <= 2400 and (row[2] == "Idle" or row[2] == ""):
                 idle2 += 1
-            elif int(row[9]) <= 3600 and (row[2] == "Idle"):
+            elif gameHasStarted and int(row[9]) <= 3600 and (row[2] == "Idle" or row[2] == ""):
                 idle3 += 1
-            elif row[2] == "Idle":
+            elif gameHasStarted and (row[2] == "Idle" or row[2] == ""):
                 idle4 += 1
 
             if int(row[9]) <= 1200:
@@ -128,9 +133,9 @@ def output_logger(fld):
     score = action_contents[-1]['score']
     completeness = action_contents[-1]['completeness']
 
-    idle1 = round((idle1 / 50), 2)
-    idle2 = round((idle2 / 2350), 2)
-    idle3 = round((idle3 / 1150), 2)
+    idle1 = round((idle1 / 1200), 2)
+    idle2 = round((idle2 / 1200), 2)
+    idle3 = round((idle3 / 1200), 2)
     idle4 = round((idle4 / (int(no_ticks) - 3600)), 2)
 
     # Save the output as a csv file
