@@ -586,6 +586,16 @@ function add_message(chatroom_ID, mssg) {
         };
     }
 
+    if (mssg_content.includes("I have detected") || mssg_content.includes("advice was correct") ||
+        mssg_content.includes("advice was incorrect")) {
+        const audio_message = new Audio("https://www.fesliyanstudios.com/play-mp3/371");
+        audio_message.play();
+        audio_message.onended = function () {
+            audio_message.pause()
+        };
+    }
+
+
     content.className = "chat-content";
     content.innerHTML = mssg_content;
     div.appendChild(content);

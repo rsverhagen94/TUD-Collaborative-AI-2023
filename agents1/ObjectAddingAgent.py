@@ -41,7 +41,7 @@ class ObjectAddingAgent(ArtificialBrain):
         if self._tick >= 1050 and self._tick < 1100: # self._tick >= 800 and self._tick < 850:
             self._sendMessage('I have detected extreme rain arriving soon and predict it will cause new floods, so I advise you to take shelter in one of the areas as soon as possible and until the rain is over.', 'RescueBot')
         
-        if self._tick >= 1400 and self._tick < 1450: # self._tick >= 1050 and self._tick < 1100:
+        if self._tick >= 1300 and self._tick < 1450: # self._tick >= 1050 and self._tick < 1100:
             if self._score == state['objectadder']['score']:
                 self._sendMessage('My advice was correct, that weather was extreme! If you had not taken shelter, you would have lost important mission time due to injuries and 10 points of our score.', 'RescueBot')
             if self._score > state['objectadder']['score']:
@@ -66,7 +66,7 @@ class ObjectAddingAgent(ArtificialBrain):
             action_kwargs = add_object([(1,4),(23,22),(19,4),(7,10),(1,16),(11,16),(11,4),(5,10),(13,4),(13,16),(7,22),(17,22)],"/images/rain2.gif",2,1,'storm')
             return AddObject.__name__, action_kwargs
         
-        if self._tick == 1400 or self._tick == 1398 or self._tick == 1396 or self._tick == 1394 or self._tick == 1392 or self._tick == 1390 or self._tick == 1388 or self._tick == 1386 or self._tick == 1384 or self._tick == 1382 or self._tick == 1380 or self._tick == 1378:
+        if self._tick == 1300 or self._tick == 1298 or self._tick == 1296 or self._tick == 1294 or self._tick == 1292 or self._tick == 1290 or self._tick == 1288 or self._tick == 1286 or self._tick == 1284 or self._tick == 1282 or self._tick == 1280 or self._tick == 1278:
             for info in state.values():
                 if 'storm' in info['obj_id']:
                     return RemoveObject.__name__, {'object_id': info['obj_id'], 'condition': self._condition, 'remove_range':500}
