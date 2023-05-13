@@ -244,31 +244,31 @@ class HumanBrain(HumanAgentBrain):
                       (9, 19), (15, 19), (21, 19)]
 
         if self.__condition != 'tutorial':
-            if self._tick == 950 or self._tick == 1850 or self._tick == 2750:
+            if self._tick == 1200 or self._tick == 2400 or self._tick == 3600:
                 self.image = self.agent_properties["img_name"]
 
-            if state[{"name": 'human'}]['location'] in area_tiles and self._tick > 950 and self._tick < 1050 or \
-                    state[{"name": 'human'}]['location'] in area_tiles and self._tick > 1850 and self._tick < 1950 or \
-                    state[{"name": 'human'}]['location'] in area_tiles and self._tick > 2750 and self._tick < 2850:
+            if state[{"name": 'human'}]['location'] in area_tiles and self._tick > 1200 and self._tick < 1300 or \
+                    state[{"name": 'human'}]['location'] in area_tiles and self._tick > 2400 and self._tick < 2500 or \
+                    state[{"name": 'human'}]['location'] in area_tiles and self._tick > 3600 and self._tick < 3700:
                 self.image = self.agent_properties["img_name"]
 
-            if state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 950 and self._tick < 1050 or \
+            if state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 1200 and self._tick < 1300 or \
                     state[{"name": 'human'}][
-                        'location'] not in area_tiles and self._tick > 1850 and self._tick < 1950 or \
-                    state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 2750 and self._tick < 2850:
+                        'location'] not in area_tiles and self._tick > 2400 and self._tick < 2500 or \
+                    state[{"name": 'human'}]['location'] not in area_tiles and self._tick > 3600 and self._tick < 3700:
                 self.agent_properties["img_name"] = "/images/human-danger2.gif"
                 self.agent_properties["visualize_size"] = 2
                 return None, {}
 
-            if self._tick == 1050:
+            if self._tick == 1300:
                 self.agent_properties["img_name"] = str(self.image)
                 self.agent_properties["visualize_size"] = 1
 
-            if self._tick == 1950:
+            if self._tick == 2500:
                 self.agent_properties["img_name"] = str(self.image)
                 self.agent_properties["visualize_size"] = 1
 
-            if self._tick == 2850:
+            if self._tick == 3700:
                 self.agent_properties["img_name"] = str(self.image)
                 self.agent_properties["visualize_size"] = 1
 

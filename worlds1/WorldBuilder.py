@@ -105,7 +105,7 @@ def create_builder(task_type, condition):
     # Create the world builder
     if task_type=="official":
         # Create the collection goal
-        goal = CollectionGoal(max_nr_ticks=5000)
+        goal = CollectionGoal(max_nr_ticks=6000)
         builder = WorldBuilder(shape=[25,24], tick_duration=tick_duration, run_matrx_api=True, run_matrx_visualizer=False, verbose=verbose, simulation_goal=goal, visualization_bg_clr='#9a9083')
     else:
         # Create the collection goal
@@ -337,23 +337,23 @@ class CollectionGoal(WorldGoal):
         self.__progress = 0
         self.__score = 0
         self.__penalties = []
-    
+
     def score(self, grid_world):
-        if 1000 in self.__penalties and 1900 in self.__penalties and 2800 in self.__penalties:
+        if 1250 in self.__penalties and 2450 in self.__penalties and 3650 in self.__penalties:
             penalty=30
-        if 1000 in self.__penalties and 1900 in self.__penalties and 2800 not in self.__penalties:
+        if 1250 in self.__penalties and 2450 in self.__penalties and 3650 not in self.__penalties:
             penalty=20
-        if 1000 not in self.__penalties and 1900 in self.__penalties and 2800 in self.__penalties:
+        if 1250 not in self.__penalties and 2450 in self.__penalties and 3650 in self.__penalties:
             penalty=20
-        if 1000 in self.__penalties and 1900 not in self.__penalties and 2800 in self.__penalties:
+        if 1250 in self.__penalties and 2450 not in self.__penalties and 3650 in self.__penalties:
             penalty=20
-        if 1000 in self.__penalties and 1900 not in self.__penalties and 2800 not in self.__penalties:
+        if 1250 in self.__penalties and 2450 not in self.__penalties and 3650 not in self.__penalties:
             penalty=10
-        if 1000 not in self.__penalties and 1900 not in self.__penalties and 2800 in self.__penalties:
+        if 1250 not in self.__penalties and 2450 not in self.__penalties and 3650 in self.__penalties:
             penalty=10
-        if 1000 not in self.__penalties and 1900 in self.__penalties and 2800 not in self.__penalties:
+        if 1250 not in self.__penalties and 2450 in self.__penalties and 3650 not in self.__penalties:
             penalty=10
-        if 1000 not in self.__penalties and 1900 not in self.__penalties and 2800 not in self.__penalties:
+        if 1250 not in self.__penalties and 2450 not in self.__penalties and 3650 not in self.__penalties:
             penalty = 0
         return self.__score - penalty
 
@@ -482,22 +482,23 @@ class CollectionGoal(WorldGoal):
         human = grid_world.registered_agents['human']
         if human.properties['img_name'] == "/images/human-danger2.gif" and curr_tick not in self.__penalties:
             self.__penalties.append(curr_tick)
-        
-        if 1000 in self.__penalties and 1900 in self.__penalties and 2800 in self.__penalties:
+
+
+        if 1250 in self.__penalties and 2450 in self.__penalties and 3650 in self.__penalties:
             penalty=30
-        if 1000 in self.__penalties and 1900 in self.__penalties and 2800 not in self.__penalties:
+        if 1250 in self.__penalties and 2450 in self.__penalties and 3650 not in self.__penalties:
             penalty=20
-        if 1000 not in self.__penalties and 1900 in self.__penalties and 2800 in self.__penalties:
+        if 1250 not in self.__penalties and 2450 in self.__penalties and 3650 in self.__penalties:
             penalty=20
-        if 1000 in self.__penalties and 1900 not in self.__penalties and 2800 in self.__penalties:
+        if 1250 in self.__penalties and 2450 not in self.__penalties and 3650 in self.__penalties:
             penalty=20
-        if 1000 in self.__penalties and 1900 not in self.__penalties and 2800 not in self.__penalties:
+        if 1250 in self.__penalties and 2450 not in self.__penalties and 3650 not in self.__penalties:
             penalty=10
-        if 1000 not in self.__penalties and 1900 not in self.__penalties and 2800 in self.__penalties:
+        if 1250 not in self.__penalties and 2450 not in self.__penalties and 3650 in self.__penalties:
             penalty=10
-        if 1000 not in self.__penalties and 1900 in self.__penalties and 2800 not in self.__penalties:
+        if 1250 not in self.__penalties and 2450 in self.__penalties and 3650 not in self.__penalties:
             penalty=10
-        if 1000 not in self.__penalties and 1900 not in self.__penalties and 2800 not in self.__penalties:
+        if 1250 not in self.__penalties and 2450 not in self.__penalties and 3650 not in self.__penalties:
             penalty = 0
 
         agent.change_property('score',self.__score - penalty)
