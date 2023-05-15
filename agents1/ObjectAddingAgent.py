@@ -35,7 +35,7 @@ class ObjectAddingAgent(ArtificialBrain):
         self._tick = state['World']['nr_ticks']
         self._sendMessage('Current tick is ' + str(self._tick), 'RescueBot')
 
-        if self._tick == 1200 or self._tick == 2400 or self._tick == 3600: # self._tick == 950 or self._tick == 1850 or self._tick == 2750:
+        if self._tick == 1299 or self._tick == 2499 or self._tick == 3699: # self._tick == 950 or self._tick == 1850 or self._tick == 2750:
             self._score = state['objectadder']['score']
 
         if self._tick >= 1050 and self._tick < 1100: # self._tick >= 800 and self._tick < 850:
@@ -71,7 +71,7 @@ class ObjectAddingAgent(ArtificialBrain):
                 if 'storm' in info['obj_id']:
                     return RemoveObject.__name__, {'object_id': info['obj_id'], 'condition': self._condition, 'remove_range':500}
 
-        if self._tick == 1402:
+        if self._tick == 1302:
             action_kwargs = add_object([(6,6),(6,7),(6,8),(6,9),(6,10),(6,11),(12,12),(12,13),(12,14),(12,15),(12,16),(12,17),(12,18)],"/images/pool20.svg",1,1,'water')
             return AddObject.__name__, action_kwargs
         

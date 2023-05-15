@@ -339,21 +339,21 @@ class CollectionGoal(WorldGoal):
         self.__penalties = []
 
     def score(self, grid_world):
-        if 1250 in self.__penalties and 2450 in self.__penalties and 3650 in self.__penalties:
+        if 1299 in self.__penalties and 2499 in self.__penalties and 3699 in self.__penalties:
             penalty=30
-        if 1250 in self.__penalties and 2450 in self.__penalties and 3650 not in self.__penalties:
+        if 1299 in self.__penalties and 2499 in self.__penalties and 3699 not in self.__penalties:
             penalty=20
-        if 1250 not in self.__penalties and 2450 in self.__penalties and 3650 in self.__penalties:
+        if 1299 not in self.__penalties and 2499 in self.__penalties and 3699 in self.__penalties:
             penalty=20
-        if 1250 in self.__penalties and 2450 not in self.__penalties and 3650 in self.__penalties:
+        if 1299 in self.__penalties and 2499 not in self.__penalties and 3699 in self.__penalties:
             penalty=20
-        if 1250 in self.__penalties and 2450 not in self.__penalties and 3650 not in self.__penalties:
+        if 1299 in self.__penalties and 2499 not in self.__penalties and 3699 not in self.__penalties:
             penalty=10
-        if 1250 not in self.__penalties and 2450 not in self.__penalties and 3650 in self.__penalties:
+        if 1299 not in self.__penalties and 2499 not in self.__penalties and 3699 in self.__penalties:
             penalty=10
-        if 1250 not in self.__penalties and 2450 in self.__penalties and 3650 not in self.__penalties:
+        if 1299 not in self.__penalties and 2499 in self.__penalties and 3699 not in self.__penalties:
             penalty=10
-        if 1250 not in self.__penalties and 2450 not in self.__penalties and 3650 not in self.__penalties:
+        if 1299 not in self.__penalties and 2499 not in self.__penalties and 3699 not in self.__penalties:
             penalty = 0
         return self.__score - penalty
 
@@ -483,22 +483,23 @@ class CollectionGoal(WorldGoal):
         if human.properties['img_name'] == "/images/human-danger2.gif" and curr_tick not in self.__penalties:
             self.__penalties.append(curr_tick)
 
+        print(self.__penalties)
 
-        if 1250 in self.__penalties and 2450 in self.__penalties and 3650 in self.__penalties:
+        if 1299 in self.__penalties and 2499 in self.__penalties and 3699 in self.__penalties:
             penalty=30
-        if 1250 in self.__penalties and 2450 in self.__penalties and 3650 not in self.__penalties:
+        if 1299 in self.__penalties and 2499 in self.__penalties and 3699 not in self.__penalties:
             penalty=20
-        if 1250 not in self.__penalties and 2450 in self.__penalties and 3650 in self.__penalties:
+        if 1299 not in self.__penalties and 2499 in self.__penalties and 3699 in self.__penalties:
             penalty=20
-        if 1250 in self.__penalties and 2450 not in self.__penalties and 3650 in self.__penalties:
+        if 1299 in self.__penalties and 2499 not in self.__penalties and 3699 in self.__penalties:
             penalty=20
-        if 1250 in self.__penalties and 2450 not in self.__penalties and 3650 not in self.__penalties:
+        if 1299 in self.__penalties and 2499 not in self.__penalties and 3699 not in self.__penalties:
             penalty=10
-        if 1250 not in self.__penalties and 2450 not in self.__penalties and 3650 in self.__penalties:
+        if 1299 not in self.__penalties and 2499 not in self.__penalties and 3699 in self.__penalties:
             penalty=10
-        if 1250 not in self.__penalties and 2450 in self.__penalties and 3650 not in self.__penalties:
+        if 1299 not in self.__penalties and 2499 in self.__penalties and 3699 not in self.__penalties:
             penalty=10
-        if 1250 not in self.__penalties and 2450 not in self.__penalties and 3650 not in self.__penalties:
+        if 1299 not in self.__penalties and 2499 not in self.__penalties and 3699 not in self.__penalties:
             penalty = 0
 
         agent.change_property('score',self.__score - penalty)

@@ -96,11 +96,11 @@ def output_logger(fld):
                 if row[4:6] not in unique_agent_actions:
                     unique_agent_actions.append(row[4:6])
 
-            if row[9] == '1200' and row[5] not in area_tiles:
+            if int(row[9]) >= 1200 and int(row[9]) <= 1300 and row[5] not in area_tiles:
                 shelter1 = False
-            if row[9] == '2400' and row[5] not in area_tiles:
+            if int(row[9]) >= 2400 and int(row[9]) <= 2500 and row[5] not in area_tiles:
                 shelter2 = False
-            if row[9] == '3600' and row[5] not in area_tiles:
+            if int(row[9]) >= 3600 and int(row[9]) <= 3700 and row[5] not in area_tiles:
                 shelter3 = False
 
             if gameHasStarted and int(row[9]) <= 1200 and (row[2] == "Idle" or row[2] == ""):
