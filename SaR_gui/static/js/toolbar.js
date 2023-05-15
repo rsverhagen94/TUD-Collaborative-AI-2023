@@ -554,7 +554,7 @@ function add_message(chatroom_ID, mssg) {
 
     if (mssg_content.includes("Current tick is")) {
         var tick = Number(mssg_content.split(/[, ]+/).pop());
-        if (tick == 1450 || tick == 2550 || tick == 3750) {
+        if (tick == 1500 || tick == 2600 || tick == 3800) {
             toggle_pause();
     }}
 
