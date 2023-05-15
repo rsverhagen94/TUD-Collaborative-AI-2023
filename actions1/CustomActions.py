@@ -133,6 +133,9 @@ class CarryObject(Action):
         condition = None if 'condition' not in kwargs else kwargs['condition']
         # EDIT BELOW TO ACCOUNT FOR YOUR CONDITION
         if object_id and 'critical' in object_id and condition!='baseline' and condition!='tutorial':
+            if condition == 'mixed':
+                return _is_possible_grab(grid_world, agent_id=agent_id, object_id=object_id, grab_range=grab_range,
+                                         max_objects=max_objects)
             return GrabObjectResult(GrabObjectResult.RESULT_OBJECT_UNMOVABLE, False)
         if object_id and 'stone' in object_id and condition!='baseline' or object_id and 'rock' in object_id and condition!='baseline' or object_id and 'tree' in object_id and condition!='baseline':
             return GrabObjectResult(GrabObjectResult.RESULT_OBJECT_UNMOVABLE, False)
@@ -161,14 +164,17 @@ class CarryObject(Action):
 
         if 'critical' in object_id and 'human' in agent_id:
             reg_ag.change_property("img_name", "/images/carry-critical-human.svg")
+            print("Here critical")
         if 'healthy' in object_id and 'human' in agent_id:
             reg_ag.change_property("img_name", "/images/carry-healthy-human.svg")
         if 'mild' in object_id and 'human' in agent_id:
             reg_ag.change_property("img_name", "/images/carry-mild-human.svg")
+            print("Here mild")
         if 'critical' in object_id and 'bot' in agent_id:
             reg_ag.change_property("img_name", "/images/carry-critical-robot.svg")
         if 'mild' in object_id and 'bot' in agent_id:
             reg_ag.change_property("img_name", "/images/carry-mild-robot.svg")
+            print("Here mild robot")
 
         # Remove it from the grid world (it is now stored in the is_carrying list of the AgentAvatar
         succeeded = grid_world.remove_from_grid(object_id=env_obj.obj_id, remove_from_carrier=False)
@@ -313,8 +319,11 @@ class CarryObjectTogether(Action):
         if 'critical' in object_id and 'human' in agent_id:
             # change our image 
             agent.change_property("img_name", "/images/carry-critical-final.svg")
+            print("carry-critical-final")
         if 'mild' in object_id and 'human' in agent_id:
             agent.change_property("img_name", "/images/carry-mild-final.svg")
+            print("carry-mild-final")
+
 
         # Remove it from the grid world (it is now stored in the is_carrying list of the AgentAvatar
         succeeded = grid_world.remove_from_grid(object_id=env_obj.obj_id, remove_from_carrier=False)

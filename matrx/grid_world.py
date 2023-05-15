@@ -240,7 +240,7 @@ class GridWorld:
         while not is_done:
 
             if self.__run_matrx_api and api.matrx_paused:
-                print("MATRX paused through api")
+                #print("MATRX paused through api")
                 gevent.sleep(1)
             else:
                 is_done, tick_duration = self.__step()
@@ -626,8 +626,7 @@ class GridWorld:
                 (21, 2), (21, 3), (22, 2), (22, 3), (2, 8), (2, 9), (3, 8), (3, 9), (4, 8), (4, 9), (8, 8), (8, 9), (9, 8), (9, 9), (10, 8), (10, 9), (14, 8), (14, 9), (15, 8), (15, 9),
                 (16, 8), (16, 9), (2, 14), (2, 15), (3, 14), (3, 15), (4, 14), (4, 15), (8, 14), (8, 15), (9, 14), (9, 15), (10, 14), (10, 15), (14, 14), (14, 15), (15, 14), (15, 15), (16, 14),
                 (16, 15), (2, 20), (2, 21), (3, 20), (3, 21), (4, 20), (4, 21), (8, 20), (8, 21), (9, 20), (9, 21), (10, 20), (10, 21), (14, 20), (14, 21), (15, 20), (15, 21), (16, 20), 
-                (16, 21), (20, 20), (20, 21), (21, 20), (21, 21), (22, 20), (22, 21), (23, 8), (23, 9), (23, 10), (23, 11), (23, 12), (23, 13), (23, 14), (23, 15),
-                (3, 4), (9, 4), (15, 4), (21, 4), (3, 7), (9, 7), (15, 7), (3, 16), (9, 16), (15, 16), (3, 19), (9, 19), (15, 19), (21, 19)]
+                (16, 21), (20, 20), (20, 21), (21, 20), (21, 21), (22, 20), (22, 21), (23, 8), (23, 9), (23, 10), (23, 11), (23, 12), (23, 13), (23, 14), (23, 15)]
 
         # Log the data if we have any loggers
         for logger in self.__loggers:
@@ -684,8 +683,8 @@ class GridWorld:
                                    agent_inheritence_chain=agent_obj.class_inheritance,
                                    world_settings=world_state['World'])
 
-            if not agent_obj._check_agent_busy(curr_tick=self.__current_nr_ticks) or 'human' in agent_id and self.__current_nr_ticks > 950 and self.__current_nr_ticks < 1050 and self.human_loc not in area_tiles or \
-                    'human' in agent_id and self.__current_nr_ticks > 1850 and self.__current_nr_ticks < 1950 and self.human_loc not in area_tiles or 'human' in agent_id and self.__current_nr_ticks > 2750 and self.__current_nr_ticks < 2850 and self.human_loc not in area_tiles:
+            if not agent_obj._check_agent_busy(curr_tick=self.__current_nr_ticks) or 'human' in agent_id and self.__current_nr_ticks > 1200 and self.__current_nr_ticks < 1300 and self.human_loc not in area_tiles or \
+                    'human' in agent_id and self.__current_nr_ticks > 2400 and self.__current_nr_ticks < 2500 and self.human_loc not in area_tiles or 'human' in agent_id and self.__current_nr_ticks > 3600 and self.__current_nr_ticks < 3700 and self.human_loc not in area_tiles:
 
                 # Any received data from the api for this HumanAgent is send along to the get_action function
                 if agent_obj.is_human_agent:
