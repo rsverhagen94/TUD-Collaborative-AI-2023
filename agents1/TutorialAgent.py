@@ -136,7 +136,7 @@ class TutorialAgent(ArtificialBrain):
                 self._sendMessage('Hello! My name is RescueBot. During this task we will collaborate with each other to search and rescue the victims at the drop zone on our right. \
                 For this tutorial there are 4 victims and 3 injury types, during the official task there will be 8 victims to rescue. \
                 The red color refers to critically injured victims (critically injured girl and critically injured elderly woman), yellow to mildly injured victims (mildly injured boy and mildly injured elderly man), and green to healthy victims. \
-                Healthy victims do not need to be rescued. Furthermore, the environment will contain different obstacle types with varying removal times. \
+                Healthy victims do not need to be rescued. Furthermore, the environment will contain different obstacle types with varying removal times. Keep in mind that if you remove an object or rescue a victim alone, it will take 4 times more than doing it together!\
                 At the top of the world you can find the keyboard controls, for moving you can use the arrow keys. \
                 Press the "Continue" button to start the tutorial explaining everything.', 'RescueBot')
                 if self.received_messages_content and self.received_messages_content[-1]=='Continue':
