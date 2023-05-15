@@ -578,6 +578,23 @@ function add_message(chatroom_ID, mssg) {
     // add the message text to the message div
     if (!mssg_content.includes("Our score is") && !mssg_content.includes("Current tick is")) {
     var content = document.createElement('span');
+    if (mssg_content.includes("Please decide whether to")) {
+        const audio_message = new Audio("/static/sound/notification.mp3");
+        audio_message.play();
+        audio_message.onended = function () {
+            audio_message.pause()
+        };
+    }
+
+    if (mssg_content.includes("I have detected") || mssg_content.includes("advice was correct") ||
+        mssg_content.includes("advice was incorrect")) {
+        const audio_message = new Audio("/static/sound/notification.mp3");
+        audio_message.play();
+        audio_message.onended = function () {
+            audio_message.pause()
+        };
+    }
+
     content.className = "chat-content";
     content.innerHTML = mssg_content;
     div.appendChild(content);
